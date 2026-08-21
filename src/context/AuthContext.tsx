@@ -79,6 +79,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     const formatted = formatSupabaseUser(session.user);
                     setUser(formatted);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(formatted));
+
+                    // Clean URL hash if it contains auth tokens
+                    if (window.location.hash && window.location.hash.includes("access_token")) {
+                        window.history.replaceState({}, document.title, window.location.pathname);
+                    }
                 }
             } catch (err) {
                 console.error("Supabase getSession error:", err);
@@ -95,6 +100,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const formatted = formatSupabaseUser(session.user);
                 setUser(formatted);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(formatted));
+
+                // Clean hash parameters from URL
+                if (window.location.hash && window.location.hash.includes("access_token")) {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                }
             } else if (_event === "SIGNED_OUT") {
                 setUser(null);
                 localStorage.removeItem(STORAGE_KEY);
@@ -118,10 +128,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const signInWithGoogle = async () => {
         setLoading(true);
         try {
+            const redirectUrl = typeof window !== "undefined" ? window.location.origin : "https://blog-rho-steel-30.vercel.app";
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
-                    redirectTo: window.location.origin,
+                    redirectTo: redirectUrl,
                     queryParams: {
                         access_type: "offline",
                         prompt: "consent",
@@ -130,9 +141,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
 
             if (error) {
-                // If Google OAuth provider is not yet enabled in Supabase dashboard, provide friendly fallback
                 console.warn("Supabase OAuth warning:", error.message);
-                toast.error(error.message || "Could not start Google sign in. Please ensure Google Provider is enabled in Supabase.");
+                toast.error(error.message || "Could not start Google sign in.");
             }
         } catch (error: any) {
             console.error("Google sign in error:", error);
