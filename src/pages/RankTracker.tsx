@@ -1,353 +1,708 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Target, Plus, RefreshCw, Trash2, TrendingUp, TrendingDown, Minus, ExternalLink, Clock, Loader2, X, Search, Globe, AlertCircle, Eye, EyeOff, Filter, ArrowUpDown } from "lucide-react";
-import { dummyRankings } from "../assets/assets";
+import { useState, useMemo } from "react";
+import { Link, useSearchParams } from "react-router-dom";
+import {
+    Search,
+    LayoutGrid,
+    Sparkles,
+    FileText,
+    Code2,
+    Globe,
+    Zap,
+    Copy,
+    Check,
+    ArrowRight,
+    SlidersHorizontal,
+    Key,
+    Shield,
+    Hash,
+    FileType,
+    Maximize2,
+    X,
+} from "lucide-react";
+import toast from "react-hot-toast";
 
-interface KeywordItem {
-    _id: string;
-    keyword: string;
-    url: string;
-    domain: string;
-    currentPosition: number | null;
-    currentPage: number | null;
-    bestPosition: number | null;
-    positionChange: number;
-    active: boolean;
-    lastChecked: string | null;
-    status: string;
-    competitors: { position: number; url: string; domain: string; title: string; snippet: string }[];
+interface ToolItem {
+    id: string;
+    title: string;
+    category: "Text & Content" | "Developer" | "Web & SEO" | "Security & Utilities";
+    desc: string;
+    icon: any;
+    isPremium: boolean;
+    popular?: boolean;
+    path?: string;
+    interactiveType?: "case" | "wordcount" | "json" | "base64" | "password" | "urlencode";
 }
 
-export default function RankTracker() {
-    const [keywords, setKeywords] = useState<KeywordItem[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [showAddModal, setShowAddModal] = useState(false);
-    const [newKeyword, setNewKeyword] = useState("");
-    const [newUrl, setNewUrl] = useState("");
-    const [adding, setAdding] = useState(false);
-    const [addError, setAddError] = useState("");
-    const [refreshing, setRefreshing] = useState<string | null>(null);
-    const [deleting, setDeleting] = useState<string | null>(null);
-    const [searchQuery, setSearchQuery] = useState("");
-    const [statusFilter, setStatusFilter] = useState("all");
-    const [sortBy, setSortBy] = useState("newest");
+const TOOLS_COLLECTION: ToolItem[] = [
+    {
+        id: "case-converter",
+        title: "Text & Case Converter",
+        category: "Text & Content",
+        desc: "Convert text instantly into UPPERCASE, lowercase, Title Case, camelCase, kebab-case, or clean slug.",
+        icon: <FileType className="text-blue-500" size={24} />,
+        isPremium: false,
+        popular: true,
+        interactiveType: "case",
+    },
+    {
+        id: "word-counter",
+        title: "Word & Character Counter",
+        category: "Text & Content",
+        desc: "Real-time statistics for word count, character count, sentence count, and estimated reading time.",
+        icon: <FileText className="text-emerald-500" size={24} />,
+        isPremium: false,
+        popular: true,
+        interactiveType: "wordcount",
+    },
+    {
+        id: "json-formatter",
+        title: "JSON Formatter & Validator",
+        category: "Developer",
+        desc: "Validate, beautify, inspect, and minify JSON data with clear syntax error detection.",
+        icon: <Code2 className="text-purple-500" size={24} />,
+        isPremium: false,
+        popular: true,
+        interactiveType: "json",
+    },
+    {
+        id: "ai-site-auditor",
+        title: "Deep AI Site Auditor",
+        category: "Web & SEO",
+        desc: "Full automated AI analysis of website SEO, Core Web Vitals, performance bottlenecks, and security headers.",
+        icon: <Sparkles className="text-primary" size={24} />,
+        isPremium: true,
+        popular: true,
+        path: "/analyze",
+    },
+    {
+        id: "password-generator",
+        title: "Strong Password Generator",
+        category: "Security & Utilities",
+        desc: "Generate cryptographically secure, randomized passwords with customizable length and character sets.",
+        icon: <Key className="text-amber-500" size={24} />,
+        isPremium: false,
+        interactiveType: "password",
+    },
+    {
+        id: "base64-tool",
+        title: "Base64 Encoder / Decoder",
+        category: "Developer",
+        desc: "Easily encode plain text to Base64 format or decode Base64 strings back to clean readable text.",
+        icon: <Hash className="text-teal-500" size={24} />,
+        isPremium: false,
+        interactiveType: "base64",
+    },
+    {
+        id: "url-encoder",
+        title: "URL Encoder & Decoder",
+        category: "Developer",
+        desc: "Safely encode special characters for URLs or decode query parameters back into human text.",
+        icon: <Globe className="text-cyan-500" size={24} />,
+        isPremium: false,
+        interactiveType: "urlencode",
+    },
+    {
+        id: "ai-content-optimizer",
+        title: "AI Content & Meta Generator",
+        category: "Web & SEO",
+        desc: "Generate high-ranking meta title tags, descriptions, and topic keyword density recommendations.",
+        icon: <Sparkles className="text-primary" size={24} />,
+        isPremium: true,
+        popular: true,
+        path: "/analyze",
+    },
+    {
+        id: "site-benchmark",
+        title: "Side-by-Side Site Compare",
+        category: "Web & SEO",
+        desc: "Benchmark and contrast two competitor websites side-by-side on speed, SEO, and technical health.",
+        icon: <Zap className="text-orange-500" size={24} />,
+        isPremium: true,
+        path: "/analyze",
+    },
+    {
+        id: "security-headers",
+        title: "Security Header Checker",
+        category: "Security & Utilities",
+        desc: "Inspect Content-Security-Policy, HSTS, X-Frame-Options, and CORS configurations.",
+        icon: <Shield className="text-rose-500" size={24} />,
+        isPremium: false,
+        path: "/analyze",
+    },
+];
 
-    const fetchKeywords = async () => {
-        setTimeout(() => {
-            setKeywords(dummyRankings);
-            setLoading(false);
-        }, 1000);
-    };
+const CATEGORIES = ["All", "Text & Content", "Developer", "Web & SEO", "Security & Utilities"];
 
-    const handleAdd = async (e: React.SubmitEvent) => {
-        e.preventDefault();
-        setAdding(true);
-        setTimeout(() => {
-            setShowAddModal(false);
-            setAdding(false);
-        }, 1000);
-    };
+export default function AllTools() {
+    const [searchParams] = useSearchParams();
+    const initialQuery = searchParams.get("q") || "";
 
-    const handleRefresh = async (id: string) => {
-        setRefreshing(id);
-        setTimeout(() => {
-            setRefreshing(null);
-        }, 1000);
-    };
+    const [searchQuery, setSearchQuery] = useState(initialQuery);
+    const [selectedCategory, setSelectedCategory] = useState("All");
+    const [planFilter, setPlanFilter] = useState<"all" | "free" | "premium">("all");
 
-    const handleDelete = async (id: string) => {
-        if (!confirm("Delete this keyword tracking?")) return;
-        setDeleting(id);
-        setTimeout(() => {
-            setDeleting(null);
-        }, 1000);
-    };
+    // Modal Interactive Tool State
+    const [activeToolModal, setActiveToolModal] = useState<ToolItem | null>(null);
+    const [toolInput, setToolInput] = useState("");
+    const [toolOutput, setToolOutput] = useState("");
+    const [copied, setCopied] = useState(false);
 
-    const handleToggle = async (id: string) => {
-        console.log(id);
-    };
+    // Password generator config
+    const [passLength, setPassLength] = useState(16);
+    const [includeSymbols, setIncludeSymbols] = useState(true);
+    const [includeNumbers, setIncludeNumbers] = useState(true);
 
-    const getPositionBadge = (pos: number | null) => {
-        if (pos === null) return { text: "Not Ranked", class: "text-muted-foreground bg-muted/50" };
-        if (pos <= 3) return { text: `#${pos}`, class: "text-emerald-400 bg-emerald-500/15 border border-emerald-500/30" };
-        if (pos <= 10) return { text: `#${pos}`, class: "text-primary bg-primary/15 border border-primary/30" };
-        if (pos <= 20) return { text: `#${pos}`, class: "text-accent bg-accent/15 border border-accent/30" };
-        return { text: `#${pos}`, class: "text-danger bg-danger/15 border border-danger/30" };
-    };
+    const filteredTools = useMemo(() => {
+        return TOOLS_COLLECTION.filter((tool) => {
+            const matchesQuery =
+                tool.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                tool.desc.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                tool.category.toLowerCase().includes(searchQuery.toLowerCase());
 
-    const getChangeIndicator = (change: number) => {
-        if (change > 0) return { icon: <TrendingUp size={14} />, text: `+${change}`, class: "text-emerald-500" };
-        if (change < 0) return { icon: <TrendingDown size={14} />, text: `${change}`, class: "text-danger" };
-        return { icon: <Minus size={14} />, text: "0", class: "text-muted-foreground" };
-    };
+            const matchesCategory = selectedCategory === "All" || tool.category === selectedCategory;
 
-    let processedData = [...keywords];
+            const matchesPlan =
+                planFilter === "all" ||
+                (planFilter === "free" && !tool.isPremium) ||
+                (planFilter === "premium" && tool.isPremium);
 
-    if (searchQuery) {
-        processedData = processedData.filter((k) => k.keyword.toLowerCase().includes(searchQuery.toLowerCase()) || k.domain.toLowerCase().includes(searchQuery.toLowerCase()));
-    }
+            return matchesQuery && matchesCategory && matchesPlan;
+        });
+    }, [searchQuery, selectedCategory, planFilter]);
 
-    if (statusFilter !== "all") {
-        if (statusFilter === "active") {
-            processedData = processedData.filter((k) => k.active === true);
-        } else if (statusFilter === "paused") {
-            processedData = processedData.filter((k) => k.active === false);
+    const openToolModal = (tool: ToolItem) => {
+        setActiveToolModal(tool);
+        setToolInput("");
+        setToolOutput("");
+        if (tool.interactiveType === "password") {
+            generatePassword();
         }
-    }
+    };
 
-    processedData.sort((a: any, b: any) => {
-        if (sortBy === "newest") {
-            return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-        } else if (sortBy === "rank_asc") {
-            return (a.currentPosition || 999) - (b.currentPosition || 999);
-        } else if (sortBy === "rank_desc") {
-            return (b.currentPosition || 0) - (a.currentPosition || 0);
-        } else if (sortBy === "change") {
-            return (b.positionChange || 0) - (a.positionChange || 0);
+    const copyResult = () => {
+        if (!toolOutput) return;
+        navigator.clipboard.writeText(toolOutput);
+        setCopied(true);
+        toast.success("Copied to clipboard!");
+        setTimeout(() => setCopied(false), 2000);
+    };
+
+    // Live transformations
+    const handleCaseConvert = (type: "upper" | "lower" | "title" | "camel" | "kebab" | "slug") => {
+        if (!toolInput) return;
+        let res = "";
+        switch (type) {
+            case "upper":
+                res = toolInput.toUpperCase();
+                break;
+            case "lower":
+                res = toolInput.toLowerCase();
+                break;
+            case "title":
+                res = toolInput.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+                break;
+            case "camel":
+                res = toolInput
+                    .replace(/(?:^\w|[A-Z]|\b\w)/g, (word, index) => (index === 0 ? word.toLowerCase() : word.toUpperCase()))
+                    .replace(/\s+/g, "");
+                break;
+            case "kebab":
+                res = toolInput
+                    .toLowerCase()
+                    .replace(/[^a-zA-Z0-9]+/g, "-")
+                    .replace(/^-+|-+$/g, "");
+                break;
+            case "slug":
+                res = toolInput
+                    .toLowerCase()
+                    .trim()
+                    .replace(/[^\w\s-]/g, "")
+                    .replace(/[\s_-]+/g, "-")
+                    .replace(/^-+|-+$/g, "");
+                break;
         }
-        return 0;
-    });
+        setToolOutput(res);
+    };
 
-    useEffect(() => {
-        (async () => await fetchKeywords())();
-    }, []);
+    const handleJsonFormat = () => {
+        try {
+            const parsed = JSON.parse(toolInput);
+            setToolOutput(JSON.stringify(parsed, null, 2));
+            toast.success("Valid JSON formatted!");
+        } catch (e: any) {
+            setToolOutput(`Error: ${e.message}`);
+            toast.error("Invalid JSON syntax");
+        }
+    };
+
+    const handleBase64 = (encode: boolean) => {
+        try {
+            if (encode) {
+                setToolOutput(btoa(toolInput));
+            } else {
+                setToolOutput(atob(toolInput));
+            }
+        } catch (e: any) {
+            setToolOutput(`Base64 Error: ${e.message}`);
+        }
+    };
+
+    const handleUrlEncode = (encode: boolean) => {
+        try {
+            if (encode) {
+                setToolOutput(encodeURIComponent(toolInput));
+            } else {
+                setToolOutput(decodeURIComponent(toolInput));
+            }
+        } catch (e: any) {
+            setToolOutput(`URL Error: ${e.message}`);
+        }
+    };
+
+    const generatePassword = () => {
+        let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        if (includeNumbers) chars += "0123456789";
+        if (includeSymbols) chars += "!@#$%^&*()_+-=[]{}|;:,.<>?";
+        let res = "";
+        for (let i = 0; i < passLength; i++) {
+            res += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        setToolOutput(res);
+    };
 
     return (
-        <div className="min-h-scree pt-16 md:pt-24 bg-background">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        <div className="min-h-screen pt-20 md:pt-24 pb-20 bg-background">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
                 {/* Header */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-                    <div>
-                        <h1 className="text-2xl sm:text-3xl font-medium text-foreground">
-                            <span className="gradient-text">Rank Tracker</span>
-                        </h1>
-                        <p className="text-muted-foreground text-sm mt-1">Track your keyword rankings on Google — updated daily.</p>
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border border-border bg-card text-xs font-semibold text-primary mb-3 shadow-xs">
+                        <LayoutGrid size={14} />
+                        All Online Tools
                     </div>
-                    <button onClick={() => setShowAddModal(true)} className="bg-primary px-5 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity flex items-center gap-2 self-start" id="add-keyword-btn" style={{ color: "var(--background)" }}>
-                        <Plus size={18} />
-                        Track Keyword
-                    </button>
+                    <h1 className="text-3xl sm:text-4xl font-semibold text-foreground mb-3">
+                        Explore Our <span className="gradient-text">Complete Tool Suite</span>
+                    </h1>
+                    <p className="text-muted-foreground max-w-xl mx-auto text-sm sm:text-base">
+                        Fast, free, and intuitive online utilities designed to speed up your everyday developer and content workflows.
+                    </p>
                 </div>
 
-                {/* Filters Row */}
-                <div className="mb-6 flex flex-col md:flex-row gap-3" style={{ animationDelay: "100ms" }}>
-                    <div className="glass rounded-xl px-4 py-2.5 flex items-center gap-2 flex-1">
-                        <Search size={18} className="text-muted-foreground" />
-                        <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder="Search keywords or domains..." className="bg-transparent text-sm text-foreground placeholder-muted-foreground outline-none flex-1" id="rank-search-input" />
+                {/* Search & Filters */}
+                <div className="mb-10 max-w-4xl mx-auto space-y-4">
+                    {/* Search Bar */}
+                    <div className="relative">
+                        <Search size={20} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search tools by name, keyword, or category..."
+                            className="w-full pl-12 pr-4 py-3 rounded-2xl bg-card border border-border text-foreground placeholder-muted-foreground outline-none focus:border-primary/50 text-sm shadow-xs transition-colors"
+                        />
+                        {searchQuery && (
+                            <button
+                                onClick={() => setSearchQuery("")}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                            >
+                                <X size={16} />
+                            </button>
+                        )}
                     </div>
 
-                    <div className="flex gap-3">
-                        <div className="glass rounded-xl px-4 py-2.5 flex items-center gap-2">
-                            <Filter size={16} className="text-muted-foreground" />
-                            <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="bg-transparent text-sm text-foreground outline-none appearance-none pr-4 cursor-pointer">
-                                <option value="all" className="bg-background">
-                                    All Status
-                                </option>
-                                <option value="active" className="bg-background">
-                                    Active
-                                </option>
-                                <option value="paused" className="bg-background">
-                                    Paused
-                                </option>
-                            </select>
+                    {/* Category Filter Pills & Plan Tabs */}
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                        <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+                            {CATEGORIES.map((cat) => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`px-3.5 py-1.5 rounded-xl text-xs font-medium whitespace-nowrap transition-all cursor-pointer ${
+                                        selectedCategory === cat
+                                            ? "bg-primary text-primary-foreground font-semibold shadow-xs"
+                                            : "bg-card border border-border text-muted-foreground hover:text-foreground hover:bg-muted"
+                                    }`}
+                                    style={selectedCategory === cat ? { color: "var(--background)" } : {}}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
                         </div>
-                        <div className="glass rounded-xl px-4 py-2.5 flex items-center gap-2">
-                            <ArrowUpDown size={16} className="text-muted-foreground" />
-                            <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className="bg-transparent text-sm text-foreground outline-none appearance-none pr-4 cursor-pointer">
-                                <option value="newest" className="bg-background">
-                                    Newest First
-                                </option>
-                                <option value="rank_asc" className="bg-background">
-                                    Highest Ranked
-                                </option>
-                                <option value="rank_desc" className="bg-background">
-                                    Lowest Ranked
-                                </option>
-                                <option value="change" className="bg-background">
-                                    Biggest Gain
-                                </option>
-                            </select>
+
+                        {/* Plan Toggle */}
+                        <div className="flex items-center gap-1 bg-muted/60 p-1 rounded-xl border border-border text-xs font-medium self-end sm:self-auto">
+                            <button
+                                onClick={() => setPlanFilter("all")}
+                                className={`px-2.5 py-1 rounded-lg transition-all ${
+                                    planFilter === "all" ? "bg-card text-foreground font-semibold shadow-xs" : "text-muted-foreground"
+                                }`}
+                            >
+                                All
+                            </button>
+                            <button
+                                onClick={() => setPlanFilter("free")}
+                                className={`px-2.5 py-1 rounded-lg transition-all ${
+                                    planFilter === "free" ? "bg-card text-foreground font-semibold shadow-xs" : "text-muted-foreground"
+                                }`}
+                            >
+                                Free
+                            </button>
+                            <button
+                                onClick={() => setPlanFilter("premium")}
+                                className={`px-2.5 py-1 rounded-lg transition-all flex items-center gap-1 ${
+                                    planFilter === "premium" ? "bg-card text-foreground font-semibold shadow-xs" : "text-muted-foreground"
+                                }`}
+                            >
+                                <Sparkles size={12} className="text-primary" />
+                                PRO
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                {/* Keywords List */}
-                {loading ? (
-                    <div className="flex items-center justify-center py-30">
-                        <div className="size-7 border-2 border-primary border-t-transparent rounded-full animate-spin" />
-                    </div>
-                ) : processedData.length === 0 ? (
-                    <div className="glass rounded-2xl p-12 text-center">
-                        <Target size={48} className="mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h3 className="text-lg font-semibold text-foreground mb-2">No keywords tracked yet</h3>
-                        <p className="text-sm text-muted-foreground mb-6">Add your first keyword and URL to start tracking your Google rankings.</p>
-                        <button onClick={() => setShowAddModal(true)} className="bg-primary px-5 py-2.5 rounded-xl text-sm font-semibold text-primary-foreground hover:opacity-90 transition-opacity" style={{ color: "var(--background)" }}>
-                            Track Your First Keyword
-                        </button>
+                {/* Tools Grid */}
+                {filteredTools.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {filteredTools.map((tool) => (
+                            <div
+                                key={tool.id}
+                                className="bg-card border border-border rounded-2xl p-6 hover:border-primary/40 hover:bg-muted/20 transition-all flex flex-col justify-between group shadow-xs"
+                            >
+                                <div>
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div className="p-3 rounded-xl bg-muted/60 border border-border/50 group-hover:border-primary/30 transition-colors">
+                                            {tool.icon}
+                                        </div>
+                                        {tool.isPremium ? (
+                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-blue-500/10 text-blue-600 dark:text-blue-400 border border-blue-500/20">
+                                                PRO
+                                            </span>
+                                        ) : (
+                                            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                                                Free
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    <div className="text-xs font-medium text-primary mb-1">{tool.category}</div>
+                                    <h3 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                                        {tool.title}
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        {tool.desc}
+                                    </p>
+                                </div>
+
+                                <div className="mt-6 pt-4 border-t border-border/40 flex items-center justify-between">
+                                    {tool.isPremium ? (
+                                        <Link
+                                            to={tool.path || "/analyze"}
+                                            className="w-full py-2 px-4 rounded-xl bg-primary/10 hover:bg-primary/20 text-primary font-semibold text-xs flex items-center justify-center gap-1.5 transition-colors"
+                                        >
+                                            <Sparkles size={14} />
+                                            Launch PRO Tool
+                                        </Link>
+                                    ) : tool.interactiveType ? (
+                                        <button
+                                            onClick={() => openToolModal(tool)}
+                                            className="w-full py-2 px-4 rounded-xl bg-primary text-primary-foreground font-semibold text-xs flex items-center justify-center gap-1.5 hover:opacity-90 transition-opacity cursor-pointer"
+                                            style={{ color: "var(--background)" }}
+                                        >
+                                            <Maximize2 size={13} />
+                                            Use Tool Online
+                                        </button>
+                                    ) : (
+                                        <Link
+                                            to={tool.path || "/analyze"}
+                                            className="w-full py-2 px-4 rounded-xl border border-border bg-card hover:bg-muted text-foreground font-medium text-xs flex items-center justify-center gap-1.5 transition-colors"
+                                        >
+                                            Open Tool <ArrowRight size={14} />
+                                        </Link>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
                     </div>
                 ) : (
-                    <div className="space-y-3" style={{ animationDelay: "200ms" }}>
-                        {processedData.map((kw) => {
-                            const posBadge = getPositionBadge(kw.currentPosition);
-                            const change = getChangeIndicator(kw.positionChange);
-
-                            return (
-                                <div key={kw._id} className={`glass rounded-xl p-5 hover:bg-muted/50 transition-all ${!kw.active ? "opacity-50" : ""}`}>
-                                    <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                                        {/* Rank badge */}
-                                        <div className="flex items-center gap-4 lg:w-32 shrink-0">
-                                            {kw.status === "checking" ? (
-                                                <div className="w-16 h-16 rounded-xl glass flex items-center justify-center">
-                                                    <Loader2 size={24} className="text-primary animate-spin" />
-                                                </div>
-                                            ) : (
-                                                <div className={`w-16 h-16 rounded-xl flex items-center justify-center text-lg font-bold ${posBadge.class}`}>{kw.currentPosition ? `#${kw.currentPosition}` : "—"}</div>
-                                            )}
-                                            {kw.status === "completed" && kw.currentPosition && (
-                                                <div className="text-center mt-1">
-                                                    <div className={`flex items-center justify-center gap-1 text-sm font-medium ${change.class}`}>
-                                                        {change.icon}
-                                                        {change.text}
-                                                    </div>
-                                                    <p className="text-[10px] text-muted-foreground mt-0.5">change</p>
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        <div className="flex-1 min-w-0">
-                                            <Link to={`/rank/${kw._id}`} className="text-base font-semibold text-foreground hover:text-primary transition-colors block truncate">
-                                                "{kw.keyword}"
-                                            </Link>
-                                            <div className="flex items-center gap-2 mt-1">
-                                                <Globe size={12} className="text-muted-foreground" />
-                                                <span className="text-sm text-muted-foreground truncate">{kw.domain}</span>
-                                                {kw.currentPage && <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">Page {kw.currentPage}</span>}
-                                            </div>
-                                            {kw.lastChecked && (
-                                                <div className="flex items-center gap-1 mt-1 text-xs text-muted-foreground">
-                                                    <Clock size={10} />
-                                                    Last checked: {new Date(kw.lastChecked).toLocaleString()}
-                                                </div>
-                                            )}
-                                        </div>
-
-                                        {/* Stats */}
-                                        {kw.status === "completed" && (
-                                            <div className="hidden md:flex items-center gap-5">
-                                                <div className="text-center">
-                                                    <p className="text-sm font-bold text-primary">{kw.bestPosition || "—"}</p>
-                                                    <p className="text-[10px] text-muted-foreground">Best</p>
-                                                </div>
-                                                <div className="text-center">
-                                                    <p className="text-sm font-bold text-accent">{kw.competitors?.length || 0}</p>
-                                                    <p className="text-[10px] text-muted-foreground">Competitors</p>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Actions */}
-                                        <div className="flex items-center gap-1.5 shrink-0">
-                                            <Link to={`/rank/${kw._id}`} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all" title="View Details">
-                                                <ExternalLink size={16} />
-                                            </Link>
-                                            <button onClick={() => handleRefresh(kw._id)} disabled={refreshing === kw._id || kw.status === "checking"} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-primary transition-all disabled:opacity-30" title="Refresh Ranking">
-                                                <RefreshCw size={16} className={refreshing === kw._id ? "animate-spin" : ""} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleToggle(kw._id)}
-                                                className={`p-2 rounded-lg hover:bg-muted transition-all ${kw.active ? "text-success hover:text-success" : "text-muted-foreground hover:text-foreground"}`}
-                                                title={kw.active ? "Pause Tracking" : "Resume Tracking"}
-                                            >
-                                                {kw.active ? <Eye size={16} /> : <EyeOff size={16} />}
-                                            </button>
-                                            <button onClick={() => handleDelete(kw._id)} disabled={deleting === kw._id} className="p-2 rounded-lg hover:bg-danger/10 text-muted-foreground hover:text-danger transition-all disabled:opacity-50" title="Delete">
-                                                {deleting === kw._id ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            );
-                        })}
+                    <div className="text-center py-16 bg-card border border-border rounded-2xl max-w-xl mx-auto">
+                        <SlidersHorizontal size={40} className="mx-auto text-muted-foreground mb-3 opacity-40" />
+                        <h3 className="text-base font-semibold text-foreground mb-1">No tools match your filter</h3>
+                        <p className="text-sm text-muted-foreground mb-4">Try clearing the search bar or choosing another category.</p>
+                        <button
+                            onClick={() => {
+                                setSearchQuery("");
+                                setSelectedCategory("All");
+                                setPlanFilter("all");
+                            }}
+                            className="px-4 py-2 rounded-xl bg-primary/10 text-primary text-xs font-semibold hover:bg-primary/20 transition-colors"
+                        >
+                            Reset Filters
+                        </button>
                     </div>
                 )}
             </div>
 
-            {/* Add Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-                    <div className="bg-background border border-border rounded-2xl p-6 w-full max-w-md">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-bold text-foreground">Track New Keyword</h2>
+            {/* INTERACTIVE TOOL POPUP MODAL */}
+            {activeToolModal && (
+                <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+                    <div className="bg-card border border-border rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl animate-slide-up max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between pb-4 mb-4 border-b border-border">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2.5 rounded-xl bg-primary/10 text-primary">
+                                    {activeToolModal.icon}
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-semibold text-foreground">{activeToolModal.title}</h3>
+                                    <p className="text-xs text-muted-foreground">{activeToolModal.category}</p>
+                                </div>
+                            </div>
                             <button
-                                onClick={() => {
-                                    setShowAddModal(false);
-                                    setAddError("");
-                                }}
-                                className="text-muted-foreground hover:text-foreground"
+                                onClick={() => setActiveToolModal(null)}
+                                className="p-2 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted"
                             >
                                 <X size={20} />
                             </button>
                         </div>
 
-                        {addError && (
-                            <div className="mb-4 px-4 py-3 rounded-xl severity-critical text-sm flex items-center gap-2">
-                                <AlertCircle size={16} className="shrink-0" />
-                                {addError}
+                        {/* CASE CONVERTER TOOL */}
+                        {activeToolModal.interactiveType === "case" && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
+                                        Input Text
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={toolInput}
+                                        onChange={(e) => setToolInput(e.target.value)}
+                                        placeholder="Type or paste your text here to convert..."
+                                        className="w-full p-3 rounded-xl bg-muted/30 border border-border text-foreground text-sm outline-none focus:border-primary/50"
+                                    />
+                                </div>
+
+                                <div className="flex flex-wrap gap-2">
+                                    <button
+                                        onClick={() => handleCaseConvert("upper")}
+                                        className="px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold text-foreground cursor-pointer"
+                                    >
+                                        UPPERCASE
+                                    </button>
+                                    <button
+                                        onClick={() => handleCaseConvert("lower")}
+                                        className="px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold text-foreground cursor-pointer"
+                                    >
+                                        lowercase
+                                    </button>
+                                    <button
+                                        onClick={() => handleCaseConvert("title")}
+                                        className="px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold text-foreground cursor-pointer"
+                                    >
+                                        Title Case
+                                    </button>
+                                    <button
+                                        onClick={() => handleCaseConvert("camel")}
+                                        className="px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold text-foreground cursor-pointer"
+                                    >
+                                        camelCase
+                                    </button>
+                                    <button
+                                        onClick={() => handleCaseConvert("kebab")}
+                                        className="px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold text-foreground cursor-pointer"
+                                    >
+                                        kebab-case
+                                    </button>
+                                    <button
+                                        onClick={() => handleCaseConvert("slug")}
+                                        className="px-3 py-1.5 rounded-lg bg-card border border-border hover:bg-muted text-xs font-semibold text-foreground cursor-pointer"
+                                    >
+                                        URL Slug
+                                    </button>
+                                </div>
                             </div>
                         )}
 
-                        <form onSubmit={handleAdd} className="space-y-4">
-                            <div>
-                                <label htmlFor="modal-keyword" className="block text-sm font-medium text-foreground mb-1.5">
-                                    Keyword
-                                </label>
-                                <div className="relative">
-                                    <Search size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                                    <input
-                                        id="modal-keyword"
-                                        type="text"
-                                        value={newKeyword}
-                                        onChange={(e) => setNewKeyword(e.target.value)}
-                                        placeholder='e.g., "best seo tools"'
-                                        required
-                                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder-muted-foreground outline-none focus:border-primary/50 transition-colors text-sm"
-                                    />
+                        {/* WORD COUNTER TOOL */}
+                        {activeToolModal.interactiveType === "wordcount" && (
+                            <div className="space-y-4">
+                                <textarea
+                                    rows={5}
+                                    value={toolInput}
+                                    onChange={(e) => setToolInput(e.target.value)}
+                                    placeholder="Type or paste your text to count words, characters, sentences..."
+                                    className="w-full p-3 rounded-xl bg-muted/30 border border-border text-foreground text-sm outline-none focus:border-primary/50"
+                                />
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                    <div className="p-3 rounded-xl bg-muted/40 border border-border text-center">
+                                        <div className="text-xl font-bold text-foreground">
+                                            {toolInput.trim() ? toolInput.trim().split(/\s+/).length : 0}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">Words</div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-muted/40 border border-border text-center">
+                                        <div className="text-xl font-bold text-foreground">{toolInput.length}</div>
+                                        <div className="text-xs text-muted-foreground">Characters</div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-muted/40 border border-border text-center">
+                                        <div className="text-xl font-bold text-foreground">
+                                            {toolInput.trim() ? toolInput.split(/[.!?]+/).filter(Boolean).length : 0}
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">Sentences</div>
+                                    </div>
+                                    <div className="p-3 rounded-xl bg-muted/40 border border-border text-center">
+                                        <div className="text-xl font-bold text-primary">
+                                            {Math.ceil((toolInput.trim().split(/\s+/).filter(Boolean).length || 0) / 200)} min
+                                        </div>
+                                        <div className="text-xs text-muted-foreground">Reading Time</div>
+                                    </div>
                                 </div>
                             </div>
-                            <div>
-                                <label htmlFor="modal-url" className="block text-sm font-medium text-foreground mb-1.5">
-                                    Website URL
-                                </label>
-                                <div className="relative">
-                                    <Globe size={18} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                                    <input
-                                        id="modal-url"
-                                        type="text"
-                                        value={newUrl}
-                                        onChange={(e) => setNewUrl(e.target.value)}
-                                        placeholder="e.g., example.com"
-                                        required
-                                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-muted border border-border text-foreground placeholder-muted-foreground outline-none focus:border-primary/50 transition-colors text-sm"
+                        )}
+
+                        {/* JSON FORMATTER */}
+                        {activeToolModal.interactiveType === "json" && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-semibold text-muted-foreground uppercase mb-1.5">
+                                        Raw JSON Input
+                                    </label>
+                                    <textarea
+                                        rows={4}
+                                        value={toolInput}
+                                        onChange={(e) => setToolInput(e.target.value)}
+                                        placeholder='{"name": "Tool", "active": true}'
+                                        className="w-full font-mono p-3 rounded-xl bg-muted/30 border border-border text-foreground text-xs outline-none focus:border-primary/50"
                                     />
                                 </div>
+                                <button
+                                    onClick={handleJsonFormat}
+                                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90 transition-opacity"
+                                    style={{ color: "var(--background)" }}
+                                >
+                                    Validate & Format JSON
+                                </button>
                             </div>
+                        )}
 
-                            <div className="bg-primary/5 border border-primary/20 rounded-xl p-3 text-xs text-muted-foreground">
-                                <p>💡 We'll search Google for your keyword, find your website's position (up to page 5), and track it daily.</p>
+                        {/* PASSWORD GENERATOR */}
+                        {activeToolModal.interactiveType === "password" && (
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between gap-4 p-3 bg-muted/30 rounded-xl border border-border">
+                                    <label className="text-xs font-medium text-foreground">
+                                        Length: <span className="font-bold text-primary">{passLength}</span>
+                                    </label>
+                                    <input
+                                        type="range"
+                                        min={8}
+                                        max={32}
+                                        value={passLength}
+                                        onChange={(e) => setPassLength(Number(e.target.value))}
+                                        className="w-48"
+                                    />
+                                </div>
+
+                                <div className="flex gap-4 text-xs font-medium text-foreground">
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={includeNumbers}
+                                            onChange={(e) => setIncludeNumbers(e.target.checked)}
+                                        />
+                                        Numbers (0-9)
+                                    </label>
+                                    <label className="flex items-center gap-2 cursor-pointer">
+                                        <input
+                                            type="checkbox"
+                                            checked={includeSymbols}
+                                            onChange={(e) => setIncludeSymbols(e.target.checked)}
+                                        />
+                                        Symbols (!@#$)
+                                    </label>
+                                </div>
+
+                                <button
+                                    onClick={generatePassword}
+                                    className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90"
+                                    style={{ color: "var(--background)" }}
+                                >
+                                    Regenerate Password
+                                </button>
                             </div>
+                        )}
 
-                            <button type="submit" disabled={adding} className="w-full py-3 rounded-xl bg-primary font-semibold text-sm text-primary-foreground flex items-center justify-center gap-2 hover:opacity-90 transition-opacity disabled:opacity-50" style={{ color: "var(--background)" }}>
-                                {adding ? (
-                                    <Loader2 size={18} className="animate-spin" />
-                                ) : (
-                                    <>
-                                        <Target size={18} />
-                                        Start Tracking
-                                    </>
-                                )}
-                            </button>
-                        </form>
+                        {/* BASE64 TOOL */}
+                        {activeToolModal.interactiveType === "base64" && (
+                            <div className="space-y-4">
+                                <textarea
+                                    rows={3}
+                                    value={toolInput}
+                                    onChange={(e) => setToolInput(e.target.value)}
+                                    placeholder="Enter text or Base64 string..."
+                                    className="w-full p-3 rounded-xl bg-muted/30 border border-border text-foreground text-sm outline-none"
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleBase64(true)}
+                                        className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90"
+                                        style={{ color: "var(--background)" }}
+                                    >
+                                        Encode to Base64
+                                    </button>
+                                    <button
+                                        onClick={() => handleBase64(false)}
+                                        className="px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs"
+                                    >
+                                        Decode from Base64
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* URL ENCODE / DECODE */}
+                        {activeToolModal.interactiveType === "urlencode" && (
+                            <div className="space-y-4">
+                                <textarea
+                                    rows={3}
+                                    value={toolInput}
+                                    onChange={(e) => setToolInput(e.target.value)}
+                                    placeholder="Enter string to URL encode or decode..."
+                                    className="w-full p-3 rounded-xl bg-muted/30 border border-border text-foreground text-sm outline-none"
+                                />
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => handleUrlEncode(true)}
+                                        className="px-4 py-2 rounded-xl bg-primary text-primary-foreground font-semibold text-xs hover:opacity-90"
+                                        style={{ color: "var(--background)" }}
+                                    >
+                                        Encode URL
+                                    </button>
+                                    <button
+                                        onClick={() => handleUrlEncode(false)}
+                                        className="px-4 py-2 rounded-xl border border-border bg-card hover:bg-muted text-foreground font-semibold text-xs"
+                                    >
+                                        Decode URL
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* RESULT BOX */}
+                        {toolOutput && (
+                            <div className="mt-6 p-4 rounded-2xl bg-muted/50 border border-border">
+                                <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground uppercase mb-2">
+                                    <span>Output Result</span>
+                                    <button
+                                        onClick={copyResult}
+                                        className="text-primary hover:underline flex items-center gap-1 cursor-pointer font-normal"
+                                    >
+                                        {copied ? <Check size={14} /> : <Copy size={14} />}
+                                        {copied ? "Copied" : "Copy Result"}
+                                    </button>
+                                </div>
+                                <div className="font-mono text-sm text-foreground bg-card p-3 rounded-xl border border-border/60 break-all whitespace-pre-wrap max-h-48 overflow-y-auto">
+                                    {toolOutput}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             )}

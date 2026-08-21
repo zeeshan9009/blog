@@ -1,0 +1,184 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { createContext, useContext, useState, useEffect } from "react";
+import toast from "react-hot-toast";
+import { supabase } from "../lib/supabase";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+
+export interface User {
+    id: string;
+    email: string;
+    name: string;
+    avatar_url?: string;
+    plan: "FREE" | "PRO";
+    user_metadata?: {
+        full_name?: string;
+        avatar_url?: string;
+        picture?: string;
+        plan?: "FREE" | "PRO";
+        [key: string]: any;
+    };
+}
+
+interface AuthContextType {
+    user: User | null;
+    loading: boolean;
+    signInWithGoogle: () => Promise<void>;
+    logout: () => Promise<void>;
+    setPlan: (plan: "FREE" | "PRO") => void;
+    setUser: React.Dispatch<React.SetStateAction<User | null>>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+const STORAGE_KEY = "ranktool_user_session";
+
+function formatSupabaseUser(sbUser: SupabaseUser, planFallback: "FREE" | "PRO" = "PRO"): User {
+    const meta = sbUser.user_metadata || {};
+    const name = meta.full_name || meta.name || meta.user_name || sbUser.email?.split("@")[0] || "User";
+    const avatar = meta.avatar_url || meta.picture || "";
+    const plan = (meta.plan || planFallback || "PRO").toUpperCase() as "FREE" | "PRO";
+
+    return {
+        id: sbUser.id,
+        email: sbUser.email || "",
+        name: name,
+        avatar_url: avatar,
+        plan: plan,
+        user_metadata: {
+            ...meta,
+            full_name: name,
+            avatar_url: avatar,
+            plan: plan,
+        },
+    };
+}
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(() => {
+        try {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                return JSON.parse(saved);
+            }
+        } catch {
+            // fallback
+        }
+        return null;
+    });
+
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        // 1. Check initial session from Supabase
+        const initializeAuth = async () => {
+            try {
+                const { data: { session }, error } = await supabase.auth.getSession();
+                if (error) throw error;
+
+                if (session?.user) {
+                    const formatted = formatSupabaseUser(session.user);
+                    setUser(formatted);
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(formatted));
+                }
+            } catch (err) {
+                console.error("Supabase getSession error:", err);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        initializeAuth();
+
+        // 2. Listen to Supabase Auth state changes (Login, Logout, Token Refresh, OAuth redirect)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+            if (session?.user) {
+                const formatted = formatSupabaseUser(session.user);
+                setUser(formatted);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(formatted));
+            } else if (_event === "SIGNED_OUT") {
+                setUser(null);
+                localStorage.removeItem(STORAGE_KEY);
+            }
+            setLoading(false);
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        };
+    }, []);
+
+    useEffect(() => {
+        if (user) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
+        } else {
+            localStorage.removeItem(STORAGE_KEY);
+        }
+    }, [user]);
+
+    const signInWithGoogle = async () => {
+        setLoading(true);
+        try {
+            const { error } = await supabase.auth.signInWithOAuth({
+                provider: "google",
+                options: {
+                    redirectTo: window.location.origin,
+                    queryParams: {
+                        access_type: "offline",
+                        prompt: "consent",
+                    },
+                },
+            });
+
+            if (error) {
+                // If Google OAuth provider is not yet enabled in Supabase dashboard, provide friendly fallback
+                console.warn("Supabase OAuth warning:", error.message);
+                toast.error(error.message || "Could not start Google sign in. Please ensure Google Provider is enabled in Supabase.");
+            }
+        } catch (error: any) {
+            console.error("Google sign in error:", error);
+            toast.error(error.message || "Failed to sign in with Google");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const logout = async () => {
+        try {
+            await supabase.auth.signOut();
+        } catch (e) {
+            console.error("SignOut error:", e);
+        }
+        setUser(null);
+        localStorage.removeItem(STORAGE_KEY);
+        toast.success("Logged out successfully");
+    };
+
+    const setPlan = (plan: "FREE" | "PRO") => {
+        if (user) {
+            const updated: User = {
+                ...user,
+                plan,
+                user_metadata: {
+                    ...user.user_metadata,
+                    plan,
+                },
+            };
+            setUser(updated);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+        }
+    };
+
+    return (
+        <AuthContext.Provider value={{ user, loading, signInWithGoogle, logout, setPlan, setUser }}>
+            {children}
+        </AuthContext.Provider>
+    );
+};
+
+export const useAuth = () => {
+    const context = useContext(AuthContext);
+    if (!context) {
+        throw new Error("useAuth must be used within an AuthProvider");
+    }
+    return context;
+};

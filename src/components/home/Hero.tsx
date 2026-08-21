@@ -19,10 +19,10 @@ export default function Hero() {
                     <div className="absolute bg-blue-600 size-2 rounded-full animate-ping"></div>
                     <div className="bg-blue-600 size-1.5 rounded-full"></div>
                 </div>
-                Powered by BrowserBase & Gemini AI
+                Powered by BrowserBase &  AI
             </div>
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-medium leading-tight mb-6 text-foreground">
-                Analyze & Boost Your <span className="gradient-text dm-serif">SEO Rankings</span>
+                Smart Tools & Helpful  <span className="gradient-text dm-serif">All in One Place</span>
             </h1>
             <p className="text-sm  text-muted-foreground max-w-xl mx-auto mb-10 leading-relaxed">Get instant AI-powered SEO audits for any website. Uncover hidden issues, optimize performance, and outrank your competition.</p>
 
@@ -41,7 +41,7 @@ export default function Hero() {
                 </div>
             </form>
 
-            <p className="text-muted-foreground text-sm mt-6 ">Free — No credit card required • 5 analyses per day</p>
+            <p className="text-muted-foreground text-sm mt-6 ">Free — No credit card required • Use as much as you want</p>
 
             {/* Animated Wave */}
             <div className="absolute bottom-0 left-0 w-full overflow-hidden pointer-events-none -z-1">

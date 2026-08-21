@@ -1,57 +1,60 @@
 /* eslint-disable react-refresh/only-export-components */
-import { BarChart3Icon, EyeIcon, FileSearchIcon, GlobeIcon, ShieldIcon, TargetIcon, TrendingUpIcon, ZapIcon } from "lucide-react";
+import { BookOpenIcon, CpuIcon, FileTextIcon, GiftIcon, LayoutGridIcon, MousePointerClickIcon, SparklesIcon, ZapIcon } from "lucide-react";
 
 export const homeFeaturesData = [
     {
-        icon: <BarChart3Icon size={28} />,
-        title: "SEO Score",
-        desc: "Get a comprehensive SEO score analyzing 50+ ranking factors with AI-powered insights.",
+        icon: <MousePointerClickIcon size={28} />,
+        title: "Easy to Use",
+        desc: "Get things done quickly with simple tools designed for everyone.",
     },
     {
         icon: <ZapIcon size={28} />,
-        title: "Performance",
-        desc: "Analyze load times, page size, and Core Web Vitals to maximize your site speed.",
+        title: "Fast & Reliable",
+        desc: "Get accurate results in seconds without complicated setup.",
     },
     {
-        icon: <ShieldIcon size={28} />,
-        title: "Best Practices",
-        desc: "Check meta tags, heading structure, image optimization, and technical SEO health.",
+        icon: <GiftIcon size={28} />,
+        title: "Free to Use",
+        desc: "Use our tools as much as you want with no credit card required.",
     },
     {
-        icon: <EyeIcon size={28} />,
-        title: "Accessibility",
-        desc: "Ensure your site is accessible to all users with alt text, ARIA, and contrast checks.",
+        icon: <LayoutGridIcon size={28} />,
+        title: "Multiple Tools",
+        desc: "Access a growing collection of useful tools for everyday tasks.",
     },
     {
-        icon: <TargetIcon size={28} />,
-        title: "Keyword Analysis",
-        desc: "Discover top keywords, density analysis, and content optimization opportunities.",
+        icon: <CpuIcon size={28} />,
+        title: "Smart & Powerful",
+        desc: "Powerful features packed into clean and easy-to-use tools.",
     },
     {
-        icon: <TrendingUpIcon size={28} />,
-        title: "Actionable Fixes",
-        desc: "Get prioritized, actionable recommendations to boost your search rankings.",
+        icon: <BookOpenIcon size={28} />,
+        title: "Helpful Resources",
+        desc: "Learn more with practical guides, tips, and tutorials from our blog.",
     },
 ];
 
 export const homeHowItWorksData = [
     {
         num: "01",
-        icon: <GlobeIcon size={24} />,
-        title: "Enter Your URL",
-        desc: "Paste any website URL into the analyzer bar.",
+        icon: <LayoutGridIcon size={24} />,
+        title: "Choose a Tool",
+        subtitle: "Find the right tool for your task",
+        desc: "Browse our collection of useful online tools and choose the one you need.",
     },
     {
         num: "02",
-        icon: <FileSearchIcon size={24} />,
-        title: "AI Scans Your Site",
-        desc: "BrowserBase visits your site and Gemini AI analyzes every SEO factor.",
+        icon: <FileTextIcon size={24} />,
+        title: "Enter Your Details",
+        subtitle: "Simply provide what the tool needs",
+        desc: "Enter your text, URL, file, or other required information and let the tool do the work.",
     },
     {
         num: "03",
-        icon: <BarChart3Icon size={24} />,
-        title: "Get Your Report",
-        desc: "Receive a detailed report with scores, issues, and recommendations.",
+        icon: <SparklesIcon size={24} />,
+        title: "Get Your Result",
+        subtitle: "Get fast, useful results",
+        desc: "View your results instantly, use the output, and explore our blog for helpful tips and guides.",
     },
 ];
 
