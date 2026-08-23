@@ -23,14 +23,16 @@ import {
   UserCheck,
   Briefcase,
   Users,
-  Plus
+  Plus,
+  Flame,
+  Settings
 } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
 import { useAuth } from '../../context/AuthContext';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
-  const { setSearchQuery } = useTalent();
+  const { setSearchQuery, currentProfile } = useTalent();
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -273,16 +275,54 @@ export const Navbar: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="space-y-1.5 pb-2">
+                      <div className="space-y-1 pb-2">
                         <button
-                          onClick={() => goToPage('/promote')}
-                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                          onClick={() => goToPage('/dashboard')}
+                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
                         >
-                          <span className="flex items-center gap-1.5">
-                            <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
-                            <span>$1 Boost Placement</span>
-                          </span>
-                          <span className="font-mono text-[10px] text-[#e8622c]">$1/day</span>
+                          <LayoutDashboard className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Dashboard</span>
+                        </button>
+
+                        <button
+                          onClick={() => goToPage('/dashboard/requests')}
+                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
+                        >
+                          <Briefcase className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Service Requests</span>
+                        </button>
+
+                        {/* If already promoted, show Active Boost status instead of promote purchase prompt */}
+                        {currentProfile?.isPromoted ? (
+                          <button
+                            onClick={() => goToPage('/dashboard/promotion')}
+                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <Flame className="w-3.5 h-3.5 fill-[#e8622c] text-[#e8622c]" />
+                              <span>Boost Active</span>
+                            </span>
+                            <span className="font-mono text-[9px] px-1.5 py-0.2 bg-orange-100 text-[#e8622c] font-bold">24H ACTIVE</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => goToPage('/promote')}
+                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                          >
+                            <span className="flex items-center gap-1.5">
+                              <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
+                              <span>$1 Boost Placement</span>
+                            </span>
+                            <span className="font-mono text-[10px] text-[#e8622c]">$1/day</span>
+                          </button>
+                        )}
+
+                        <button
+                          onClick={() => goToPage('/settings')}
+                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
+                        >
+                          <Settings className="w-3.5 h-3.5 text-slate-500" />
+                          <span>Role & Settings</span>
                         </button>
                       </div>
 
@@ -726,12 +766,21 @@ export const Navbar: React.FC = () => {
               >
                 📊 Professional Dashboard
               </button>
-              <button
-                onClick={() => goToPage('/promote')}
-                className="block w-full text-left px-3 py-1.5 font-bold text-xs text-slate-800 hover:bg-slate-50"
-              >
-                ⚡ $1 / 24h Sponsored Boost
-              </button>
+              {currentProfile?.isPromoted ? (
+                <button
+                  onClick={() => goToPage('/dashboard/promotion')}
+                  className="block w-full text-left px-3 py-1.5 font-bold text-xs text-[#e8622c] hover:bg-orange-50"
+                >
+                  🔥 24h Sponsored Boost (ACTIVE)
+                </button>
+              ) : (
+                <button
+                  onClick={() => goToPage('/promote')}
+                  className="block w-full text-left px-3 py-1.5 font-bold text-xs text-slate-800 hover:bg-slate-50"
+                >
+                  ⚡ $1 / 24h Sponsored Boost
+                </button>
+              )}
             </div>
 
             <div className="flex gap-2 pt-1">
