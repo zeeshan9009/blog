@@ -2,9 +2,17 @@ import { Routes, Route } from "react-router-dom";
 import { TalentProvider } from "./context/TalentContext";
 import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
+
+// Pages
 import PixelpushLanding from "./pages/PixelpushLanding";
 import DevelopersPage from "./pages/DevelopersPage";
 import AuthPage from "./pages/AuthPage";
+import OnboardingPage from "./pages/OnboardingPage";
+import CreateProfilePage from "./pages/CreateProfilePage";
+import FindServicesPage from "./pages/FindServicesPage";
+import ServiceDetailPage from "./pages/ServiceDetailPage";
+import DashboardPage from "./pages/DashboardPage";
+import SettingsPage from "./pages/SettingsPage";
 
 export default function App() {
   return (
@@ -21,11 +29,33 @@ export default function App() {
           <Route path="/register" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
 
-          {/* Dedicated Developers & Ranking Marketplace Directory */}
+          {/* Onboarding Role Selection */}
+          <Route path="/onboarding" element={<OnboardingPage />} />
+
+          {/* 7-Step Provider Profile & Services Creator */}
+          <Route path="/create-profile" element={<CreateProfilePage />} />
+
+          {/* Find Services & Marketplace */}
+          <Route path="/find-services" element={<FindServicesPage />} />
+          <Route path="/services" element={<FindServicesPage />} />
+          <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
+
+          {/* Unified Dashboard (Buyer, Provider, Dual) */}
+          <Route path="/dashboard" element={<DashboardPage />} />
+          <Route path="/dashboard/requests" element={<DashboardPage />} />
+          <Route path="/dashboard/my-requests" element={<DashboardPage />} />
+          <Route path="/dashboard/promotion" element={<DashboardPage />} />
+          <Route path="/dashboard/contacts" element={<DashboardPage />} />
+
+          {/* Settings & Role Management */}
+          <Route path="/settings" element={<SettingsPage />} />
+
+          {/* Dedicated Developers & Ranking Directory */}
           <Route path="/developers" element={<DevelopersPage />} />
           <Route path="/talent" element={<DevelopersPage />} />
           <Route path="/ranking" element={<DevelopersPage />} />
-          <Route path="/search" element={<DevelopersPage />} />
+          <Route path="/search" element={<FindServicesPage />} />
+          <Route path="/profile/:id" element={<DevelopersPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<PixelpushLanding />} />
@@ -34,4 +64,3 @@ export default function App() {
     </AuthProvider>
   );
 }
-

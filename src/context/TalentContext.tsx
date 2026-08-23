@@ -1,13 +1,32 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { Professional, PromotionRecord, Inquiry, FilterState } from '../types/talent';
-import { INITIAL_PROFESSIONALS, INITIAL_PROMOTIONS, INITIAL_INQUIRIES } from '../data/mockTalentData';
+import type {
+  Professional,
+  PromotionRecord,
+  Inquiry,
+  FilterState,
+  Service,
+  ServiceRequest,
+  NotificationItem
+} from '../types/talent';
+import {
+  INITIAL_PROFESSIONALS,
+  INITIAL_PROMOTIONS,
+  INITIAL_INQUIRIES,
+  INITIAL_SERVICES,
+  INITIAL_SERVICE_REQUESTS,
+  INITIAL_NOTIFICATIONS
+} from '../data/mockTalentData';
 import { verifyProfilePromotionEligibility, validateImpressionEvent, validateClickEvent } from '../services/ranking/antiAbuse';
 import toast from 'react-hot-toast';
 
 interface TalentContextType {
   professionals: Professional[];
+  services: Service[];
+  serviceRequests: ServiceRequest[];
+  notifications: NotificationItem[];
   promotions: PromotionRecord[];
   inquiries: Inquiry[];
+  savedProfessionals: string[];
   currentProfile: Professional | null;
   filters: FilterState;
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
@@ -18,7 +37,14 @@ interface TalentContextType {
   recordClick: (professionalId: string, visitorHash?: string) => void;
   addProfessional: (profile: Omit<Professional, 'id' | 'score' | 'rating' | 'reviewCount' | 'viewsCount' | 'clicksCount' | 'inquiriesCount' | 'createdAt' | 'isPromoted'>) => Professional;
   updateProfessional: (id: string, updates: Partial<Professional>) => void;
+  addService: (service: Omit<Service, 'id'>) => Service;
+  updateService: (id: string, updates: Partial<Service>) => void;
+  deleteService: (id: string) => void;
   sendInquiry: (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => void;
+  sendServiceRequest: (requestData: Omit<ServiceRequest, 'id' | 'createdAt' | 'status'>) => ServiceRequest;
+  updateServiceRequestStatus: (id: string, status: ServiceRequest['status']) => void;
+  toggleSaveProfessional: (id: string) => void;
+  markNotificationRead: (id: string) => void;
   toggleVerified: (id: string) => void;
   togglePromotedAdmin: (id: string) => void;
   setCurrentProfileId: (id: string) => void;
@@ -28,20 +54,26 @@ interface TalentContextType {
 const DEFAULT_FILTERS: FilterState = {
   query: '',
   category: 'All',
+  service: 'All',
   location: '',
   experience: 'All',
   minScore: 0,
   maxHourlyRate: 200,
   skills: [],
   promotedOnly: false,
+  deliverySpeed: 'Any',
   sortBy: 'relevance'
 };
 
 const TalentContext = createContext<TalentContextType | undefined>(undefined);
 
-const STORAGE_PROS_KEY = 'prorank_professionals_v2';
-const STORAGE_PROMOS_KEY = 'prorank_promotions_v2';
-const STORAGE_INQUIRIES_KEY = 'prorank_inquiries_v2';
+const STORAGE_PROS_KEY = 'prorank_professionals_v3';
+const STORAGE_SERVICES_KEY = 'prorank_services_v3';
+const STORAGE_REQUESTS_KEY = 'prorank_requests_v3';
+const STORAGE_NOTIFS_KEY = 'prorank_notifs_v3';
+const STORAGE_PROMOS_KEY = 'prorank_promotions_v3';
+const STORAGE_INQUIRIES_KEY = 'prorank_inquiries_v3';
+const STORAGE_SAVED_KEY = 'prorank_saved_v3';
 
 export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [professionals, setProfessionals] = useState<Professional[]>(() => {
@@ -52,6 +84,36 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.error('Error parsing stored professionals', e);
     }
     return INITIAL_PROFESSIONALS;
+  });
+
+  const [services, setServices] = useState<Service[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_SERVICES_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error parsing stored services', e);
+    }
+    return INITIAL_SERVICES;
+  });
+
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_REQUESTS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error parsing stored requests', e);
+    }
+    return INITIAL_SERVICE_REQUESTS;
+  });
+
+  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_NOTIFS_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error parsing stored notifications', e);
+    }
+    return INITIAL_NOTIFICATIONS;
   });
 
   const [promotions, setPromotions] = useState<PromotionRecord[]>(() => {
@@ -74,6 +136,16 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return INITIAL_INQUIRIES;
   });
 
+  const [savedProfessionals, setSavedProfessionals] = useState<string[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_SAVED_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch (e) {
+      console.error('Error parsing saved pros', e);
+    }
+    return ['muntazir-mahdi', 'khalis-m'];
+  });
+
   const [currentProfileId, setCurrentProfileId] = useState<string>('ali-raza');
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
@@ -85,6 +157,30 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       console.error('Could not save professionals', e);
     }
   }, [professionals]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_SERVICES_KEY, JSON.stringify(services));
+    } catch (e) {
+      console.error('Could not save services', e);
+    }
+  }, [services]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_REQUESTS_KEY, JSON.stringify(serviceRequests));
+    } catch (e) {
+      console.error('Could not save requests', e);
+    }
+  }, [serviceRequests]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_NOTIFS_KEY, JSON.stringify(notifications));
+    } catch (e) {
+      console.error('Could not save notifications', e);
+    }
+  }, [notifications]);
 
   useEffect(() => {
     try {
@@ -102,7 +198,15 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [inquiries]);
 
-  // Check and update promotion expiration on mount & every 30 seconds
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_SAVED_KEY, JSON.stringify(savedProfessionals));
+    } catch (e) {
+      console.error('Could not save saved pros', e);
+    }
+  }, [savedProfessionals]);
+
+  // Check and update promotion expiration on mount & intervals
   useEffect(() => {
     const checkExpirations = () => {
       const now = Date.now();
@@ -134,7 +238,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setFilters(DEFAULT_FILTERS);
   };
 
-  // Record valid impression with 30-min anti-abuse deduplication
   const recordImpression = (professionalId: string, visitorHash: string = 'client_visitor') => {
     const isValid = validateImpressionEvent(visitorHash, professionalId);
     if (!isValid) return;
@@ -149,7 +252,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
-  // Record valid click with 30-min anti-abuse deduplication
   const recordClick = (professionalId: string, visitorHash: string = 'client_visitor') => {
     const isValid = validateClickEvent(visitorHash, professionalId);
     if (!isValid) return;
@@ -171,7 +273,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return false;
     }
 
-    // 1. Profile Eligibility Verification
     const eligibility = verifyProfilePromotionEligibility(targetPro);
     if (!eligibility.isEligible) {
       toast.error(`Ineligible: ${eligibility.reasons[0] || 'Complete your profile first.'}`);
@@ -183,7 +284,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     let startsAt = new Date(now).toISOString();
     let expiresAt: string;
 
-    // 2. Extension logic: If already active, extend current expiration by 24h
     if (targetPro.isPromoted && targetPro.promotionExpiresAt && new Date(targetPro.promotionExpiresAt).getTime() > now) {
       const currentEndMs = new Date(targetPro.promotionExpiresAt).getTime();
       expiresAt = new Date(currentEndMs + durationHours * 60 * 60 * 1000).toISOString();
@@ -223,6 +323,19 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       })
     );
 
+    // Add promotion notification
+    const promoNotif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      userId: professionalId,
+      title: 'Promotion Activated ($1 / 24H)',
+      message: 'Your profile has 24 hours of sponsored visibility in relevant searches.',
+      type: 'promotion',
+      link: '/dashboard/promotion',
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    setNotifications(prev => [promoNotif, ...prev]);
+
     return true;
   };
 
@@ -231,9 +344,9 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const newProfile: Professional = {
       ...profileData,
       id,
-      score: 85,
+      score: 88,
       rating: 5.0,
-      reviewCount: 1,
+      reviewCount: 0,
       viewsCount: 0,
       clicksCount: 0,
       inquiriesCount: 0,
@@ -244,7 +357,7 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setProfessionals(prev => [newProfile, ...prev]);
     setCurrentProfileId(id);
-    toast.success('Profile created successfully!');
+    toast.success('Professional profile published successfully!');
     return newProfile;
   };
 
@@ -260,6 +373,39 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     toast.success('Profile updated successfully!');
   };
 
+  const addService = (serviceData: Omit<Service, 'id'>): Service => {
+    const id = `srv-${Date.now()}`;
+    const newService: Service = {
+      ...serviceData,
+      id,
+      rating: 5.0,
+      reviewCount: 0,
+      score: 90,
+      isPromoted: false
+    };
+
+    setServices(prev => [newService, ...prev]);
+    toast.success(`Service "${newService.title}" created!`);
+    return newService;
+  };
+
+  const updateService = (id: string, updates: Partial<Service>) => {
+    setServices(prev =>
+      prev.map(s => {
+        if (s.id === id) {
+          return { ...s, ...updates };
+        }
+        return s;
+      })
+    );
+    toast.success('Service updated successfully!');
+  };
+
+  const deleteService = (id: string) => {
+    setServices(prev => prev.filter(s => s.id !== id));
+    toast.success('Service removed.');
+  };
+
   const sendInquiry = (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => {
     const newInquiry: Inquiry = {
       ...inquiryData,
@@ -270,7 +416,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     setInquiries(prev => [newInquiry, ...prev]);
 
-    // Increment inquiriesCount on professional
     setProfessionals(prev =>
       prev.map(p => {
         if (p.id === inquiryData.professionalId) {
@@ -283,7 +428,78 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       })
     );
 
+    // Notification for provider
+    const notif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      userId: inquiryData.professionalId,
+      title: `New Direct Inquiry from ${inquiryData.clientName}`,
+      message: `${inquiryData.subject}: "${inquiryData.message.slice(0, 80)}..."`,
+      type: 'contact',
+      link: '/dashboard/contacts',
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    setNotifications(prev => [notif, ...prev]);
+
     toast.success(`Direct inquiry sent to ${inquiryData.professionalName}!`);
+  };
+
+  const sendServiceRequest = (requestData: Omit<ServiceRequest, 'id' | 'createdAt' | 'status'>): ServiceRequest => {
+    const newRequest: ServiceRequest = {
+      ...requestData,
+      id: `req-${Date.now()}`,
+      createdAt: new Date().toISOString(),
+      status: 'pending'
+    };
+
+    setServiceRequests(prev => [newRequest, ...prev]);
+
+    // Add notification for provider
+    const notif: NotificationItem = {
+      id: `notif-${Date.now()}`,
+      userId: requestData.providerId,
+      title: `New Hire Request from ${requestData.buyerName}`,
+      message: `Project: "${requestData.projectDescription.slice(0, 70)}..." (Budget: ${requestData.budget})`,
+      type: 'request',
+      link: '/dashboard/requests',
+      read: false,
+      createdAt: new Date().toISOString()
+    };
+    setNotifications(prev => [notif, ...prev]);
+
+    toast.success(`Hire request sent to ${requestData.providerName}!`);
+    return newRequest;
+  };
+
+  const updateServiceRequestStatus = (id: string, status: ServiceRequest['status']) => {
+    setServiceRequests(prev =>
+      prev.map(req => {
+        if (req.id === id) {
+          return { ...req, status, updatedAt: new Date().toISOString() };
+        }
+        return req;
+      })
+    );
+
+    toast.success(`Request marked as ${status}!`);
+  };
+
+  const toggleSaveProfessional = (id: string) => {
+    setSavedProfessionals(prev => {
+      if (prev.includes(id)) {
+        toast.success('Removed from saved list');
+        return prev.filter(item => item !== id);
+      } else {
+        toast.success('Saved to your roster');
+        return [...prev, id];
+      }
+    });
+  };
+
+  const markNotificationRead = (id: string) => {
+    setNotifications(prev =>
+      prev.map(n => (n.id === id ? { ...n, read: true } : n))
+    );
   };
 
   const toggleVerified = (id: string) => {
@@ -324,8 +540,12 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <TalentContext.Provider
       value={{
         professionals,
+        services,
+        serviceRequests,
+        notifications,
         promotions,
         inquiries,
+        savedProfessionals,
         currentProfile,
         filters,
         setFilters,
@@ -336,7 +556,14 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         recordClick,
         addProfessional,
         updateProfessional,
+        addService,
+        updateService,
+        deleteService,
         sendInquiry,
+        sendServiceRequest,
+        updateServiceRequestStatus,
+        toggleSaveProfessional,
+        markNotificationRead,
         toggleVerified,
         togglePromotedAdmin,
         setCurrentProfileId,

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Lock, Loader2, User2, Eye, EyeOff, Sparkles, ArrowRight, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import type { UserRole } from '../../types/talent';
 import toast from 'react-hot-toast';
 
 function GoogleIcon({ className = "w-4 h-4" }: { className?: string }) {
@@ -68,9 +69,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         name: userName,
         avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userName)}`,
         plan: 'PRO' as const,
+        roles: ['buyer', 'provider'] as UserRole[],
         user_metadata: {
           full_name: userName,
           avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userName)}`,
+          roles: ['buyer', 'provider'] as UserRole[],
         }
       };
 

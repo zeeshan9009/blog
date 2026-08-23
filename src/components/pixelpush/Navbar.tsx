@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   ChevronDown,
   Menu,
@@ -20,7 +20,10 @@ import {
   TrendingUp,
   CheckCircle2,
   LogOut,
-  UserCheck
+  UserCheck,
+  Briefcase,
+  Users,
+  Plus
 } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
 import { useAuth } from '../../context/AuthContext';
@@ -159,7 +162,27 @@ export const Navbar: React.FC = () => {
               {/* Navigation Links */}
               <nav className="hidden md:flex items-center gap-3 text-xs font-bold text-slate-800" aria-label="Main Navigation">
                 
-                {/* 1. EXPLORE TALENT BUTTON */}
+                <Link
+                  to="/find-services"
+                  className="hover:text-[#e8622c] transition py-1.5 px-2 flex items-center gap-1"
+                >
+                  <Briefcase className="w-3.5 h-3.5" />
+                  <span>Find Services</span>
+                </Link>
+
+                <Link
+                  to="/developers"
+                  className="hover:text-[#e8622c] transition py-1.5 px-2 flex items-center gap-1"
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Professionals</span>
+                </Link>
+
+                <a href="#features" onClick={() => setActiveMenu(null)} className="hover:text-black transition py-1.5 px-2">
+                  How It Works
+                </a>
+
+                {/* Categories Button */}
                 <button
                   onClick={() => toggleMenu('talent')}
                   className={`flex items-center gap-1.5 transition cursor-pointer py-1.5 px-3 border rounded-none ${
@@ -168,35 +191,10 @@ export const Navbar: React.FC = () => {
                       : 'text-slate-800 hover:text-black border-transparent hover:border-slate-300'
                   }`}
                 >
-                  <span>Explore Talent</span>
+                  <span>Categories</span>
                   <ChevronDown
                     className={`w-3.5 h-3.5 transition-transform duration-200 ${
                       activeMenu === 'talent' ? 'rotate-180 text-[#e8622c]' : 'text-slate-500'
-                    }`}
-                  />
-                </button>
-
-                <a href="#pricing" onClick={() => setActiveMenu(null)} className="hover:text-black transition py-1.5 px-2">
-                  Pricing ($1 Boost)
-                </a>
-
-                <a href="#features" onClick={() => setActiveMenu(null)} className="hover:text-black transition py-1.5 px-2">
-                  How It Works
-                </a>
-
-                {/* 2. PLATFORM INFO BUTTON */}
-                <button
-                  onClick={() => toggleMenu('platform')}
-                  className={`flex items-center gap-1.5 transition cursor-pointer py-1.5 px-3 border rounded-none ${
-                    activeMenu === 'platform'
-                      ? 'bg-black text-white border-black shadow-xs'
-                      : 'text-slate-800 hover:text-black border-transparent hover:border-slate-300'
-                  }`}
-                >
-                  <span>Platform Info</span>
-                  <ChevronDown
-                    className={`w-3.5 h-3.5 transition-transform duration-200 ${
-                      activeMenu === 'platform' ? 'rotate-180 text-[#e8622c]' : 'text-slate-500'
                     }`}
                   />
                 </button>
@@ -302,24 +300,23 @@ export const Navbar: React.FC = () => {
                   )}
                 </div>
               ) : (
-                <button
-                  onClick={() => navigate('/login')}
-                  className="text-xs font-bold text-slate-800 hover:text-black px-2.5 transition cursor-pointer"
-                >
-                  Sign in
-                </button>
-              )}
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => navigate('/login')}
+                    className="text-xs font-bold text-slate-800 hover:text-black px-2.5 transition cursor-pointer"
+                  >
+                    Sign in
+                  </button>
 
-              {/* Exact Pixel-Notched Button: "Promote for $1" */}
-              <div className="pixel-btn-outline-wrapper">
-                <button
-                  onClick={() => goToPage('/promote')}
-                  className="pixel-btn-outline-inner block px-4 py-2 font-bold text-xs cursor-pointer select-none flex items-center gap-1.5"
-                >
-                  <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
-                  <span>Promote for $1</span>
-                </button>
-              </div>
+                  <button
+                    onClick={() => navigate('/onboarding')}
+                    className="px-3.5 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-[2px_2px_0px_0px_#e8622c] flex items-center gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Become a Professional</span>
+                  </button>
+                </div>
+              )}
             </div>
 
             {/* Mobile Hamburger Button */}

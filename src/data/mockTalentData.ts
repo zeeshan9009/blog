@@ -1,4 +1,4 @@
-import type { Professional, PromotionRecord, Inquiry } from '../types/talent';
+import type { Professional, PromotionRecord, Inquiry, Service, ServiceRequest, NotificationItem } from '../types/talent';
 
 export const INITIAL_PROFESSIONALS: Professional[] = [
   {
@@ -611,6 +611,179 @@ export const INITIAL_INQUIRIES: Inquiry[] = [
     budget: '$2,000 - $4,000',
     createdAt: new Date(Date.now() - 28 * 60 * 60 * 1000).toISOString(),
     status: 'replied'
+  }
+];
+
+export const INITIAL_SERVICES: Service[] = [
+  {
+    id: 'srv-1',
+    providerId: 'ali-raza',
+    providerName: 'Ali Raza',
+    providerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80',
+    providerHeadline: 'Node.js Developer',
+    title: 'Build a Scalable REST & GraphQL API with Node.js',
+    category: 'Web Development',
+    description: 'High-throughput Node.js microservices, PostgreSQL/MongoDB schemas, Redis caching, JWT auth, and Dockerization with 99.9% uptime architecture.',
+    skills: ['Node.js', 'Express', 'MongoDB', 'PostgreSQL', 'Redis'],
+    startingPrice: 50,
+    priceType: 'starting_from',
+    deliveryTime: '3 days',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
+    isPromoted: true,
+    score: 96,
+    rating: 4.9,
+    reviewCount: 120
+  },
+  {
+    id: 'srv-2',
+    providerId: 'muntazir-mahdi',
+    providerName: 'Muntazir Mahdi',
+    providerAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80',
+    providerHeadline: 'GoHighLevel & CRM Funnel Expert',
+    title: 'GoHighLevel CRM Setup, Sales Funnels & Webhook Automations',
+    category: 'Marketing',
+    description: 'End-to-end GoHighLevel setup, custom snapshot installation, two-way Twilio integration, sales funnel page builds, and automated booking calendars.',
+    skills: ['GoHighLevel', 'Sales Funnels', 'CRM Automation', 'Zapier', 'Webhooks'],
+    startingPrice: 55,
+    priceType: 'hourly',
+    deliveryTime: '2 days',
+    image: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
+    isPromoted: true,
+    score: 99,
+    rating: 5.0,
+    reviewCount: 247
+  },
+  {
+    id: 'srv-3',
+    providerId: 'ahsan-hassan',
+    providerName: 'Ahsan Hassan',
+    providerAvatar: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80',
+    providerHeadline: 'Sales Funnel & Landing Page Specialist',
+    title: 'High-Converting Sales Funnel & Landing Page Design',
+    category: 'Graphic Design',
+    description: 'Bespoke high-converting sales funnels designed in ClickFunnels, Kajabi, Systeme.io, and Figma with responsive desktop & mobile typography.',
+    skills: ['ClickFunnels', 'Kajabi', 'Systeme.io', 'Figma', 'Copywriting'],
+    startingPrice: 45,
+    priceType: 'starting_from',
+    deliveryTime: '1 day',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
+    isPromoted: true,
+    score: 98,
+    rating: 5.0,
+    reviewCount: 152
+  },
+  {
+    id: 'srv-4',
+    providerId: 'ms-dev',
+    providerName: 'Ms. Dev',
+    providerAvatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    providerHeadline: 'Webflow & Framer Motion Expert',
+    title: 'Custom Framer & Webflow Interactive Website Development',
+    category: 'Web Development',
+    description: 'Award-winning interactive websites built in Framer and Webflow with custom GSAP scroll triggers, 3D Canvas integration, and pixel-perfect responsiveness.',
+    skills: ['Webflow', 'Framer', 'GSAP', 'CSS3 Animations', 'UI/UX'],
+    startingPrice: 65,
+    priceType: 'hourly',
+    deliveryTime: '3 days',
+    image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=600&auto=format&fit=crop&q=80',
+    isPromoted: false,
+    score: 97,
+    rating: 4.9,
+    reviewCount: 187
+  },
+  {
+    id: 'srv-5',
+    providerId: 'khalis-m',
+    providerName: 'Khalis M.',
+    providerAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80',
+    providerHeadline: 'AI Automation & CRM Agency Lead',
+    title: 'AI Automation Workflows with Make.com, Python & OpenAI',
+    category: 'AI Engineering',
+    description: 'Scale repetitive business operations with custom OpenAI agents, Make.com / Zapier scenarios, automated lead scrapers, and CRM webhook routing.',
+    skills: ['AI Automation', 'Make.com', 'Python', 'GoHighLevel', 'OpenAI'],
+    startingPrice: 85,
+    priceType: 'hourly',
+    deliveryTime: '2 days',
+    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=600&auto=format&fit=crop&q=80',
+    isPromoted: true,
+    score: 99,
+    rating: 4.9,
+    reviewCount: 1100
+  },
+  {
+    id: 'srv-6',
+    providerId: 'shipan-dev',
+    providerName: 'Shipan',
+    providerAvatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    providerHeadline: 'Framer Interactive Web Developer',
+    title: 'Modern Interactive Framer Website with Custom React Components',
+    category: 'Web Development',
+    description: 'Design to Framer conversion with tailored React overrides, dynamic CMS collections, SEO optimization, and fast loading performance.',
+    skills: ['Framer', 'React', 'TypeScript', 'SEO', 'Tailwind'],
+    startingPrice: 60,
+    priceType: 'hourly',
+    deliveryTime: '2 days',
+    image: 'https://images.unsplash.com/photo-1558655146-d09347e92766?w=600&auto=format&fit=crop&q=80',
+    isPromoted: true,
+    score: 96,
+    rating: 4.9,
+    reviewCount: 577
+  }
+];
+
+export const INITIAL_SERVICE_REQUESTS: ServiceRequest[] = [
+  {
+    id: 'req-101',
+    serviceId: 'srv-1',
+    serviceTitle: 'Build a Scalable REST & GraphQL API with Node.js',
+    providerId: 'ali-raza',
+    providerName: 'Ali Raza',
+    buyerId: 'buyer-sarah',
+    buyerName: 'Sarah Jenkins (Apex Labs)',
+    buyerEmail: 'sarah@apexlabs.com',
+    projectDescription: 'We need a senior Node.js backend engineer to architect an enterprise subscription gateway with Stripe webhooks and PostgreSQL database replication.',
+    budget: '$3,500',
+    deadline: '14 days',
+    status: 'pending',
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'req-102',
+    serviceId: 'srv-1',
+    serviceTitle: 'Build a Scalable REST & GraphQL API with Node.js',
+    providerId: 'ali-raza',
+    providerName: 'Ali Raza',
+    buyerId: 'buyer-david',
+    buyerName: 'David Miller',
+    buyerEmail: 'david@fintechwave.co',
+    projectDescription: 'Assistance with Redis cluster caching layer and high-throughput query optimization.',
+    budget: '$1,200',
+    deadline: '5 days',
+    status: 'accepted',
+    createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+  }
+];
+
+export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
+  {
+    id: 'notif-1',
+    userId: 'ali-raza',
+    title: 'New Service Request Received',
+    message: 'Sarah Jenkins from Apex Labs submitted a $3,500 project request for "Node.js REST API".',
+    type: 'request',
+    link: '/dashboard/requests',
+    read: false,
+    createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString()
+  },
+  {
+    id: 'notif-2',
+    userId: 'ali-raza',
+    title: 'Sponsored Visibility Active',
+    message: 'Your $1 / 24-hour promotion is active with 21 hours remaining.',
+    type: 'promotion',
+    link: '/dashboard/promotion',
+    read: true,
+    createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString()
   }
 ];
 

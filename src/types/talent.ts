@@ -1,3 +1,5 @@
+export type UserRole = 'buyer' | 'provider';
+
 export interface Skill {
   name: string;
   level: 'Beginner' | 'Intermediate' | 'Expert';
@@ -37,10 +39,61 @@ export interface ExternalLinks {
   upwork?: string;
   fiverr?: string;
   website?: string;
+  behance?: string;
+}
+
+export interface Service {
+  id: string;
+  providerId: string;
+  providerName: string;
+  providerAvatar: string;
+  providerHeadline: string;
+  title: string; // e.g. "Build a REST API with Node.js"
+  category: string; // e.g. "Web Development"
+  description: string;
+  skills: string[];
+  startingPrice: number; // e.g. 50
+  priceType: 'fixed' | 'hourly' | 'starting_from';
+  deliveryTime: string; // e.g. "3 days"
+  image?: string;
+  isPromoted?: boolean;
+  score?: number;
+  rating?: number;
+  reviewCount?: number;
+}
+
+export interface ServiceRequest {
+  id: string;
+  serviceId?: string;
+  serviceTitle?: string;
+  providerId: string;
+  providerName: string;
+  buyerId: string;
+  buyerName: string;
+  buyerEmail: string;
+  projectDescription: string;
+  budget: string; // e.g. "$500"
+  deadline: string; // e.g. "7 days"
+  status: 'pending' | 'accepted' | 'declined' | 'completed' | 'cancelled';
+  createdAt: string;
+  updatedAt?: string;
+  notes?: string;
+}
+
+export interface NotificationItem {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'contact' | 'request' | 'status' | 'promotion';
+  link?: string;
+  read: boolean;
+  createdAt: string;
 }
 
 export interface Professional {
   id: string;
+  userId?: string;
   name: string;
   title: string;
   category: string;
@@ -73,6 +126,7 @@ export interface Professional {
   isOnline?: boolean;
   deliveryTime?: string;
   offersConsultation?: boolean;
+  services?: Service[];
 }
 
 export interface Inquiry {
@@ -86,6 +140,7 @@ export interface Inquiry {
   budget?: string;
   createdAt: string;
   status: 'unread' | 'read' | 'replied';
+  isSponsoredLead?: boolean;
 }
 
 export interface PromotionRecord {
@@ -99,16 +154,21 @@ export interface PromotionRecord {
   paymentMethod: string;
   status: 'active' | 'expired';
   transactionId: string;
+  impressions?: number;
+  clicks?: number;
+  contacts?: number;
 }
 
 export interface FilterState {
   query: string;
   category: string;
+  service?: string;
   location: string;
   experience: string;
   minScore: number;
   maxHourlyRate: number;
   skills: string[];
   promotedOnly: boolean;
+  deliverySpeed?: string;
   sortBy: 'relevance' | 'score' | 'rating' | 'hourlyRateAsc' | 'hourlyRateDesc';
 }

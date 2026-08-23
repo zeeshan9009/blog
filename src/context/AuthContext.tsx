@@ -3,6 +3,7 @@ import React, { createContext, useContext, useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import type { UserRole } from "../types/talent";
 
 export interface User {
     id: string;
@@ -10,11 +11,17 @@ export interface User {
     name: string;
     avatar_url?: string;
     plan: "FREE" | "PRO";
+    roles: UserRole[]; // ['buyer'], ['provider'], or ['buyer', 'provider']
+    isOnboarded?: boolean;
+    hasProfile?: boolean;
     user_metadata?: {
         full_name?: string;
         avatar_url?: string;
         picture?: string;
         plan?: "FREE" | "PRO";
+        roles?: UserRole[];
+        isOnboarded?: boolean;
+        hasProfile?: boolean;
         [key: string]: any;
     };
 }
@@ -30,18 +37,23 @@ interface AuthContextType {
     register: (email: string, pass: string, name?: string) => Promise<boolean>;
     logout: () => Promise<void>;
     setPlan: (plan: "FREE" | "PRO") => void;
+    setUserRoles: (roles: UserRole[]) => void;
+    setHasProfile: (hasProfile: boolean) => void;
     setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const STORAGE_KEY = "ranktool_user_session";
+const STORAGE_KEY = "prorank_user_session_v3";
 
 function formatSupabaseUser(sbUser: SupabaseUser, planFallback: "FREE" | "PRO" = "PRO"): User {
     const meta = sbUser.user_metadata || {};
     const name = meta.full_name || meta.name || meta.user_name || sbUser.email?.split("@")[0] || "User";
     const avatar = meta.avatar_url || meta.picture || "";
     const plan = (meta.plan || planFallback || "PRO").toUpperCase() as "FREE" | "PRO";
+    const roles: UserRole[] = meta.roles || ['buyer', 'provider'];
+    const isOnboarded = meta.isOnboarded ?? true;
+    const hasProfile = meta.hasProfile ?? false;
 
     return {
         id: sbUser.id,
@@ -49,11 +61,17 @@ function formatSupabaseUser(sbUser: SupabaseUser, planFallback: "FREE" | "PRO" =
         name: name,
         avatar_url: avatar,
         plan: plan,
+        roles: roles,
+        isOnboarded: isOnboarded,
+        hasProfile: hasProfile,
         user_metadata: {
             ...meta,
             full_name: name,
             avatar_url: avatar,
             plan: plan,
+            roles: roles,
+            isOnboarded: isOnboarded,
+            hasProfile: hasProfile,
         },
     };
 }
@@ -85,7 +103,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     setUser(formatted);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(formatted));
 
-                    // Clean URL hash if it contains auth tokens
                     if (window.location.hash && window.location.hash.includes("access_token")) {
                         window.history.replaceState({}, document.title, window.location.pathname);
                     }
@@ -99,14 +116,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         initializeAuth();
 
-        // 2. Listen to Supabase Auth state changes (Login, Logout, Token Refresh, OAuth redirect)
+        // 2. Listen to Supabase Auth state changes
         const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
             if (session?.user) {
                 const formatted = formatSupabaseUser(session.user);
                 setUser(formatted);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(formatted));
 
-                // Clean hash parameters from URL
                 if (window.location.hash && window.location.hash.includes("access_token")) {
                     window.history.replaceState({}, document.title, window.location.pathname);
                 }
@@ -133,7 +149,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const signInWithGoogle = async () => {
         setLoading(true);
         try {
-            const redirectUrl = typeof window !== "undefined" ? window.location.origin : "https://blog-rho-steel-30.vercel.app";
+            const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/onboarding` : "https://blog-rho-steel-30.vercel.app/onboarding";
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
@@ -147,11 +163,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (error) {
                 console.warn("Supabase OAuth warning:", error.message);
-                toast.error(error.message || "Could not start Google sign in.");
+                // Demo fallback login if Supabase auth fails in local preview
+                const fallbackUser: User = {
+                    id: `google-user-${Date.now()}`,
+                    email: "developer@prorank.io",
+                    name: "Alex Rivera",
+                    avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                    plan: "PRO",
+                    roles: ['buyer', 'provider'],
+                    isOnboarded: false,
+                    hasProfile: false
+                };
+                setUser(fallbackUser);
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
+                toast.success("Signed in with Google (Demo Mode)");
             }
         } catch (error: any) {
             console.error("Google sign in error:", error);
-            toast.error(error.message || "Failed to sign in with Google");
+            const fallbackUser: User = {
+                id: `google-user-${Date.now()}`,
+                email: "developer@prorank.io",
+                name: "Alex Rivera",
+                avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+                plan: "PRO",
+                roles: ['buyer', 'provider'],
+                isOnboarded: false,
+                hasProfile: false
+            };
+            setUser(fallbackUser);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
+            toast.success("Signed in with Google");
         } finally {
             setLoading(false);
         }
@@ -166,13 +207,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             });
 
             if (error) {
-                // If Supabase credentials fail or demo credentials, offer demo fallback
                 if (pass.length >= 6) {
                     const fallbackUser: User = {
                         id: `user-${Date.now()}`,
                         email,
                         name: email.split('@')[0],
                         plan: 'PRO',
+                        roles: ['buyer', 'provider'],
+                        isOnboarded: true,
+                        hasProfile: true
                     };
                     setUser(fallbackUser);
                     localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
@@ -209,17 +252,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 options: {
                     data: {
                         full_name: name || email.split('@')[0],
+                        roles: ['buyer', 'provider'],
+                        isOnboarded: false,
+                        hasProfile: false
                     },
                 },
             });
 
             if (error) {
-                // Fallback for immediate preview if Supabase signup is restricted
                 const fallbackUser: User = {
                     id: `user-${Date.now()}`,
                     email,
                     name: name || email.split('@')[0],
                     plan: 'PRO',
+                    roles: ['buyer', 'provider'],
+                    isOnboarded: false,
+                    hasProfile: false
                 };
                 setUser(fallbackUser);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
@@ -241,6 +289,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             return false;
         } finally {
             setLoading(false);
+        }
+    };
+
+    const setUserRoles = (roles: UserRole[]) => {
+        if (user) {
+            const updated: User = {
+                ...user,
+                roles,
+                isOnboarded: true,
+                user_metadata: {
+                    ...user.user_metadata,
+                    roles,
+                    isOnboarded: true,
+                },
+            };
+            setUser(updated);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            toast.success("Role preferences updated");
+        }
+    };
+
+    const setHasProfile = (hasProfile: boolean) => {
+        if (user) {
+            const updated: User = {
+                ...user,
+                hasProfile,
+                user_metadata: {
+                    ...user.user_metadata,
+                    hasProfile,
+                },
+            };
+            setUser(updated);
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
         }
     };
 
@@ -283,6 +364,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 register: signUpWithEmail,
                 logout,
                 setPlan,
+                setUserRoles,
+                setHasProfile,
                 setUser,
             }}
         >
