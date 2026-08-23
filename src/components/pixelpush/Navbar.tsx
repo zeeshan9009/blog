@@ -234,16 +234,8 @@ export const Navbar: React.FC = () => {
               
               {/* AUTH STATE: Logged in Avatar vs Sign in button */}
               {user ? (
-                <div className="flex items-center gap-2.5">
-                  {/* Direct Dashboard Button beside User Pill */}
-                  <button
-                    onClick={() => goToPage('/dashboard')}
-                    className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
-                  >
-                    <LayoutDashboard className="w-3.5 h-3.5" />
-                    <span>[ DASHBOARD ]</span>
-                  </button>
-
+                <div className="flex items-center gap-3">
+                  {/* User Profile Dropdown Pill */}
                   <div className="relative" ref={userMenuRef}>
                     <button
                       onClick={() => setUserDropdownOpen(!userDropdownOpen)}
@@ -335,6 +327,15 @@ export const Navbar: React.FC = () => {
                       </div>
                     )}
                   </div>
+
+                  {/* Direct Dashboard Button on the Right */}
+                  <button
+                    onClick={() => goToPage('/dashboard')}
+                    className="px-3.5 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
+                  >
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>[ DASHBOARD ]</span>
+                  </button>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
