@@ -12,7 +12,7 @@ import { useTalent } from '../context/TalentContext';
 import { HireRequestModal } from '../components/modals/HireRequestModal';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { ContactModal } from '../components/modals/ContactModal';
-import type { Professional } from '../types/talent';
+import type { Professional, Service } from '../types/talent';
 
 export const ServiceDetailPage: React.FC = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
@@ -22,15 +22,72 @@ export const ServiceDetailPage: React.FC = () => {
   const [hireModalOpen, setHireModalOpen] = useState(false);
   const [contactModalOpen, setContactModalOpen] = useState(false);
 
-  // Find target service
-  const service = useMemo(() => {
-    return services.find(s => s.id === serviceId) || services[0];
-  }, [services, serviceId]);
+  // Find target service (supports direct service.id or derived srv-{profileId})
+  const service = useMemo<Service | null>(() => {
+    // 1. Direct match in services
+    const direct = services.find(s => s.id === serviceId);
+    if (direct) return direct;
+
+    // 2. Extract profile ID from 'srv-{id}' or direct profileId match
+    const targetProId = serviceId?.startsWith('srv-') ? serviceId.replace('srv-', '') : serviceId;
+    const matchedPro = professionals.find(p => p.id === targetProId || p.userId === targetProId);
+
+    if (matchedPro) {
+      return {
+        id: `srv-${matchedPro.id}`,
+        providerId: matchedPro.id,
+        providerName: matchedPro.name,
+        providerAvatar: matchedPro.avatar,
+        providerHeadline: matchedPro.title,
+        title: matchedPro.gigTitle || `Expert ${matchedPro.skills.slice(0, 2).join(' & ')} Services`,
+        description: matchedPro.bio || 'Verified professional services on RankLancr.',
+        category: matchedPro.category,
+        skills: matchedPro.skills,
+        startingPrice: matchedPro.hourlyRate,
+        priceType: 'starting_from',
+        deliveryTime: matchedPro.deliveryTime || '2 days',
+        score: matchedPro.score || 95,
+        rating: matchedPro.rating || 5.0,
+        reviewCount: matchedPro.reviewCount || 12,
+        image: matchedPro.gigImage || matchedPro.avatar,
+        isPromoted: matchedPro.isPromoted
+      };
+    }
+
+    // 3. Fallback to first available service or first available profile
+    if (services.length > 0) return services[0];
+    if (professionals.length > 0) {
+      const p = professionals[0];
+      return {
+        id: `srv-${p.id}`,
+        providerId: p.id,
+        providerName: p.name,
+        providerAvatar: p.avatar,
+        providerHeadline: p.title,
+        title: p.gigTitle || `Expert ${p.skills.slice(0, 2).join(' & ')} Services`,
+        description: p.bio,
+        category: p.category,
+        skills: p.skills,
+        startingPrice: p.hourlyRate,
+        priceType: 'starting_from',
+        deliveryTime: '2 days',
+        score: p.score || 90,
+        rating: p.rating || 5.0,
+        reviewCount: p.reviewCount || 5,
+        image: p.avatar,
+        isPromoted: p.isPromoted
+      };
+    }
+
+    return null;
+  }, [services, professionals, serviceId]);
 
   // Find provider profile
   const provider = useMemo<Professional>(() => {
-    const found = professionals.find(p => p.id === service?.providerId);
-    if (found) return found;
+    if (service?.providerId) {
+      const found = professionals.find(p => p.id === service.providerId || p.userId === service.providerId);
+      if (found) return found;
+    }
     return {
       id: service?.providerId || 'pro',
       userId: service?.providerId || 'pro',
@@ -39,14 +96,14 @@ export const ServiceDetailPage: React.FC = () => {
       category: service?.category || 'Development',
       location: 'Global',
       country: 'Global',
-      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(service?.providerName || 'Pro')}`,
-      bio: 'Professional service provider on RankLancr.',
+      avatar: service?.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(service?.providerName || 'Pro')}`,
+      bio: service?.description || 'Professional service provider on RankLancr.',
       hourlyRate: service?.startingPrice || 50,
-      experienceYears: 1,
-      score: 85,
-      rating: 5.0,
-      reviewCount: 0,
-      skills: ['Specialist'],
+      experienceYears: 2,
+      score: 95,
+      rating: service?.rating || 5.0,
+      reviewCount: service?.reviewCount || 10,
+      skills: service?.skills || ['Specialist'],
       experience: [],
       portfolio: [],
       reviews: [],
