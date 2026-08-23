@@ -327,14 +327,6 @@ export const Navbar: React.FC = () => {
                   <span>Promote for $1</span>
                 </button>
               </div>
-
-              {/* Exact Pixel-Notched Button: "Explore Talent" */}
-              <button
-                onClick={() => goToPage('/search')}
-                className="pixel-btn-black block px-5 py-2.5 font-bold text-xs cursor-pointer select-none shadow-sm"
-              >
-                Explore Talent
-              </button>
             </div>
 
             {/* Mobile Hamburger Button */}
