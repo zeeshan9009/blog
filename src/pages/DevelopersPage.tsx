@@ -1,5 +1,5 @@
-import React, { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Search,
   Star,
@@ -12,12 +12,15 @@ import {
   X,
   MessageSquare,
   Sparkles,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Flame,
+  Award
 } from 'lucide-react';
 import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
 import { ContactModal } from '../components/modals/ContactModal';
 import { AuthModal } from '../components/modals/AuthModal';
+import { executeProRankSearch } from '../services/ranking/searchEngine';
 import type { Professional } from '../types/talent';
 
 // Comprehensive Marketplace Mock Developers matching the reference UI
@@ -36,11 +39,11 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 99,
     rating: 5.0,
     reviewCount: 247,
-    skills: ['GoHighLevel', 'Sales Funnels', 'CRM Automation', 'Zapier', 'Webhooks'],
+    skills: ['GoHighLevel', 'Sales Funnels', 'CRM Automation', 'Zapier', 'Webhooks', 'Node.js'],
     experience: [],
     portfolio: [],
     reviews: [],
-    externalLinks: {},
+    externalLinks: { upwork: 'https://upwork.com', github: 'https://github.com' },
     isVerified: true,
     isPromoted: true,
     viewsCount: 4200,
@@ -68,11 +71,11 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 98,
     rating: 5.0,
     reviewCount: 152,
-    skills: ['ClickFunnels', 'Kajabi', 'Systeme.io', 'Figma', 'Copywriting'],
+    skills: ['ClickFunnels', 'Kajabi', 'Systeme.io', 'Figma', 'Copywriting', 'Webflow'],
     experience: [],
     portfolio: [],
     reviews: [],
-    externalLinks: {},
+    externalLinks: { upwork: 'https://upwork.com' },
     isVerified: true,
     isPromoted: true,
     viewsCount: 3900,
@@ -100,11 +103,11 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 97,
     rating: 4.9,
     reviewCount: 187,
-    skills: ['Webflow', 'Framer', 'GSAP', 'CSS3 Animations', 'UI/UX'],
+    skills: ['Webflow', 'Framer', 'GSAP', 'CSS3 Animations', 'UI/UX', 'React'],
     experience: [],
     portfolio: [],
     reviews: [],
-    externalLinks: {},
+    externalLinks: { website: 'https://msdev.design' },
     isVerified: true,
     isPromoted: false,
     viewsCount: 5100,
@@ -132,7 +135,7 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 96,
     rating: 5.0,
     reviewCount: 47,
-    skills: ['GoHighLevel', 'Twilio', 'Stripe', 'Lead Gen', 'Landing Pages'],
+    skills: ['GoHighLevel', 'Twilio', 'Stripe', 'Lead Gen', 'Landing Pages', 'Python'],
     experience: [],
     portfolio: [],
     reviews: [],
@@ -164,11 +167,11 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 99,
     rating: 4.9,
     reviewCount: 1100,
-    skills: ['AI Automation', 'Make.com', 'Python', 'GoHighLevel', 'OpenAI'],
+    skills: ['AI Automation', 'Make.com', 'Python', 'GoHighLevel', 'OpenAI', 'Node.js'],
     experience: [],
     portfolio: [],
     reviews: [],
-    externalLinks: {},
+    externalLinks: { website: 'https://khalisagency.com' },
     isVerified: true,
     isPromoted: true,
     viewsCount: 8900,
@@ -196,11 +199,11 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 98,
     rating: 4.9,
     reviewCount: 605,
-    skills: ['Webflow', 'Framer', 'Figma', 'Spline 3D', 'JavaScript'],
+    skills: ['Webflow', 'Framer', 'Figma', 'Spline 3D', 'JavaScript', 'React'],
     experience: [],
     portfolio: [],
     reviews: [],
-    externalLinks: {},
+    externalLinks: { upwork: 'https://upwork.com' },
     isVerified: true,
     isPromoted: false,
     viewsCount: 6400,
@@ -228,11 +231,11 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 96,
     rating: 4.9,
     reviewCount: 577,
-    skills: ['Framer', 'React', 'TypeScript', 'SEO', 'Tailwind'],
+    skills: ['Framer', 'React', 'TypeScript', 'SEO', 'Tailwind', 'Next.js'],
     experience: [],
     portfolio: [],
     reviews: [],
-    externalLinks: {},
+    externalLinks: { github: 'https://github.com' },
     isVerified: true,
     isPromoted: true,
     viewsCount: 4700,
@@ -260,7 +263,7 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 97,
     rating: 5.0,
     reviewCount: 761,
-    skills: ['Framer', 'Figma to Framer', 'SaaS Landing Pages', 'Motion Graphics'],
+    skills: ['Framer', 'Figma to Framer', 'SaaS Landing Pages', 'Motion Graphics', 'UI/UX'],
     experience: [],
     portfolio: [],
     reviews: [],
@@ -292,7 +295,7 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 95,
     rating: 5.0,
     reviewCount: 94,
-    skills: ['HubSpot', 'HubL', 'Next.js', 'APIs', 'CRM'],
+    skills: ['HubSpot', 'HubL', 'Next.js', 'APIs', 'CRM', 'React', 'Node.js'],
     experience: [],
     portfolio: [],
     reviews: [],
@@ -324,7 +327,7 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 98,
     rating: 5.0,
     reviewCount: 31,
-    skills: ['Perspective Funnels', 'Quiz Funnels', 'Lead Generation', 'Conversion Rate'],
+    skills: ['Perspective Funnels', 'Quiz Funnels', 'Lead Generation', 'Conversion Rate', 'Framer'],
     experience: [],
     portfolio: [],
     reviews: [],
@@ -356,7 +359,7 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 96,
     rating: 5.0,
     reviewCount: 122,
-    skills: ['Showit', 'Webflow', 'Brand Identity', 'Typography', 'Shopify'],
+    skills: ['Showit', 'Webflow', 'Brand Identity', 'Typography', 'Shopify', 'Figma'],
     experience: [],
     portfolio: [],
     reviews: [],
@@ -388,7 +391,7 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
     score: 95,
     rating: 4.9,
     reviewCount: 63,
-    skills: ['Draftbit', 'FlutterFlow', 'Supabase', 'React Native', 'Xano'],
+    skills: ['Draftbit', 'FlutterFlow', 'Supabase', 'React Native', 'Xano', 'TypeScript'],
     experience: [],
     portfolio: [],
     reviews: [],
@@ -410,17 +413,19 @@ const MARKETPLACE_DEVELOPERS: Professional[] = [
 
 export const DevelopersPage: React.FC = () => {
   const navigate = useNavigate();
-  const { searchQuery, setSearchQuery } = useTalent();
+  const [searchParams] = useSearchParams();
+  const queryParam = searchParams.get('q') || '';
+  
+  const { searchQuery, setSearchQuery, professionals, recordImpression, recordClick } = useTalent();
   const { user } = useAuth();
 
   // Filters State
-  const [localSearch, setLocalSearch] = useState(searchQuery || '');
+  const [localSearch, setLocalSearch] = useState(queryParam || searchQuery || '');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [selectedService, setSelectedService] = useState<string>('All');
   const [selectedSellerLevel, setSelectedSellerLevel] = useState<string>('All');
   const [maxBudget, setMaxBudget] = useState<number>(120);
   const [deliverySpeed, setDeliverySpeed] = useState<string>('Any');
-  const [sponsoredOnly, setSponsoredOnly] = useState<boolean>(false);
   const [onlineOnly, setOnlineOnly] = useState<boolean>(false);
   const [proOnly, setProOnly] = useState<boolean>(false);
   const [sortBy, setSortBy] = useState<'score' | 'rating' | 'priceLow' | 'priceHigh'>('score');
@@ -436,6 +441,30 @@ export const DevelopersPage: React.FC = () => {
   // Dropdown open states
   const [openDropdown, setOpenDropdown] = useState<'service' | 'seller' | 'budget' | 'delivery' | null>(null);
 
+  // Combine custom professionals from context with marketplace pool
+  const allPool = useMemo(() => {
+    const existingIds = new Set(MARKETPLACE_DEVELOPERS.map(p => p.id));
+    const extraFromContext = professionals.filter(p => !existingIds.has(p.id));
+    return [...MARKETPLACE_DEVELOPERS, ...extraFromContext];
+  }, [professionals]);
+
+  // Execute ProRank Search Engine with clear Sponsored vs Organic separation
+  const searchResults = useMemo(() => {
+    return executeProRankSearch(allPool, {
+      query: localSearch,
+      category: selectedCategory,
+      maxRate: maxBudget,
+      limit: 30
+    });
+  }, [allPool, localSearch, selectedCategory, maxBudget]);
+
+  // Record impression events for rendered sponsored profiles
+  useEffect(() => {
+    searchResults.sponsored.forEach(s => {
+      recordImpression(s.profile.id, user?.id || 'visitor_client');
+    });
+  }, [searchResults.sponsored, user?.id, recordImpression]);
+
   const toggleFavorite = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setFavorites(prev => 
@@ -443,58 +472,19 @@ export const DevelopersPage: React.FC = () => {
     );
   };
 
-  // Filtered Developers
-  const filteredDevelopers = useMemo(() => {
-    return MARKETPLACE_DEVELOPERS.filter(dev => {
-      // Search
-      const searchMatch = !localSearch.trim() || 
-        dev.name.toLowerCase().includes(localSearch.toLowerCase()) ||
-        dev.title.toLowerCase().includes(localSearch.toLowerCase()) ||
-        dev.gigTitle?.toLowerCase().includes(localSearch.toLowerCase()) ||
-        dev.skills.some(s => s.toLowerCase().includes(localSearch.toLowerCase()));
-
-      // Category / Service
-      const categoryMatch = selectedCategory === 'All' || dev.category === selectedCategory;
-      const serviceMatch = selectedService === 'All' || 
-        dev.skills.some(s => s.toLowerCase().includes(selectedService.toLowerCase())) ||
-        dev.title.toLowerCase().includes(selectedService.toLowerCase());
-
-      // Seller Level
-      const levelMatch = selectedSellerLevel === 'All' || dev.levelBadge?.includes(selectedSellerLevel);
-
-      // Budget
-      const budgetMatch = dev.hourlyRate <= maxBudget;
-
-      // Delivery
-      const deliveryMatch = deliverySpeed === 'Any' || dev.deliveryTime?.includes(deliverySpeed);
-
-      // Toggles
-      const sponsoredMatch = !sponsoredOnly || dev.isPromoted;
-      const onlineMatch = !onlineOnly || dev.isOnline;
-      const proMatch = !proOnly || dev.score >= 97;
-
-      return searchMatch && categoryMatch && serviceMatch && levelMatch && budgetMatch && deliveryMatch && sponsoredMatch && onlineMatch && proMatch;
-    }).sort((a, b) => {
-      // Sponsored boosted items always come first if toggle is active or naturally prioritized
-      if (a.isPromoted && !b.isPromoted) return -1;
-      if (!a.isPromoted && b.isPromoted) return 1;
-
-      if (sortBy === 'score') return b.score - a.score;
-      if (sortBy === 'rating') return b.reviewCount - a.reviewCount;
-      if (sortBy === 'priceLow') return a.hourlyRate - b.hourlyRate;
-      if (sortBy === 'priceHigh') return b.hourlyRate - a.hourlyRate;
-      return 0;
-    });
-  }, [localSearch, selectedCategory, selectedService, selectedSellerLevel, maxBudget, deliverySpeed, sponsoredOnly, onlineOnly, proOnly, sortBy]);
+  const handleCardClick = (dev: Professional) => {
+    recordClick(dev.id, user?.id || 'visitor_client');
+    setQuickViewDev(dev);
+  };
 
   const clearAllFilters = () => {
     setLocalSearch('');
+    setSearchQuery('');
     setSelectedCategory('All');
     setSelectedService('All');
     setSelectedSellerLevel('All');
     setMaxBudget(120);
     setDeliverySpeed('Any');
-    setSponsoredOnly(false);
     setOnlineOnly(false);
     setProOnly(false);
     setSortBy('score');
@@ -527,7 +517,7 @@ export const DevelopersPage: React.FC = () => {
                 ProRank<span className="text-[#e8622c]">.</span>
               </span>
               <span className="hidden sm:inline-block px-2 py-0.5 bg-orange-100 text-[#e8622c] text-[10px] font-mono font-bold">
-                BUILDERS & TALENT DIRECTORY
+                BUILDERS & RANKING DIRECTORY
               </span>
             </div>
           </div>
@@ -547,7 +537,7 @@ export const DevelopersPage: React.FC = () => {
                 className="w-full px-3 py-1.5 text-xs text-black placeholder:text-slate-400 bg-transparent outline-hidden font-medium"
               />
               {localSearch && (
-                <button onClick={() => setLocalSearch('')} className="p-1 text-slate-400 hover:text-black">
+                <button onClick={() => { setLocalSearch(''); setSearchQuery(''); }} className="p-1 text-slate-400 hover:text-black">
                   <X className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -587,13 +577,13 @@ export const DevelopersPage: React.FC = () => {
         <div className="mb-6">
           <div className="inline-flex items-center gap-1.5 text-[11px] font-mono font-bold text-[#e8622c] uppercase tracking-wider mb-1">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>DIRECT CONTRACTS // ZERO PLATFORM COMMISSION</span>
+            <span>PRORANK FAIR RANKING ENGINE // 0% COMMISSION</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-black tracking-tight">
             Top Rated Developers & Funnel Builders
           </h1>
           <p className="text-xs sm:text-sm text-slate-600 mt-1 font-medium">
-            Find vetted developers, framer designers, CRM architects & engineers ready to build your next project.
+            Find vetted developers, framer designers, CRM architects & engineers with deterministic 0-100 ranking scores.
           </p>
         </div>
 
@@ -604,7 +594,10 @@ export const DevelopersPage: React.FC = () => {
             <input
               type="text"
               value={localSearch}
-              onChange={(e) => setLocalSearch(e.target.value)}
+              onChange={(e) => {
+                setLocalSearch(e.target.value);
+                setSearchQuery(e.target.value);
+              }}
               placeholder="Search skill (Framer, GHL, React)..."
               className="w-full px-2 py-1 text-xs bg-transparent outline-hidden"
             />
@@ -772,20 +765,6 @@ export const DevelopersPage: React.FC = () => {
             {/* Right Quick Toggles */}
             <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
               
-              {/* $1 Sponsored Boost Toggle */}
-              <label className="flex items-center gap-1.5 cursor-pointer px-2.5 py-1 bg-orange-50 border border-[#e8622c]/40 hover:border-[#e8622c]">
-                <input
-                  type="checkbox"
-                  checked={sponsoredOnly}
-                  onChange={(e) => setSponsoredOnly(e.target.checked)}
-                  className="accent-[#e8622c]"
-                />
-                <span className="flex items-center gap-1 text-[#e8622c]">
-                  <Zap className="w-3 h-3" />
-                  <span>$1 Sponsored First</span>
-                </span>
-              </label>
-
               {/* Online Now Toggle */}
               <label className="flex items-center gap-1.5 cursor-pointer px-2 py-1 hover:bg-slate-100">
                 <input
@@ -836,8 +815,8 @@ export const DevelopersPage: React.FC = () => {
           {/* Active Filter Tags Bar & Result Count */}
           <div className="pt-2 border-t border-slate-200 flex flex-wrap items-center justify-between text-xs">
             <div className="font-mono text-slate-500 font-semibold flex items-center gap-2">
-              <span>{filteredDevelopers.length.toLocaleString()}+ RESULTS AVAILABLE</span>
-              {(selectedService !== 'All' || selectedSellerLevel !== 'All' || maxBudget < 120 || deliverySpeed !== 'Any' || sponsoredOnly || onlineOnly || proOnly || localSearch) && (
+              <span>{searchResults.meta.total} TALENT PROFILES FOUND</span>
+              {(selectedService !== 'All' || selectedSellerLevel !== 'All' || maxBudget < 120 || deliverySpeed !== 'Any' || onlineOnly || proOnly || localSearch) && (
                 <button
                   onClick={clearAllFilters}
                   className="text-[#e8622c] hover:underline font-bold cursor-pointer"
@@ -848,7 +827,7 @@ export const DevelopersPage: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-2 text-[11px] font-mono text-slate-400">
-              <span>PRORANK VERIFIED TALENT ENGINE</span>
+              <span>PRORANK DETERMINISTIC ENGINE (0-100)</span>
             </div>
           </div>
 
@@ -857,152 +836,315 @@ export const DevelopersPage: React.FC = () => {
       </div>
 
       {/* ========================================================= */}
-      {/* 3. TALENT & DEVELOPER CARD GRID (4-COLUMNS DESKTOP) */}
+      {/* 3. DUAL-SECTION SEARCH RESULTS: SPONSORED & ORGANIC */}
       {/* ========================================================= */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-4">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-4 space-y-10">
         
-        {filteredDevelopers.length === 0 ? (
-          <div className="bg-white border-2 border-black p-12 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] my-8">
-            <SlidersHorizontal className="w-10 h-10 text-slate-300 mx-auto mb-3" />
-            <h3 className="text-lg font-black text-black">No builders found matching these criteria</h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
-              Try resetting your budget, category, or service filters to see more developers.
-            </p>
-            <button
-              onClick={clearAllFilters}
-              className="mt-4 px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition"
-            >
-              [ RESET FILTERS ]
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {filteredDevelopers.map((dev) => {
-              const isFav = favorites.includes(dev.id);
+        {/* ========================================================= */}
+        {/* A. 🔥 SPONSORED PROFESSIONALS (Top 1-3 Relevant Profiles) */}
+        {/* ========================================================= */}
+        {searchResults.sponsored.length > 0 && (
+          <div className="space-y-4 p-5 bg-orange-50/40 border-2 border-[#e8622c] shadow-[4px_4px_0px_0px_#e8622c]">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-1 bg-[#e8622c] text-white">
+                  <Flame className="w-4 h-4 fill-white" />
+                </div>
+                <div>
+                  <h2 className="text-sm font-black text-black tracking-wider uppercase font-mono flex items-center gap-2">
+                    <span>SPONSORED PROFESSIONALS</span>
+                    <span className="text-[10px] px-1.5 py-0.2 bg-[#e8622c] text-white font-bold">$1/24H VISIBILITY</span>
+                  </h2>
+                  <p className="text-[11px] text-slate-600 font-medium">
+                    Verified relevant profiles with active 24-hour sponsored placement. Gated by minimum relevance threshold.
+                  </p>
+                </div>
+              </div>
 
-              return (
-                <div
-                  key={dev.id}
-                  onClick={() => setQuickViewDev(dev)}
-                  className="group bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_#e8622c] hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer rounded-none overflow-hidden"
-                >
-                  
-                  {/* Top: Gig Portfolio / Work Banner */}
-                  <div>
-                    <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden border-b-2 border-black">
-                      <img
-                        src={dev.gigImage || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80'}
-                        alt={dev.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
+              <span className="text-[10px] font-mono text-slate-500 hidden sm:inline-block">
+                PRORANK SPONSORED SYSTEM
+              </span>
+            </div>
 
-                      {/* Top Overlay Badges */}
-                      <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                        {dev.isPromoted && (
+            {/* Sponsored Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {searchResults.sponsored.map(({ profile, relevance, finalScore }) => {
+                const isFav = favorites.includes(profile.id);
+
+                return (
+                  <div
+                    key={profile.id}
+                    onClick={() => handleCardClick(profile)}
+                    className="group bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_#e8622c] hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer rounded-none overflow-hidden"
+                  >
+                    <div>
+                      {/* Top: Banner Image */}
+                      <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden border-b-2 border-black">
+                        <img
+                          src={profile.gigImage || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80'}
+                          alt={profile.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+
+                        {/* Top Badges */}
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5">
                           <span className="px-2 py-0.5 bg-[#e8622c] text-white text-[10px] font-mono font-bold uppercase tracking-wider shadow-xs flex items-center gap-1">
                             <Zap className="w-2.5 h-2.5" />
-                            <span>SPONSORED $1</span>
+                            <span>SPONSORED</span>
                           </span>
-                        )}
-                        <span className="px-1.5 py-0.5 bg-black/80 backdrop-blur-xs text-white text-[9px] font-mono">
-                          0% FEE
-                        </span>
+                          <span className="px-1.5 py-0.5 bg-black text-white text-[9px] font-mono">
+                            {relevance.percentageMatch}% MATCH
+                          </span>
+                        </div>
+
+                        {/* Favorite Button */}
+                        <button
+                          onClick={(e) => toggleFavorite(profile.id, e)}
+                          className={`absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white border border-black transition shadow-xs cursor-pointer ${
+                            isFav ? 'text-red-500' : 'text-slate-600 hover:text-red-500'
+                          }`}
+                          title="Save to favorites"
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-red-500' : ''}`} />
+                        </button>
+
+                        {/* Bottom Score Badge */}
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black text-white font-mono text-[10px] font-bold border border-white/20">
+                          PRO SCORE: <span className="text-[#e8622c]">{profile.score}/100</span>
+                        </div>
                       </div>
 
-                      {/* Favorite Heart Button */}
-                      <button
-                        onClick={(e) => toggleFavorite(dev.id, e)}
-                        className={`absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white border border-black transition shadow-xs cursor-pointer ${
-                          isFav ? 'text-red-500' : 'text-slate-600 hover:text-red-500'
-                        }`}
-                        title="Save to favorites"
-                      >
-                        <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-red-500' : ''}`} />
-                      </button>
+                      {/* Middle: Info */}
+                      <div className="p-3.5 pb-2">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="relative shrink-0">
+                              <img
+                                src={profile.avatar}
+                                alt={profile.name}
+                                className="w-7 h-7 rounded-none border border-black object-cover bg-orange-100"
+                              />
+                              {profile.isOnline && (
+                                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border border-white rounded-full" />
+                              )}
+                            </div>
 
-                      {/* Bottom Banner Tag: ProRank Score */}
-                      <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/90 text-white font-mono text-[10px] font-bold border border-white/20">
-                        SCORE: <span className="text-orange-400">{dev.score}/100</span>
-                      </div>
-                    </div>
-
-                    {/* Middle: Seller Info Header */}
-                    <div className="p-3.5 pb-2">
-                      <div className="flex items-center justify-between gap-2 mb-2">
-                        <div className="flex items-center gap-2 min-w-0">
-                          <div className="relative shrink-0">
-                            <img
-                              src={dev.avatar}
-                              alt={dev.name}
-                              className="w-7 h-7 rounded-none border border-black object-cover bg-orange-100"
-                            />
-                            {dev.isOnline && (
-                              <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border border-white rounded-full" />
-                            )}
-                          </div>
-
-                          <div className="min-w-0">
-                            <div className="font-bold text-xs text-black truncate group-hover:text-[#e8622c] transition">
-                              {dev.name}
+                            <div className="min-w-0">
+                              <div className="font-bold text-xs text-black truncate group-hover:text-[#e8622c] transition">
+                                {profile.name}
+                              </div>
                             </div>
                           </div>
+
+                          <span className="px-1.5 py-0.5 bg-orange-100 text-[#e8622c] border border-[#e8622c]/40 font-mono text-[9px] font-bold shrink-0">
+                            {profile.levelBadge || "Vetted Pro"}
+                          </span>
                         </div>
 
-                        {/* Level Badge */}
-                        <span className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 font-mono text-[9px] font-bold text-slate-700 shrink-0">
-                          {dev.levelBadge || 'Level 2++'}
+                        <h3 className="text-xs text-slate-800 line-clamp-2 font-medium leading-snug group-hover:text-black mb-2.5">
+                          {profile.gigTitle || `I will build custom ${profile.skills.slice(0, 3).join(', ')} systems`}
+                        </h3>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-0.5 text-amber-500 font-bold">
+                            <Star className="w-3.5 h-3.5 fill-amber-400" />
+                            <span>{profile.rating.toFixed(1)}</span>
+                            <span className="text-slate-400 text-[11px]">({profile.reviewCount})</span>
+                          </div>
+
+                          <span className="text-[10px] font-mono text-slate-400">
+                            RANK: {finalScore}
+                          </span>
+                        </div>
+
+                        {profile.offersConsultation && (
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 mt-2">
+                            <Video className="w-3 h-3 text-[#e8622c]" />
+                            <span>Offers video consultations</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom: Pricing & CTA */}
+                    <div className="p-3.5 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-400 uppercase block">FROM</span>
+                        <span className="text-xs font-black text-black">
+                          ${profile.hourlyRate}<span className="text-[10px] font-normal text-slate-500">/hr</span>
                         </span>
                       </div>
 
-                      {/* Gig Title / Offer Pitch */}
-                      <h3 className="text-xs text-slate-800 line-clamp-2 font-medium leading-snug group-hover:text-black mb-2.5">
-                        {dev.gigTitle || `I will develop custom ${dev.skills.slice(0, 3).join(', ')} applications & funnels`}
-                      </h3>
-
-                      {/* Star Rating & Review Count */}
-                      <div className="flex items-center gap-1.5 text-xs">
-                        <div className="flex items-center gap-0.5 text-amber-500 font-bold">
-                          <Star className="w-3.5 h-3.5 fill-amber-400" />
-                          <span>{dev.rating.toFixed(1)}</span>
-                        </div>
-                        <span className="text-slate-400 text-[11px]">({dev.reviewCount})</span>
-                      </div>
-
-                      {/* Video Consultation Tag */}
-                      {dev.offersConsultation && (
-                        <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 mt-2">
-                          <Video className="w-3 h-3 text-[#e8622c]" />
-                          <span>Offers video consultations</span>
-                        </div>
-                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDevForContact(profile);
+                        }}
+                        className="px-3 py-1.5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition cursor-pointer shadow-xs"
+                      >
+                        [ INQUIRE ]
+                      </button>
                     </div>
                   </div>
-
-                  {/* Bottom: Pricing Bar & Direct Action */}
-                  <div className="p-3.5 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
-                    <div>
-                      <span className="text-[10px] font-mono text-slate-400 uppercase block">FROM</span>
-                      <span className="text-xs font-black text-black">
-                        ${dev.hourlyRate}<span className="text-[10px] font-normal text-slate-500">/hr</span>
-                      </span>
-                    </div>
-
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedDevForContact(dev);
-                      }}
-                      className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-xs"
-                    >
-                      [ INQUIRE ]
-                    </button>
-                  </div>
-
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
+
+        {/* ========================================================= */}
+        {/* B. TOP PROFESSIONALS (ORGANIC SEARCH RESULTS) */}
+        {/* ========================================================= */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between border-b-2 border-black pb-2">
+            <div className="flex items-center gap-2">
+              <Award className="w-4 h-4 text-black" />
+              <h2 className="text-sm font-black text-black tracking-wider uppercase font-mono">
+                TOP PROFESSIONALS (ORGANIC RANKING)
+              </h2>
+            </div>
+            <span className="text-[10px] font-mono text-slate-500">
+              RANKED BY RELEVANCE & QUALITY (0% PAID BIAS)
+            </span>
+          </div>
+
+          {searchResults.organic.length === 0 ? (
+            <div className="bg-white border-2 border-black p-12 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] my-4">
+              <SlidersHorizontal className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+              <h3 className="text-lg font-black text-black">No organic builders matched your filters</h3>
+              <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                Try resetting budget or category to see more verified talent.
+              </p>
+              <button
+                onClick={clearAllFilters}
+                className="mt-4 px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition"
+              >
+                [ RESET FILTERS ]
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {searchResults.organic.map(({ profile, relevance }) => {
+                const isFav = favorites.includes(profile.id);
+
+                return (
+                  <div
+                    key={profile.id}
+                    onClick={() => handleCardClick(profile)}
+                    className="group bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer rounded-none overflow-hidden"
+                  >
+                    <div>
+                      {/* Banner Image */}
+                      <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden border-b-2 border-black">
+                        <img
+                          src={profile.gigImage || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80'}
+                          alt={profile.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+
+                        {/* Top Badges */}
+                        <div className="absolute top-2 left-2 flex items-center gap-1.5">
+                          <span className="px-1.5 py-0.5 bg-black/80 backdrop-blur-xs text-white text-[9px] font-mono">
+                            {relevance.percentageMatch}% MATCH
+                          </span>
+                          <span className="px-1.5 py-0.5 bg-black/80 backdrop-blur-xs text-white text-[9px] font-mono">
+                            0% FEE
+                          </span>
+                        </div>
+
+                        {/* Favorite Button */}
+                        <button
+                          onClick={(e) => toggleFavorite(profile.id, e)}
+                          className={`absolute top-2 right-2 p-1.5 bg-white/90 hover:bg-white border border-black transition shadow-xs cursor-pointer ${
+                            isFav ? 'text-red-500' : 'text-slate-600 hover:text-red-500'
+                          }`}
+                          title="Save to favorites"
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isFav ? 'fill-red-500' : ''}`} />
+                        </button>
+
+                        {/* Bottom ProRank Score Badge */}
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/90 text-white font-mono text-[10px] font-bold border border-white/20">
+                          SCORE: <span className="text-orange-400">{profile.score}/100</span>
+                        </div>
+                      </div>
+
+                      {/* Info Header */}
+                      <div className="p-3.5 pb-2">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                          <div className="flex items-center gap-2 min-w-0">
+                            <div className="relative shrink-0">
+                              <img
+                                src={profile.avatar}
+                                alt={profile.name}
+                                className="w-7 h-7 rounded-none border border-black object-cover bg-orange-100"
+                              />
+                              {profile.isOnline && (
+                                <span className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-emerald-500 border border-white rounded-full" />
+                              )}
+                            </div>
+
+                            <div className="min-w-0">
+                              <div className="font-bold text-xs text-black truncate group-hover:text-[#e8622c] transition">
+                                {profile.name}
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className="px-1.5 py-0.5 bg-slate-100 border border-slate-300 font-mono text-[9px] font-bold text-slate-700 shrink-0">
+                            {profile.levelBadge || 'Level 2++'}
+                          </span>
+                        </div>
+
+                        {/* Gig Title */}
+                        <h3 className="text-xs text-slate-800 line-clamp-2 font-medium leading-snug group-hover:text-black mb-2.5">
+                          {profile.gigTitle || `I will develop custom ${profile.skills.slice(0, 3).join(', ')} applications & funnels`}
+                        </h3>
+
+                        {/* Rating */}
+                        <div className="flex items-center gap-1.5 text-xs">
+                          <div className="flex items-center gap-0.5 text-amber-500 font-bold">
+                            <Star className="w-3.5 h-3.5 fill-amber-400" />
+                            <span>{profile.rating.toFixed(1)}</span>
+                          </div>
+                          <span className="text-slate-400 text-[11px]">({profile.reviewCount})</span>
+                        </div>
+
+                        {profile.offersConsultation && (
+                          <div className="flex items-center gap-1 text-[10px] font-mono text-slate-500 mt-2">
+                            <Video className="w-3 h-3 text-[#e8622c]" />
+                            <span>Offers video consultations</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bottom Pricing & CTA */}
+                    <div className="p-3.5 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-400 uppercase block">FROM</span>
+                        <span className="text-xs font-black text-black">
+                          ${profile.hourlyRate}<span className="text-[10px] font-normal text-slate-500">/hr</span>
+                        </span>
+                      </div>
+
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedDevForContact(profile);
+                        }}
+                        className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-xs"
+                      >
+                        [ INQUIRE ]
+                      </button>
+                    </div>
+
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
 
       </div>
 

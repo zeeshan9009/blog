@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { Professional, PromotionRecord, Inquiry, FilterState } from '../types/talent';
 import { INITIAL_PROFESSIONALS, INITIAL_PROMOTIONS, INITIAL_INQUIRIES } from '../data/mockTalentData';
+import { verifyProfilePromotionEligibility, validateImpressionEvent, validateClickEvent } from '../services/ranking/antiAbuse';
 import toast from 'react-hot-toast';
 
 interface TalentContextType {
@@ -13,6 +14,8 @@ interface TalentContextType {
   searchQuery: string;
   setSearchQuery: (query: string) => void;
   promoteProfile: (professionalId: string, paymentMethod?: string) => Promise<boolean>;
+  recordImpression: (professionalId: string, visitorHash?: string) => void;
+  recordClick: (professionalId: string, visitorHash?: string) => void;
   addProfessional: (profile: Omit<Professional, 'id' | 'score' | 'rating' | 'reviewCount' | 'viewsCount' | 'clicksCount' | 'inquiriesCount' | 'createdAt' | 'isPromoted'>) => Professional;
   updateProfessional: (id: string, updates: Partial<Professional>) => void;
   sendInquiry: (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => void;
@@ -36,9 +39,9 @@ const DEFAULT_FILTERS: FilterState = {
 
 const TalentContext = createContext<TalentContextType | undefined>(undefined);
 
-const STORAGE_PROS_KEY = 'prorank_professionals_v1';
-const STORAGE_PROMOS_KEY = 'prorank_promotions_v1';
-const STORAGE_INQUIRIES_KEY = 'prorank_inquiries_v1';
+const STORAGE_PROS_KEY = 'prorank_professionals_v2';
+const STORAGE_PROMOS_KEY = 'prorank_promotions_v2';
+const STORAGE_INQUIRIES_KEY = 'prorank_inquiries_v2';
 
 export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [professionals, setProfessionals] = useState<Professional[]>(() => {
@@ -99,10 +102,10 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     }
   }, [inquiries]);
 
-  // Check and update promotion expiration on mount & intervals
+  // Check and update promotion expiration on mount & every 30 seconds
   useEffect(() => {
     const checkExpirations = () => {
-      const now = new Date().getTime();
+      const now = Date.now();
       setProfessionals(prev =>
         prev.map(p => {
           if (p.isPromoted && p.promotionExpiresAt) {
@@ -117,7 +120,7 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     };
 
     checkExpirations();
-    const interval = setInterval(checkExpirations, 60000);
+    const interval = setInterval(checkExpirations, 30000);
     return () => clearInterval(interval);
   }, []);
 
@@ -131,6 +134,36 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setFilters(DEFAULT_FILTERS);
   };
 
+  // Record valid impression with 30-min anti-abuse deduplication
+  const recordImpression = (professionalId: string, visitorHash: string = 'client_visitor') => {
+    const isValid = validateImpressionEvent(visitorHash, professionalId);
+    if (!isValid) return;
+
+    setProfessionals(prev =>
+      prev.map(p => {
+        if (p.id === professionalId) {
+          return { ...p, viewsCount: (p.viewsCount || 0) + 1 };
+        }
+        return p;
+      })
+    );
+  };
+
+  // Record valid click with 30-min anti-abuse deduplication
+  const recordClick = (professionalId: string, visitorHash: string = 'client_visitor') => {
+    const isValid = validateClickEvent(visitorHash, professionalId);
+    if (!isValid) return;
+
+    setProfessionals(prev =>
+      prev.map(p => {
+        if (p.id === professionalId) {
+          return { ...p, clicksCount: (p.clicksCount || 0) + 1 };
+        }
+        return p;
+      })
+    );
+  };
+
   const promoteProfile = async (professionalId: string, paymentMethod = 'Credit Card (Stripe)'): Promise<boolean> => {
     const targetPro = professionals.find(p => p.id === professionalId);
     if (!targetPro) {
@@ -138,9 +171,28 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       return false;
     }
 
+    // 1. Profile Eligibility Verification
+    const eligibility = verifyProfilePromotionEligibility(targetPro);
+    if (!eligibility.isEligible) {
+      toast.error(`Ineligible: ${eligibility.reasons[0] || 'Complete your profile first.'}`);
+      return false;
+    }
+
     const durationHours = 24;
-    const now = new Date();
-    const expiresAt = new Date(now.getTime() + durationHours * 60 * 60 * 1000).toISOString();
+    const now = Date.now();
+    let startsAt = new Date(now).toISOString();
+    let expiresAt: string;
+
+    // 2. Extension logic: If already active, extend current expiration by 24h
+    if (targetPro.isPromoted && targetPro.promotionExpiresAt && new Date(targetPro.promotionExpiresAt).getTime() > now) {
+      const currentEndMs = new Date(targetPro.promotionExpiresAt).getTime();
+      expiresAt = new Date(currentEndMs + durationHours * 60 * 60 * 1000).toISOString();
+      toast.success('Active $1 boost extended by +24 hours!');
+    } else {
+      expiresAt = new Date(now + durationHours * 60 * 60 * 1000).toISOString();
+      toast.success('24-Hour Sponsored Visibility activated for $1!');
+    }
+
     const txnId = `TXN-${Math.floor(10000 + Math.random() * 90000)}`;
 
     const newPromo: PromotionRecord = {
@@ -149,99 +201,118 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       professionalName: targetPro.name,
       amount: 1,
       durationHours,
-      startedAt: now.toISOString(),
+      startedAt: startsAt,
       expiresAt,
       paymentMethod,
       status: 'active',
       transactionId: txnId
     };
 
-    // Update promotions list
     setPromotions(prev => [newPromo, ...prev]);
 
-    // Update professional status
     setProfessionals(prev =>
       prev.map(p => {
         if (p.id === professionalId) {
           return {
             ...p,
             isPromoted: true,
-            promotionExpiresAt: expiresAt,
-            viewsCount: p.viewsCount + 15
+            promotionExpiresAt: expiresAt
           };
         }
         return p;
       })
     );
 
-    toast.success(`🎉 Profile promoted! 24-hour sponsored visibility is now active.`);
     return true;
   };
 
   const addProfessional = (profileData: Omit<Professional, 'id' | 'score' | 'rating' | 'reviewCount' | 'viewsCount' | 'clicksCount' | 'inquiriesCount' | 'createdAt' | 'isPromoted'>): Professional => {
-    const slug = profileData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const uniqueId = `${slug}-${Math.floor(100 + Math.random() * 900)}`;
-
-    const newProfessional: Professional = {
+    const id = profileData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Math.floor(Math.random() * 1000);
+    const newProfile: Professional = {
       ...profileData,
-      id: uniqueId,
-      score: Math.floor(90 + Math.random() * 9), // calculate default high ProRank score
+      id,
+      score: 85,
       rating: 5.0,
-      reviewCount: 0,
-      isPromoted: false,
-      viewsCount: 1,
+      reviewCount: 1,
+      viewsCount: 0,
       clicksCount: 0,
       inquiriesCount: 0,
-      createdAt: new Date().toISOString()
+      createdAt: new Date().toISOString(),
+      isPromoted: false,
+      reviews: []
     };
 
-    setProfessionals(prev => [newProfessional, ...prev]);
-    setCurrentProfileId(newProfessional.id);
-    toast.success(`Profile created successfully for ${newProfessional.name}!`);
-    return newProfessional;
+    setProfessionals(prev => [newProfile, ...prev]);
+    setCurrentProfileId(id);
+    toast.success('Profile created successfully!');
+    return newProfile;
   };
 
   const updateProfessional = (id: string, updates: Partial<Professional>) => {
     setProfessionals(prev =>
-      prev.map(p => (p.id === id ? { ...p, ...updates } : p))
+      prev.map(p => {
+        if (p.id === id) {
+          return { ...p, ...updates };
+        }
+        return p;
+      })
     );
-    toast.success('Profile updated successfully');
+    toast.success('Profile updated successfully!');
   };
 
   const sendInquiry = (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => {
-    const newInq: Inquiry = {
+    const newInquiry: Inquiry = {
       ...inquiryData,
       id: `inq-${Date.now()}`,
       createdAt: new Date().toISOString(),
       status: 'unread'
     };
 
-    setInquiries(prev => [newInq, ...prev]);
+    setInquiries(prev => [newInquiry, ...prev]);
 
-    // Increment professional inquiry count
+    // Increment inquiriesCount on professional
     setProfessionals(prev =>
-      prev.map(p => (p.id === inquiryData.professionalId ? { ...p, inquiriesCount: p.inquiriesCount + 1 } : p))
+      prev.map(p => {
+        if (p.id === inquiryData.professionalId) {
+          return {
+            ...p,
+            inquiriesCount: (p.inquiriesCount || 0) + 1
+          };
+        }
+        return p;
+      })
     );
 
-    toast.success(`Message sent to ${inquiryData.professionalName}!`);
+    toast.success(`Direct inquiry sent to ${inquiryData.professionalName}!`);
   };
 
   const toggleVerified = (id: string) => {
     setProfessionals(prev =>
-      prev.map(p => (p.id === id ? { ...p, isVerified: !p.isVerified } : p))
+      prev.map(p => {
+        if (p.id === id) {
+          const newStatus = !p.isVerified;
+          toast.success(`Profile ${newStatus ? 'verified' : 'unverified'}`);
+          return { ...p, isVerified: newStatus };
+        }
+        return p;
+      })
     );
-    toast.success('Verification status updated');
   };
 
   const togglePromotedAdmin = (id: string) => {
+    const durationHours = 24;
+    const now = Date.now();
+    const expiresAt = new Date(now + durationHours * 60 * 60 * 1000).toISOString();
+
     setProfessionals(prev =>
       prev.map(p => {
         if (p.id === id) {
-          const nextState = !p.isPromoted;
+          const newStatus = !p.isPromoted;
+          toast.success(`Profile ${newStatus ? 'promoted (Admin Boost)' : 'demoted'}`);
           return {
             ...p,
-            isPromoted: nextState,
-            promotionExpiresAt: nextState ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString() : undefined
+            isPromoted: newStatus,
+            promotionExpiresAt: newStatus ? expiresAt : undefined
           };
         }
         return p;
@@ -261,6 +332,8 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         searchQuery: filters.query,
         setSearchQuery,
         promoteProfile,
+        recordImpression,
+        recordClick,
         addProfessional,
         updateProfessional,
         sendInquiry,
