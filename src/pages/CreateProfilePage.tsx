@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Zap,
@@ -7,7 +7,9 @@ import {
   CheckCircle2,
   Plus,
   Trash2,
-  AlertCircle
+  AlertCircle,
+  Upload,
+  Camera
 } from 'lucide-react';
 import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
@@ -51,6 +53,28 @@ export const CreateProfilePage: React.FC = () => {
   const [location, setLocation] = useState('Lahore, Pakistan');
   const [bio, setBio] = useState('');
   const [avatar, setAvatar] = useState(user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80');
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size must be under 5MB');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      if (event.target?.result) {
+        setAvatar(event.target.result as string);
+        clearFieldError('avatar');
+        toast.success('Photo uploaded successfully!');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
 
   // Step 2: Services
   const [servicesList, setServicesList] = useState<Array<{
@@ -447,36 +471,76 @@ export const CreateProfilePage: React.FC = () => {
                 <p className="text-xs text-slate-600 mt-0.5">Let clients know who you are and what you specialize in.</p>
               </div>
 
-              {/* Photo & Name */}
-              <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 border-2 border-black">
-                <img
-                  src={avatar}
-                  alt={name || 'Avatar'}
-                  className="w-20 h-20 border-2 border-black object-cover bg-orange-100 shrink-0"
-                />
-                <div className="flex-1 w-full space-y-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <label className="block text-xs font-bold font-mono text-black uppercase">
-                      Avatar Image URL <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                      REQUIRED
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    value={avatar}
-                    onChange={(e) => { setAvatar(e.target.value); clearFieldError('avatar'); }}
-                    placeholder="https://..."
-                    className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
-                      errors.avatar ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                    }`}
-                  />
-                  {errors.avatar && (
-                    <div className="text-[11px] text-red-600 font-bold font-mono flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.avatar}
+              {/* Photo Upload & URL Container */}
+              <div className="p-4 bg-slate-50 border-2 border-black space-y-3">
+                <div className="flex flex-col sm:flex-row items-center gap-5">
+                  {/* Clickable Avatar Box with Hover Overlay */}
+                  <div
+                    onClick={() => fileInputRef.current?.click()}
+                    className="relative group cursor-pointer w-20 h-20 border-2 border-black object-cover bg-orange-100 shrink-0 overflow-hidden shadow-xs hover:border-[#e8622c] transition"
+                    title="Click to choose a photo from your device"
+                  >
+                    <img
+                      src={avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || 'Pro')}`}
+                      alt={name || 'Avatar'}
+                      className="w-full h-full object-cover"
+                    />
+                    <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-mono font-bold">
+                      <Camera className="w-4 h-4 mb-0.5 text-[#e8622c]" />
+                      <span>UPLOAD</span>
                     </div>
-                  )}
+                  </div>
+
+                  <div className="flex-1 w-full space-y-2">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1.5">
+                        <label className="block text-xs font-bold font-mono text-black uppercase">
+                          Profile Photo <span className="text-red-500 font-bold">*</span>
+                        </label>
+                        <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                          REQUIRED
+                        </span>
+                      </div>
+
+                      {/* Direct File Upload Button */}
+                      <button
+                        type="button"
+                        onClick={() => fileInputRef.current?.click()}
+                        className="px-3 py-1 bg-black hover:bg-[#e8622c] text-white font-mono text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
+                      >
+                        <Upload className="w-3 h-3 text-[#e8622c]" />
+                        <span>[ UPLOAD FROM DEVICE ]</span>
+                      </button>
+                    </div>
+
+                    {/* Hidden Native File Input */}
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleImageFileChange}
+                      className="hidden"
+                    />
+
+                    {/* URL Input */}
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={avatar}
+                        onChange={(e) => { setAvatar(e.target.value); clearFieldError('avatar'); }}
+                        placeholder="Or paste direct image URL (https://...)"
+                        className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
+                          errors.avatar ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                        }`}
+                      />
+                    </div>
+
+                    {errors.avatar && (
+                      <div className="text-[11px] text-red-600 font-bold font-mono flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.avatar}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
