@@ -1,6 +1,5 @@
 import { supabase } from '../../lib/supabase';
 import type { Professional, Service, ServiceRequest, UserRole } from '../../types/talent';
-import { INITIAL_PROFESSIONALS, INITIAL_SERVICES } from '../../data/mockTalentData';
 
 // Map database row to Professional interface
 export function mapRowToProfessional(row: any): Professional {
@@ -91,11 +90,11 @@ export async function fetchProfilesFromDb(): Promise<Professional[]> {
 
     if (profilesError) {
       console.warn('Supabase profiles fetch warning:', profilesError.message);
-      return INITIAL_PROFESSIONALS;
+      return [];
     }
 
     if (!profilesData || profilesData.length === 0) {
-      return INITIAL_PROFESSIONALS;
+      return [];
     }
 
     // Check active promotions
@@ -116,7 +115,7 @@ export async function fetchProfilesFromDb(): Promise<Professional[]> {
     });
   } catch (err) {
     console.error('fetchProfilesFromDb error:', err);
-    return INITIAL_PROFESSIONALS;
+    return [];
   }
 }
 
@@ -231,12 +230,12 @@ export async function fetchServicesFromDb(): Promise<Service[]> {
       .order('created_at', { ascending: false });
 
     if (error || !data || data.length === 0) {
-      return INITIAL_SERVICES;
+      return [];
     }
     return data.map(mapRowToService);
   } catch (err) {
     console.error('fetchServicesFromDb exception:', err);
-    return INITIAL_SERVICES;
+    return [];
   }
 }
 

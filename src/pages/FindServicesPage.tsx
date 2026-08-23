@@ -435,87 +435,104 @@ export const FindServicesPage: React.FC = () => {
             </span>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {searchResults.organic.map(({ profile, relevance }) => {
-              const matchedService = services.find(s => s.providerId === profile.id) || {
-                id: `srv-${profile.id}`,
-                title: profile.gigTitle || `Full-Stack ${profile.skills.slice(0, 2).join(' & ')} Services`,
-                startingPrice: profile.hourlyRate,
-                deliveryTime: profile.deliveryTime || '2 days',
-                category: profile.category
-              };
+          {searchResults.organic.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {searchResults.organic.map(({ profile }) => {
+                const matchedService = services.find(s => s.providerId === profile.id) || {
+                  id: `srv-${profile.id}`,
+                  title: `Full-Stack ${profile.skills.slice(0, 2).join(' & ')} Services`,
+                  startingPrice: profile.hourlyRate,
+                  deliveryTime: '2 days',
+                  category: profile.category
+                };
 
-              return (
-                <div
-                  key={profile.id}
-                  onClick={() => navigate(`/service/${matchedService.id}`)}
-                  className="group bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer overflow-hidden"
-                >
-                  <div>
-                    <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden border-b-2 border-black">
-                      <img
-                        src={profile.gigImage || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80'}
-                        alt={profile.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                      />
-                      <div className="absolute top-2 left-2 flex items-center gap-1.5">
-                        <span className="px-1.5 py-0.5 bg-black/80 backdrop-blur-xs text-white text-[9px] font-mono">
-                          {relevance.percentageMatch}% MATCH
-                        </span>
-                        <span className="px-1.5 py-0.5 bg-black/80 backdrop-blur-xs text-white text-[9px] font-mono">
-                          0% FEE
-                        </span>
-                      </div>
-                      <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/90 text-white font-mono text-[10px] font-bold">
-                        SCORE: <span className="text-orange-400">{profile.score}/100</span>
-                      </div>
-                    </div>
-
-                    <div className="p-3.5 pb-2">
-                      <div className="flex items-center gap-2 mb-2">
-                        <img
-                          src={profile.avatar}
-                          alt={profile.name}
-                          className="w-6 h-6 border border-black object-cover bg-orange-100 shrink-0"
-                        />
-                        <span className="font-bold text-xs text-black truncate">{profile.name}</span>
-                        <span className="ml-auto px-1.5 py-0.2 bg-slate-100 border border-slate-300 font-mono text-[9px] font-bold text-slate-700">
-                          {profile.levelBadge || 'Level 2++'}
-                        </span>
-                      </div>
-
-                      <h3 className="text-xs text-slate-800 line-clamp-2 font-bold leading-snug group-hover:text-black mb-2">
-                        {matchedService.title}
-                      </h3>
-
-                      <div className="flex items-center justify-between text-xs">
-                        <div className="flex items-center gap-0.5 text-amber-500 font-bold">
-                          <Star className="w-3.5 h-3.5 fill-amber-400" />
-                          <span>{profile.rating.toFixed(1)}</span>
-                          <span className="text-slate-400 text-[11px]">({profile.reviewCount})</span>
-                        </div>
-                        <span className="text-[10px] font-mono text-slate-400">{matchedService.deliveryTime}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="p-3.5 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
+                return (
+                  <div
+                    key={profile.id}
+                    onClick={() => navigate(`/service/${matchedService.id}`)}
+                    className="group bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[7px_7px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5 transition-all flex flex-col justify-between cursor-pointer overflow-hidden"
+                  >
                     <div>
-                      <span className="text-[10px] font-mono text-slate-400 uppercase block">STARTING FROM</span>
-                      <span className="text-xs font-black text-black">${matchedService.startingPrice}</span>
+                      <div className="relative aspect-[16/10] bg-slate-900 overflow-hidden border-b-2 border-black">
+                        <img
+                          src={profile.avatar || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80'}
+                          alt={profile.name}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300 opacity-90 group-hover:opacity-100"
+                        />
+                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black text-white font-mono text-[9px] font-bold">
+                          {profile.category}
+                        </div>
+                        <div className="absolute bottom-2 right-2 px-2 py-0.5 bg-black/85 text-white font-mono text-[9px] font-bold">
+                          SCORE: <span className="text-orange-400">{profile.score}/100</span>
+                        </div>
+                      </div>
+
+                      <div className="p-3.5 pb-2">
+                        <div className="flex items-center gap-2 mb-2">
+                          <img
+                            src={profile.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profile.name)}`}
+                            alt={profile.name}
+                            className="w-6 h-6 border border-black object-cover bg-orange-100 shrink-0"
+                          />
+                          <span className="font-bold text-xs text-black truncate">{profile.name}</span>
+                          <span className="ml-auto px-1.5 py-0.2 bg-slate-100 border border-slate-300 font-mono text-[9px] font-bold text-slate-700">
+                            PRO
+                          </span>
+                        </div>
+
+                        <h3 className="text-xs text-slate-800 line-clamp-2 font-bold leading-snug group-hover:text-black mb-2">
+                          {matchedService.title}
+                        </h3>
+
+                        <div className="flex items-center justify-between text-xs">
+                          <div className="flex items-center gap-0.5 text-amber-500 font-bold">
+                            <Star className="w-3.5 h-3.5 fill-amber-400" />
+                            <span>{profile.rating.toFixed(1)}</span>
+                            <span className="text-slate-400 text-[11px]">({profile.reviewCount})</span>
+                          </div>
+                          <span className="text-[10px] font-mono text-slate-400">{matchedService.deliveryTime}</span>
+                        </div>
+                      </div>
                     </div>
 
-                    <button
-                      onClick={(e) => handleHireClick(profile, matchedService as any, e)}
-                      className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition shadow-xs cursor-pointer"
-                    >
-                      [ HIRE / CONTACT ]
-                    </button>
+                    <div className="p-3.5 pt-2 border-t border-slate-100 bg-slate-50/70 flex items-center justify-between">
+                      <div>
+                        <span className="text-[10px] font-mono text-slate-400 uppercase block">STARTING FROM</span>
+                        <span className="text-xs font-black text-black">${matchedService.startingPrice}</span>
+                      </div>
+
+                      <button
+                        onClick={(e) => handleHireClick(profile, matchedService as any, e)}
+                        className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition shadow-xs cursor-pointer"
+                      >
+                        [ HIRE / CONTACT ]
+                      </button>
+                    </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="border-2 border-dashed border-black bg-white p-12 text-center max-w-xl mx-auto space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="w-12 h-12 bg-black text-[#e8622c] mx-auto flex items-center justify-center">
+                <Sparkles className="w-6 h-6" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xl font-black text-black">No Services Found</h3>
+                <p className="text-xs text-slate-600">
+                  {localSearch ? `No results matching "${localSearch}". Try resetting filters or search keywords.` : 'Be the first specialist to publish a professional service on ProRank.'}
+                </p>
+              </div>
+              <div className="pt-2 flex justify-center gap-3">
+                <button
+                  onClick={() => navigate('/create-profile')}
+                  className="px-5 py-2.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  [ + OFFER A SERVICE ]
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
       </div>

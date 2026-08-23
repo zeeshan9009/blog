@@ -9,14 +9,6 @@ import type {
   NotificationItem
 } from '../types/talent';
 import {
-  INITIAL_PROFESSIONALS,
-  INITIAL_PROMOTIONS,
-  INITIAL_INQUIRIES,
-  INITIAL_SERVICES,
-  INITIAL_SERVICE_REQUESTS,
-  INITIAL_NOTIFICATIONS
-} from '../data/mockTalentData';
-import {
   fetchProfilesFromDb,
   saveProfileToDb,
   updateProfileInDb,
@@ -88,12 +80,12 @@ const STORAGE_SAVED_KEY = 'prorank_saved_v3';
 export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
 
-  const [professionals, setProfessionals] = useState<Professional[]>(INITIAL_PROFESSIONALS);
-  const [services, setServices] = useState<Service[]>(INITIAL_SERVICES);
-  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(INITIAL_SERVICE_REQUESTS);
-  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
-  const [promotions, setPromotions] = useState<PromotionRecord[]>(INITIAL_PROMOTIONS);
-  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
+  const [professionals, setProfessionals] = useState<Professional[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+  const [promotions, setPromotions] = useState<PromotionRecord[]>([]);
+  const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   const [savedProfessionals, setSavedProfessionals] = useState<string[]>(() => {
     try {
@@ -102,10 +94,10 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     } catch (e) {
       console.error('Error parsing saved pros', e);
     }
-    return ['muntazir-mahdi', 'khalis-m'];
+    return [];
   });
 
-  const [currentProfileId, setCurrentProfileId] = useState<string>('ali-raza');
+  const [currentProfileId, setCurrentProfileId] = useState<string>('');
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
   // 1. Initial Data Fetch from Supabase Database
