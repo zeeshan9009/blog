@@ -12,6 +12,7 @@ import {
   PlusCircle
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 
 export const OnboardingPage: React.FC = () => {
   const navigate = useNavigate();
@@ -36,12 +37,7 @@ export const OnboardingPage: React.FC = () => {
       {/* Top Header */}
       <header className="h-16 border-b-2 border-black bg-white px-4 sm:px-8 flex items-center justify-between shadow-xs">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-black flex items-center justify-center text-white shadow-xs">
-            <div className="w-0 h-0 border-y-[6px] border-y-transparent border-l-[9px] border-l-[#e8622c] ml-0.5" />
-          </div>
-          <span className="text-xl font-black tracking-tight text-black">
-            ProRank<span className="text-[#e8622c]">.</span>
-          </span>
+          <RankLancrLogo size="md" showDomain={true} isLink={false} />
           <span className="hidden sm:inline-block px-2 py-0.5 bg-orange-100 text-[#e8622c] text-[10px] font-mono font-bold">
             ONBOARDING
           </span>

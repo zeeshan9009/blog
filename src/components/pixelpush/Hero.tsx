@@ -48,7 +48,7 @@ export const Hero: React.FC = () => {
 
             {/* Subtext */}
             <p className="text-slate-600 text-base sm:text-lg max-w-xl font-normal leading-relaxed">
-              ProRank connects people who need professional services with skilled people ready to provide them. Direct client communication, deterministic scores, and zero platform cuts.
+              RankLancr connects people who need professional services with skilled people ready to provide them. Direct client communication, deterministic ranking scores, and zero platform cuts.
             </p>
 
             {/* Square Search Input Bar */}

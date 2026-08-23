@@ -20,6 +20,7 @@ import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
 import { ContactModal } from '../components/modals/ContactModal';
 import { executeProRankSearch } from '../services/ranking/searchEngine';
+import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import type { Professional } from '../types/talent';
 
 export const DevelopersPage: React.FC = () => {
@@ -113,14 +114,9 @@ export const DevelopersPage: React.FC = () => {
             </button>
 
             <div className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-black flex items-center justify-center text-white">
-                <div className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[7px] border-l-[#e8622c] ml-0.5" />
-              </div>
-              <span className="text-lg font-black tracking-tight">
-                ProRank<span className="text-[#e8622c]">.</span>
-              </span>
+              <RankLancrLogo size="sm" showDomain={true} />
               <span className="hidden sm:inline-block px-2 py-0.5 bg-orange-100 text-[#e8622c] text-[10px] font-mono font-bold">
-                BUILDERS & RANKING DIRECTORY
+                PRO DIRECTORY
               </span>
             </div>
           </div>

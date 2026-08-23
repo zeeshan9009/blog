@@ -29,6 +29,7 @@ import {
 } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
 import { useAuth } from '../../context/AuthContext';
+import { RankLancrLogo } from '../brand/RankLancrLogo';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -150,15 +151,9 @@ export const Navbar: React.FC = () => {
             {/* Left: ProRank Logo + Nav Links */}
             <div className="flex items-center gap-8 lg:gap-10 shrink-0">
               
-              {/* ProRank Brand Logo */}
-              <button onClick={() => goToPage('/')} className="flex items-center gap-2.5 group cursor-pointer text-left">
-                {/* Black Square with 8-bit Pixel Mark */}
-                <div className="w-8 h-8 rounded-none bg-black flex items-center justify-center text-white transition-transform group-hover:scale-105 shadow-xs">
-                  <div className="w-0 h-0 border-y-[6px] border-y-transparent border-l-[9px] border-l-[#e8622c] ml-0.5" />
-                </div>
-                <span className="text-xl font-black text-black tracking-tight font-sans">
-                  ProRank<span className="text-[#e8622c]">.</span>
-                </span>
+              {/* RankLancr Brand Logo */}
+              <button onClick={() => goToPage('/')} className="cursor-pointer text-left focus:outline-hidden">
+                <RankLancrLogo isLink={false} size="md" showDomain={true} />
               </button>
 
               {/* Navigation Links */}

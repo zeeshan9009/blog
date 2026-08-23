@@ -13,6 +13,7 @@ import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
 import { calculateProfileQualityScore } from '../services/ranking/profileQualityScore';
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
+import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { PromoteModal } from '../components/modals/PromoteModal';
 import type { Professional, ExperienceItem, PortfolioItem, ExternalLinks } from '../types/talent';
 import toast from 'react-hot-toast';
@@ -383,14 +384,7 @@ export const CreateProfilePage: React.FC = () => {
             <span>[ BACK ]</span>
           </button>
 
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-black flex items-center justify-center text-white">
-              <div className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[7px] border-l-[#e8622c] ml-0.5" />
-            </div>
-            <span className="text-lg font-black tracking-tight text-black">
-              ProRank<span className="text-[#e8622c]">.</span>
-            </span>
-          </div>
+          <RankLancrLogo size="sm" showDomain={true} />
         </div>
 
         {/* Live Profile Completeness Meter */}

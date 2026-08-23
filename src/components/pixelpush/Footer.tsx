@@ -127,10 +127,10 @@ export const Footer: React.FC = () => {
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 bg-[#e8622c] flex items-center justify-center text-white text-[10px] font-black rounded-none">
-              P
+            <div className="w-5 h-5 bg-[#e8622c] flex items-center justify-center text-white text-[11px] font-black">
+              R
             </div>
-            <span>© 2026 ProRank Platform Inc. All rights reserved.</span>
+            <span>© 2026 RankLancr.com Platform Inc. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-6">

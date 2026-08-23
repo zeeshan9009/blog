@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { useTalent } from '../context/TalentContext';
 import { HireRequestModal } from '../components/modals/HireRequestModal';
+import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { ContactModal } from '../components/modals/ContactModal';
 
 export const ServiceDetailPage: React.FC = () => {
@@ -62,14 +63,7 @@ export const ServiceDetailPage: React.FC = () => {
             <span>[ BACK ]</span>
           </button>
 
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-black flex items-center justify-center text-white">
-              <div className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[7px] border-l-[#e8622c] ml-0.5" />
-            </div>
-            <span className="text-lg font-black tracking-tight text-black">
-              ProRank<span className="text-[#e8622c]">.</span>
-            </span>
-          </Link>
+          <RankLancrLogo size="sm" showDomain={true} />
 
           <div className="flex items-center gap-2">
             <button

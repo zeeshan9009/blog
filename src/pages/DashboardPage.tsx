@@ -13,6 +13,7 @@ import { useTalent } from '../context/TalentContext';
 import { calculateProfileQualityScore } from '../services/ranking/profileQualityScore';
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
 import { PromoteModal } from '../components/modals/PromoteModal';
+import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -89,14 +90,7 @@ export const DashboardPage: React.FC = () => {
         <div className="max-w-[1440px] mx-auto flex items-center justify-between">
           
           <div className="flex items-center gap-3">
-            <Link to="/" className="flex items-center gap-2">
-              <div className="w-7 h-7 bg-black flex items-center justify-center text-white">
-                <div className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[7px] border-l-[#e8622c] ml-0.5" />
-              </div>
-              <span className="text-lg font-black tracking-tight text-black">
-                ProRank<span className="text-[#e8622c]">.</span>
-              </span>
-            </Link>
+            <RankLancrLogo size="sm" showDomain={true} />
             <span className="px-2 py-0.5 bg-black text-white font-mono text-[10px] font-bold uppercase">
               DASHBOARD
             </span>

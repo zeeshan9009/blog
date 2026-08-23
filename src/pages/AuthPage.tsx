@@ -17,6 +17,7 @@ import {
   CheckCircle2
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import toast from 'react-hot-toast';
 
 export const AuthPage: React.FC = () => {
@@ -100,14 +101,7 @@ export const AuthPage: React.FC = () => {
           <span>[ RETURN HOME ]</span>
         </button>
 
-        <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-7 h-7 bg-black flex items-center justify-center text-white transition-transform group-hover:scale-105 shadow-xs">
-            <div className="w-0 h-0 border-y-[5px] border-y-transparent border-l-[8px] border-l-[#e8622c] ml-0.5" />
-          </div>
-          <span className="text-lg font-black tracking-tight text-black">
-            ProRank<span className="text-[#e8622c]">.</span>
-          </span>
-        </Link>
+        <RankLancrLogo size="sm" showDomain={true} />
 
         <div className="flex items-center gap-2 text-[11px] font-mono font-bold text-slate-600">
           <ShieldCheck className="w-4 h-4 text-[#e8622c]" />
