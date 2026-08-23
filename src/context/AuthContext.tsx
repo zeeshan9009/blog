@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 import { supabase } from "../lib/supabase";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import type { UserRole } from "../types/talent";
+import { saveUserRolesToDb } from "../services/supabase/dbService";
 
 export interface User {
     id: string;
@@ -306,6 +307,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             };
             setUser(updated);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+            saveUserRolesToDb(user.id, roles);
             toast.success("Role preferences updated");
         }
     };

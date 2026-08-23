@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type {
   Professional,
   PromotionRecord,
@@ -16,6 +16,21 @@ import {
   INITIAL_SERVICE_REQUESTS,
   INITIAL_NOTIFICATIONS
 } from '../data/mockTalentData';
+import {
+  fetchProfilesFromDb,
+  saveProfileToDb,
+  updateProfileInDb,
+  fetchServicesFromDb,
+  saveServiceToDb,
+  deleteServiceFromDb,
+  fetchServiceRequestsFromDb,
+  createServiceRequestInDb,
+  updateServiceRequestStatusInDb,
+  activatePromotionInDb,
+  recordProfileViewInDb
+} from '../services/supabase/dbService';
+import { supabase } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 import { verifyProfilePromotionEligibility, validateImpressionEvent, validateClickEvent } from '../services/ranking/antiAbuse';
 import toast from 'react-hot-toast';
 
@@ -49,6 +64,7 @@ interface TalentContextType {
   togglePromotedAdmin: (id: string) => void;
   setCurrentProfileId: (id: string) => void;
   resetFilters: () => void;
+  refreshTalentData: () => Promise<void>;
 }
 
 const DEFAULT_FILTERS: FilterState = {
@@ -67,74 +83,17 @@ const DEFAULT_FILTERS: FilterState = {
 
 const TalentContext = createContext<TalentContextType | undefined>(undefined);
 
-const STORAGE_PROS_KEY = 'prorank_professionals_v3';
-const STORAGE_SERVICES_KEY = 'prorank_services_v3';
-const STORAGE_REQUESTS_KEY = 'prorank_requests_v3';
-const STORAGE_NOTIFS_KEY = 'prorank_notifs_v3';
-const STORAGE_PROMOS_KEY = 'prorank_promotions_v3';
-const STORAGE_INQUIRIES_KEY = 'prorank_inquiries_v3';
 const STORAGE_SAVED_KEY = 'prorank_saved_v3';
 
 export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [professionals, setProfessionals] = useState<Professional[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_PROS_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing stored professionals', e);
-    }
-    return INITIAL_PROFESSIONALS;
-  });
+  const { user } = useAuth();
 
-  const [services, setServices] = useState<Service[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_SERVICES_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing stored services', e);
-    }
-    return INITIAL_SERVICES;
-  });
-
-  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_REQUESTS_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing stored requests', e);
-    }
-    return INITIAL_SERVICE_REQUESTS;
-  });
-
-  const [notifications, setNotifications] = useState<NotificationItem[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_NOTIFS_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing stored notifications', e);
-    }
-    return INITIAL_NOTIFICATIONS;
-  });
-
-  const [promotions, setPromotions] = useState<PromotionRecord[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_PROMOS_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing stored promotions', e);
-    }
-    return INITIAL_PROMOTIONS;
-  });
-
-  const [inquiries, setInquiries] = useState<Inquiry[]>(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_INQUIRIES_KEY);
-      if (saved) return JSON.parse(saved);
-    } catch (e) {
-      console.error('Error parsing stored inquiries', e);
-    }
-    return INITIAL_INQUIRIES;
-  });
+  const [professionals, setProfessionals] = useState<Professional[]>(INITIAL_PROFESSIONALS);
+  const [services, setServices] = useState<Service[]>(INITIAL_SERVICES);
+  const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>(INITIAL_SERVICE_REQUESTS);
+  const [notifications, setNotifications] = useState<NotificationItem[]>(INITIAL_NOTIFICATIONS);
+  const [promotions, setPromotions] = useState<PromotionRecord[]>(INITIAL_PROMOTIONS);
+  const [inquiries, setInquiries] = useState<Inquiry[]>(INITIAL_INQUIRIES);
 
   const [savedProfessionals, setSavedProfessionals] = useState<string[]>(() => {
     try {
@@ -149,55 +108,70 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentProfileId, setCurrentProfileId] = useState<string>('ali-raza');
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
-  // Sync to localStorage
-  useEffect(() => {
+  // 1. Initial Data Fetch from Supabase Database
+  const refreshTalentData = useCallback(async () => {
     try {
-      localStorage.setItem(STORAGE_PROS_KEY, JSON.stringify(professionals));
-    } catch (e) {
-      console.error('Could not save professionals', e);
+      const [dbPros, dbServices] = await Promise.all([
+        fetchProfilesFromDb(),
+        fetchServicesFromDb()
+      ]);
+
+      if (dbPros && dbPros.length > 0) {
+        setProfessionals(dbPros);
+      }
+
+      if (dbServices && dbServices.length > 0) {
+        setServices(dbServices);
+      }
+
+      if (user?.id) {
+        const userRequests = await fetchServiceRequestsFromDb(user.id);
+        if (userRequests && userRequests.length > 0) {
+          setServiceRequests(userRequests);
+        }
+      }
+    } catch (err) {
+      console.warn('refreshTalentData network fallback:', err);
     }
-  }, [professionals]);
+  }, [user?.id]);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_SERVICES_KEY, JSON.stringify(services));
-    } catch (e) {
-      console.error('Could not save services', e);
-    }
-  }, [services]);
+    refreshTalentData();
+  }, [refreshTalentData]);
 
+  // 2. Realtime Subscriptions via Supabase Channels
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_REQUESTS_KEY, JSON.stringify(serviceRequests));
-    } catch (e) {
-      console.error('Could not save requests', e);
-    }
-  }, [serviceRequests]);
+    const channel = supabase
+      .channel('prorank_realtime')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'service_requests' },
+        (payload) => {
+          const newReq = payload.new as any;
+          toast.success(`🔔 New project inquiry received from ${newReq.buyer_name || 'a client'}!`, { duration: 5000 });
+          setNotifications(prev => [
+            {
+              id: `notif-${Date.now()}`,
+              userId: user?.id || 'anonymous',
+              title: 'New Service Request',
+              message: `${newReq.buyer_name} requested: ${newReq.project_description?.substring(0, 45)}...`,
+              createdAt: new Date().toISOString(),
+              read: false,
+              type: 'request'
+            },
+            ...prev
+          ]);
+          refreshTalentData();
+        }
+      )
+      .subscribe();
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_NOTIFS_KEY, JSON.stringify(notifications));
-    } catch (e) {
-      console.error('Could not save notifications', e);
-    }
-  }, [notifications]);
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [refreshTalentData, user?.id]);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_PROMOS_KEY, JSON.stringify(promotions));
-    } catch (e) {
-      console.error('Could not save promotions', e);
-    }
-  }, [promotions]);
-
-  useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_INQUIRIES_KEY, JSON.stringify(inquiries));
-    } catch (e) {
-      console.error('Could not save inquiries', e);
-    }
-  }, [inquiries]);
-
+  // Save UI preferences to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_SAVED_KEY, JSON.stringify(savedProfessionals));
@@ -250,6 +224,8 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return p;
       })
     );
+
+    recordProfileViewInDb(professionalId, visitorHash, 'search');
   };
 
   const recordClick = (professionalId: string, visitorHash: string = 'client_visitor') => {
@@ -264,103 +240,46 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return p;
       })
     );
+
+    recordProfileViewInDb(professionalId, visitorHash, 'click');
   };
 
-  const promoteProfile = async (professionalId: string, paymentMethod = 'Credit Card (Stripe)'): Promise<boolean> => {
-    const targetPro = professionals.find(p => p.id === professionalId);
-    if (!targetPro) {
-      toast.error('Professional not found');
-      return false;
-    }
-
-    const eligibility = verifyProfilePromotionEligibility(targetPro);
-    if (!eligibility.isEligible) {
-      toast.error(`Ineligible: ${eligibility.reasons[0] || 'Complete your profile first.'}`);
-      return false;
-    }
-
-    const durationHours = 24;
-    const now = Date.now();
-    let startsAt = new Date(now).toISOString();
-    let expiresAt: string;
-
-    if (targetPro.isPromoted && targetPro.promotionExpiresAt && new Date(targetPro.promotionExpiresAt).getTime() > now) {
-      const currentEndMs = new Date(targetPro.promotionExpiresAt).getTime();
-      expiresAt = new Date(currentEndMs + durationHours * 60 * 60 * 1000).toISOString();
-      toast.success('Active $1 boost extended by +24 hours!');
-    } else {
-      expiresAt = new Date(now + durationHours * 60 * 60 * 1000).toISOString();
-      toast.success('24-Hour Sponsored Visibility activated for $1!');
-    }
-
-    const txnId = `TXN-${Math.floor(10000 + Math.random() * 90000)}`;
-
-    const newPromo: PromotionRecord = {
-      id: `promo-${Date.now()}`,
-      professionalId,
-      professionalName: targetPro.name,
-      amount: 1,
-      durationHours,
-      startedAt: startsAt,
-      expiresAt,
-      paymentMethod,
-      status: 'active',
-      transactionId: txnId
-    };
-
-    setPromotions(prev => [newPromo, ...prev]);
-
-    setProfessionals(prev =>
-      prev.map(p => {
-        if (p.id === professionalId) {
-          return {
-            ...p,
-            isPromoted: true,
-            promotionExpiresAt: expiresAt
-          };
-        }
-        return p;
-      })
-    );
-
-    // Add promotion notification
-    const promoNotif: NotificationItem = {
-      id: `notif-${Date.now()}`,
-      userId: professionalId,
-      title: 'Promotion Activated ($1 / 24H)',
-      message: 'Your profile has 24 hours of sponsored visibility in relevant searches.',
-      type: 'promotion',
-      link: '/dashboard/promotion',
-      read: false,
-      createdAt: new Date().toISOString()
-    };
-    setNotifications(prev => [promoNotif, ...prev]);
-
-    return true;
-  };
-
-  const addProfessional = (profileData: Omit<Professional, 'id' | 'score' | 'rating' | 'reviewCount' | 'viewsCount' | 'clicksCount' | 'inquiriesCount' | 'createdAt' | 'isPromoted'>): Professional => {
-    const id = profileData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '') + '-' + Math.floor(Math.random() * 1000);
-    const newProfile: Professional = {
+  // Add Professional (Persist to Supabase + optimistic state)
+  const addProfessional = (
+    profileData: Omit<Professional, 'id' | 'score' | 'rating' | 'reviewCount' | 'viewsCount' | 'clicksCount' | 'inquiriesCount' | 'createdAt' | 'isPromoted'>
+  ): Professional => {
+    const tempId = `pro-${Date.now()}`;
+    const newPro: Professional = {
       ...profileData,
-      id,
+      id: tempId,
+      userId: user?.id,
       score: 88,
       rating: 5.0,
       reviewCount: 0,
       viewsCount: 0,
       clicksCount: 0,
       inquiriesCount: 0,
-      createdAt: new Date().toISOString(),
       isPromoted: false,
-      reviews: []
+      createdAt: new Date().toISOString()
     };
 
-    setProfessionals(prev => [newProfile, ...prev]);
-    setCurrentProfileId(id);
-    toast.success('Professional profile published successfully!');
-    return newProfile;
+    setProfessionals(prev => [newPro, ...prev]);
+    setCurrentProfileId(newPro.id);
+
+    // Save to real Supabase database
+    if (user?.id) {
+      saveProfileToDb(newPro, user.id).then(saved => {
+        if (saved) {
+          setProfessionals(prev => prev.map(p => p.id === tempId ? saved : p));
+          setCurrentProfileId(saved.id);
+        }
+      });
+    }
+
+    return newPro;
   };
 
+  // Update Professional in Supabase
   const updateProfessional = (id: string, updates: Partial<Professional>) => {
     setProfessionals(prev =>
       prev.map(p => {
@@ -370,22 +289,28 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return p;
       })
     );
-    toast.success('Profile updated successfully!');
+
+    updateProfileInDb(id, updates);
   };
 
+  // Add Service (Persist to Supabase)
   const addService = (serviceData: Omit<Service, 'id'>): Service => {
-    const id = `srv-${Date.now()}`;
+    const tempId = `srv-${Date.now()}`;
     const newService: Service = {
       ...serviceData,
-      id,
-      rating: 5.0,
-      reviewCount: 0,
-      score: 90,
-      isPromoted: false
+      id: tempId,
+      isPromoted: false,
+      score: 85
     };
 
     setServices(prev => [newService, ...prev]);
-    toast.success(`Service "${newService.title}" created!`);
+
+    saveServiceToDb(newService).then(saved => {
+      if (saved) {
+        setServices(prev => prev.map(s => s.id === tempId ? saved : s));
+      }
+    });
+
     return newService;
   };
 
@@ -398,99 +323,160 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return s;
       })
     );
-    toast.success('Service updated successfully!');
   };
 
   const deleteService = (id: string) => {
     setServices(prev => prev.filter(s => s.id !== id));
-    toast.success('Service removed.');
+    deleteServiceFromDb(id);
   };
 
-  const sendInquiry = (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => {
-    const newInquiry: Inquiry = {
-      ...inquiryData,
-      id: `inq-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      status: 'unread'
+  // Send Direct Service Hire Request (Persist to Supabase)
+  const sendServiceRequest = (
+    requestData: Omit<ServiceRequest, 'id' | 'createdAt' | 'status'>
+  ): ServiceRequest => {
+    const tempId = `req-${Date.now()}`;
+    const newReq: ServiceRequest = {
+      ...requestData,
+      id: tempId,
+      status: 'pending',
+      createdAt: new Date().toISOString()
     };
 
-    setInquiries(prev => [newInquiry, ...prev]);
+    setServiceRequests(prev => [newReq, ...prev]);
 
+    // Send to Supabase
+    createServiceRequestInDb(newReq).then(saved => {
+      if (saved) {
+        setServiceRequests(prev => prev.map(r => r.id === tempId ? saved : r));
+      }
+    });
+
+    // Add notification
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        userId: user?.id || 'anonymous',
+        title: 'Project Request Sent',
+        message: `Your inquiry for "${requestData.serviceTitle || 'Service'}" was delivered directly.`,
+        createdAt: new Date().toISOString(),
+        read: false,
+        type: 'request'
+      },
+      ...prev
+    ]);
+
+    return newReq;
+  };
+
+  const updateServiceRequestStatus = (id: string, status: ServiceRequest['status']) => {
+    setServiceRequests(prev =>
+      prev.map(r => {
+        if (r.id === id) {
+          return { ...r, status };
+        }
+        return r;
+      })
+    );
+
+    updateServiceRequestStatusInDb(id, status);
+  };
+
+  // Promote Profile for $1 / 24 Hours
+  const promoteProfile = async (professionalId: string, paymentMethod: string = 'stripe'): Promise<boolean> => {
+    const target = professionals.find(p => p.id === professionalId);
+    if (!target) {
+      toast.error('Professional profile not found.');
+      return false;
+    }
+
+    const eligibility = verifyProfilePromotionEligibility(target);
+    if (!eligibility.isEligible) {
+      toast.error(`Promotion failed: ${eligibility.reasons.join(', ')}`);
+      return false;
+    }
+
+    const durationMs = 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    let startsAt = new Date(now).toISOString();
+    let endsAt = new Date(now + durationMs).toISOString();
+
+    if (target.isPromoted && target.promotionExpiresAt && new Date(target.promotionExpiresAt).getTime() > now) {
+      const currentEnd = new Date(target.promotionExpiresAt).getTime();
+      endsAt = new Date(currentEnd + durationMs).toISOString();
+    }
+
+    const paymentId = `pay_${Math.random().toString(36).substring(2, 12)}`;
+
+    // Update state
     setProfessionals(prev =>
       prev.map(p => {
-        if (p.id === inquiryData.professionalId) {
+        if (p.id === professionalId) {
           return {
             ...p,
-            inquiriesCount: (p.inquiriesCount || 0) + 1
+            isPromoted: true,
+            promotionExpiresAt: endsAt,
           };
         }
         return p;
       })
     );
 
-    // Notification for provider
-    const notif: NotificationItem = {
-      id: `notif-${Date.now()}`,
-      userId: inquiryData.professionalId,
-      title: `New Direct Inquiry from ${inquiryData.clientName}`,
-      message: `${inquiryData.subject}: "${inquiryData.message.slice(0, 80)}..."`,
-      type: 'contact',
-      link: '/dashboard/contacts',
-      read: false,
-      createdAt: new Date().toISOString()
+    const newPromotion: PromotionRecord = {
+      id: `promo-${Date.now()}`,
+      professionalId,
+      professionalName: target.name,
+      amount: 1.0,
+      durationHours: 24,
+      startedAt: startsAt,
+      expiresAt: endsAt,
+      status: 'active',
+      transactionId: paymentId,
+      impressions: 0,
+      clicks: 0,
+      contacts: 0,
+      paymentMethod
     };
-    setNotifications(prev => [notif, ...prev]);
 
-    toast.success(`Direct inquiry sent to ${inquiryData.professionalName}!`);
+    setPromotions(prev => [newPromotion, ...prev]);
+
+    // Persist to Supabase
+    activatePromotionInDb(professionalId, paymentId);
+
+    setNotifications(prev => [
+      {
+        id: `notif-${Date.now()}`,
+        userId: user?.id || 'anonymous',
+        title: '🔥 Sponsored Boost Activated!',
+        message: 'Your profile now has 24-hour sponsored placement across relevant searches.',
+        createdAt: new Date().toISOString(),
+        read: false,
+        type: 'promotion'
+      },
+      ...prev
+    ]);
+
+    return true;
   };
 
-  const sendServiceRequest = (requestData: Omit<ServiceRequest, 'id' | 'createdAt' | 'status'>): ServiceRequest => {
-    const newRequest: ServiceRequest = {
-      ...requestData,
-      id: `req-${Date.now()}`,
-      createdAt: new Date().toISOString(),
-      status: 'pending'
-    };
-
-    setServiceRequests(prev => [newRequest, ...prev]);
-
-    // Add notification for provider
-    const notif: NotificationItem = {
-      id: `notif-${Date.now()}`,
-      userId: requestData.providerId,
-      title: `New Hire Request from ${requestData.buyerName}`,
-      message: `Project: "${requestData.projectDescription.slice(0, 70)}..." (Budget: ${requestData.budget})`,
-      type: 'request',
-      link: '/dashboard/requests',
-      read: false,
+  const sendInquiry = (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => {
+    const newInquiry: Inquiry = {
+      ...inquiryData,
+      id: `inq-${Date.now()}`,
+      status: 'unread',
       createdAt: new Date().toISOString()
     };
-    setNotifications(prev => [notif, ...prev]);
 
-    toast.success(`Hire request sent to ${requestData.providerName}!`);
-    return newRequest;
-  };
-
-  const updateServiceRequestStatus = (id: string, status: ServiceRequest['status']) => {
-    setServiceRequests(prev =>
-      prev.map(req => {
-        if (req.id === id) {
-          return { ...req, status, updatedAt: new Date().toISOString() };
-        }
-        return req;
-      })
-    );
-
-    toast.success(`Request marked as ${status}!`);
+    setInquiries(prev => [newInquiry, ...prev]);
   };
 
   const toggleSaveProfessional = (id: string) => {
     setSavedProfessionals(prev => {
-      if (prev.includes(id)) {
-        toast.success('Removed from saved list');
-        return prev.filter(item => item !== id);
+      const exists = prev.includes(id);
+      if (exists) {
+        toast('Removed from saved list', { icon: '🗑' });
+        return prev.filter(pId => pId !== id);
       } else {
-        toast.success('Saved to your roster');
+        toast.success('Saved to your shortlist!');
         return [...prev, id];
       }
     });
@@ -504,35 +490,13 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const toggleVerified = (id: string) => {
     setProfessionals(prev =>
-      prev.map(p => {
-        if (p.id === id) {
-          const newStatus = !p.isVerified;
-          toast.success(`Profile ${newStatus ? 'verified' : 'unverified'}`);
-          return { ...p, isVerified: newStatus };
-        }
-        return p;
-      })
+      prev.map(p => (p.id === id ? { ...p, isVerified: !p.isVerified } : p))
     );
   };
 
   const togglePromotedAdmin = (id: string) => {
-    const durationHours = 24;
-    const now = Date.now();
-    const expiresAt = new Date(now + durationHours * 60 * 60 * 1000).toISOString();
-
     setProfessionals(prev =>
-      prev.map(p => {
-        if (p.id === id) {
-          const newStatus = !p.isPromoted;
-          toast.success(`Profile ${newStatus ? 'promoted (Admin Boost)' : 'demoted'}`);
-          return {
-            ...p,
-            isPromoted: newStatus,
-            promotionExpiresAt: newStatus ? expiresAt : undefined
-          };
-        }
-        return p;
-      })
+      prev.map(p => (p.id === id ? { ...p, isPromoted: !p.isPromoted } : p))
     );
   };
 
@@ -567,7 +531,8 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleVerified,
         togglePromotedAdmin,
         setCurrentProfileId,
-        resetFilters
+        resetFilters,
+        refreshTalentData
       }}
     >
       {children}
