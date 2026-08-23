@@ -13,12 +13,17 @@
     "@icons-pack/react-simple-icons": "^13.13.0",
     "@supabase/supabase-js": "^2.112.3",
     "@tailwindcss/vite": "^4.2.4",
+    "@types/ua-parser-js": "^0.7.39",
+    "clsx": "^2.1.1",
+    "framer-motion": "^13.1.1",
     "lucide-react": "^1.14.0",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^7.15.0",
-    "tailwindcss": "^4.2.4"
+    "tailwind-merge": "^3.6.0",
+    "tailwindcss": "^4.2.4",
+    "ua-parser-js": "^2.0.10"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

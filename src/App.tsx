@@ -1,38 +1,21 @@
-import { Routes, Route, useLocation } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import Analyze from "./pages/Analyze";
-import Report from "./pages/Report";
-import History from "./pages/History";
-import RankTracker from "./pages/RankTracker";
-import RankDetail from "./pages/RankDetail";
+import { Routes, Route } from "react-router-dom";
+import { TalentProvider } from "./context/TalentContext";
+import { AuthProvider } from "./context/AuthContext";
 import { Toaster } from "react-hot-toast";
+import PixelpushLanding from "./pages/PixelpushLanding";
 
 export default function App() {
-    const location = useLocation();
-
-    const hideNavbar = ["/login", "/register"].includes(location.pathname);
-
-    return (
-        <>
-            <Toaster />
-            {!hideNavbar && <Navbar />}
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/login" element={<Login state="login" />} />
-                <Route path="/register" element={<Login state="register" />} />
-                <Route element={<ProtectedRoute />}>
-                    <Route path="/dashboard" element={<Dashboard />} />
-                    <Route path="/analyze" element={<Analyze />} />
-                    <Route path="/report/:id" element={<Report />} />
-                    <Route path="/history" element={<History />} />
-                    <Route path="/rank-tracker" element={<RankTracker />} />
-                    <Route path="/rank/:id" element={<RankDetail />} />
-                </Route>
-            </Routes>
-        </>
-    );
+  return (
+    <AuthProvider>
+      <TalentProvider>
+        <Toaster position="top-right" />
+        <Routes>
+          {/* Dedicated Landing Page */}
+          <Route path="/" element={<PixelpushLanding />} />
+          <Route path="*" element={<PixelpushLanding />} />
+        </Routes>
+      </TalentProvider>
+    </AuthProvider>
+  );
 }
+
