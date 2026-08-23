@@ -235,104 +235,107 @@ export const Navbar: React.FC = () => {
               
               {/* AUTH STATE: Logged in Avatar vs Sign in button */}
               {user ? (
-                <div className="relative" ref={userMenuRef}>
+                <div className="flex items-center gap-2.5">
+                  {/* Direct Dashboard Button beside User Pill */}
                   <button
-                    onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 bg-white border-2 border-black hover:border-[#e8622c] transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer group rounded-none"
+                    onClick={() => goToPage('/dashboard')}
+                    className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-1.5 cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none"
                   >
-                    <img
-                      src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name || 'User')}`}
-                      alt={user.name}
-                      className="w-6 h-6 rounded-none object-cover border border-black bg-orange-100 shrink-0"
-                    />
-                    <span className="text-xs font-bold text-black max-w-[100px] truncate group-hover:text-[#e8622c] transition">
-                      {user.name || 'Pro Member'}
-                    </span>
-                    <ChevronDown className="w-3 h-3 text-slate-600 group-hover:text-black" />
+                    <LayoutDashboard className="w-3.5 h-3.5" />
+                    <span>[ DASHBOARD ]</span>
                   </button>
 
-                  {/* Square UI User Dropdown Menu */}
-                  {userDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-3.5 z-50 animate-fadeIn rounded-none">
-                      <div className="pb-3 mb-3 border-b border-slate-200 flex items-center gap-2.5">
-                        <img
-                          src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name || 'User')}`}
-                          alt={user.name}
-                          className="w-9 h-9 rounded-none border border-black bg-orange-100 shrink-0"
-                        />
-                        <div className="min-w-0">
-                          <div className="font-bold text-xs text-black truncate">{user.name}</div>
-                          <div className="text-[10px] font-mono text-slate-500 truncate">{user.email}</div>
-                          <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-[#e8622c] font-mono text-[9px] font-bold">
-                            <UserCheck className="w-2.5 h-2.5" />
-                            <span>VERIFIED MEMBER</span>
+                  <div className="relative" ref={userMenuRef}>
+                    <button
+                      onClick={() => setUserDropdownOpen(!userDropdownOpen)}
+                      className="flex items-center gap-2 p-1 pl-1.5 pr-2.5 bg-white border-2 border-black hover:border-[#e8622c] transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer group rounded-none"
+                    >
+                      <img
+                        src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name || 'User')}`}
+                        alt={user.name}
+                        className="w-6 h-6 rounded-none object-cover border border-black bg-orange-100 shrink-0"
+                      />
+                      <span className="text-xs font-bold text-black max-w-[100px] truncate group-hover:text-[#e8622c] transition">
+                        {user.name || 'Pro Member'}
+                      </span>
+                      <ChevronDown className="w-3 h-3 text-slate-600 group-hover:text-black" />
+                    </button>
+
+                    {/* Square UI User Dropdown Menu */}
+                    {userDropdownOpen && (
+                      <div className="absolute right-0 top-full mt-2 w-64 bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] p-3.5 z-50 animate-fadeIn rounded-none">
+                        <div className="pb-3 mb-3 border-b border-slate-200 flex items-center gap-2.5">
+                          <img
+                            src={user.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user.name || 'User')}`}
+                            alt={user.name}
+                            className="w-9 h-9 rounded-none border border-black bg-orange-100 shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <div className="font-bold text-xs text-black truncate">{user.name}</div>
+                            <div className="text-[10px] font-mono text-slate-500 truncate">{user.email}</div>
+                            <div className="mt-1 inline-flex items-center gap-1 px-1.5 py-0.5 bg-orange-100 text-[#e8622c] font-mono text-[9px] font-bold">
+                              <UserCheck className="w-2.5 h-2.5" />
+                              <span>VERIFIED MEMBER</span>
+                            </div>
                           </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-1 pb-2">
-                        <button
-                          onClick={() => goToPage('/dashboard')}
-                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
-                        >
-                          <LayoutDashboard className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Dashboard</span>
-                        </button>
-
-                        <button
-                          onClick={() => goToPage('/dashboard/requests')}
-                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
-                        >
-                          <Briefcase className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Service Requests</span>
-                        </button>
-
-                        {/* If already promoted, show Active Boost status instead of promote purchase prompt */}
-                        {currentProfile?.isPromoted ? (
+                        <div className="space-y-1 pb-2">
                           <button
-                            onClick={() => goToPage('/dashboard/promotion')}
-                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                            onClick={() => goToPage('/dashboard/requests')}
+                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
                           >
-                            <span className="flex items-center gap-1.5">
-                              <Flame className="w-3.5 h-3.5 fill-[#e8622c] text-[#e8622c]" />
-                              <span>Boost Active</span>
-                            </span>
-                            <span className="font-mono text-[9px] px-1.5 py-0.2 bg-orange-100 text-[#e8622c] font-bold">24H ACTIVE</span>
+                            <Briefcase className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Service Requests</span>
                           </button>
-                        ) : (
+
+                          {/* If already promoted, show Active Boost status instead of promote purchase prompt */}
+                          {currentProfile?.isPromoted ? (
+                            <button
+                              onClick={() => goToPage('/dashboard/promotion')}
+                              className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <Flame className="w-3.5 h-3.5 fill-[#e8622c] text-[#e8622c]" />
+                                <span>Boost Active</span>
+                              </span>
+                              <span className="font-mono text-[9px] px-1.5 py-0.2 bg-orange-100 text-[#e8622c] font-bold">24H ACTIVE</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => goToPage('/promote')}
+                              className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                            >
+                              <span className="flex items-center gap-1.5">
+                                <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
+                                <span>$1 Boost Placement</span>
+                              </span>
+                              <span className="font-mono text-[10px] text-[#e8622c]">$1/day</span>
+                            </button>
+                          )}
+
                           <button
-                            onClick={() => goToPage('/promote')}
-                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
+                            onClick={() => goToPage('/settings')}
+                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
                           >
-                            <span className="flex items-center gap-1.5">
-                              <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
-                              <span>$1 Boost Placement</span>
-                            </span>
-                            <span className="font-mono text-[10px] text-[#e8622c]">$1/day</span>
+                            <Settings className="w-3.5 h-3.5 text-slate-500" />
+                            <span>Role & Settings</span>
                           </button>
-                        )}
+                        </div>
 
                         <button
-                          onClick={() => goToPage('/settings')}
-                          className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
+                          onClick={() => {
+                            logout();
+                            setUserDropdownOpen(false);
+                          }}
+                          className="w-full mt-2 py-2 px-3 bg-black hover:bg-red-600 text-white text-xs font-mono font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
                         >
-                          <Settings className="w-3.5 h-3.5 text-slate-500" />
-                          <span>Role & Settings</span>
+                          <LogOut className="w-3 h-3" />
+                          <span>[ LOG OUT ]</span>
                         </button>
                       </div>
-
-                      <button
-                        onClick={() => {
-                          logout();
-                          setUserDropdownOpen(false);
-                        }}
-                        className="w-full mt-2 py-2 px-3 bg-black hover:bg-red-600 text-white text-xs font-mono font-bold transition flex items-center justify-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <LogOut className="w-3 h-3" />
-                        <span>[ LOG OUT ]</span>
-                      </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
