@@ -105,22 +105,21 @@ export const Navbar: React.FC = () => {
       setSearchQuery(query);
     }
 
-    if (path.includes('search') || path.includes('developers') || path.includes('talent')) {
-      navigate(query ? `/developers?q=${encodeURIComponent(query)}` : '/developers');
+    // If it is a real route starting with '/', navigate directly
+    if (path.startsWith('/')) {
+      navigate(path);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
-    let targetId = 'main-content';
-    if (path.includes('promote') || path.includes('pricing')) targetId = 'pricing';
-    else if (path.includes('create-profile') || path.includes('dashboard')) targetId = 'cta';
-    else if (path.includes('faq')) targetId = 'faq';
-    else if (path.includes('features') || path.includes('discover')) targetId = 'features';
-
+    // Anchor link scrolling on landing page
+    const targetId = path.replace('#', '');
     const el = document.getElementById(targetId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
     } else {
       navigate('/');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
