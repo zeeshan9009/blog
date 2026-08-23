@@ -6,7 +6,8 @@ import {
   ArrowLeft,
   CheckCircle2,
   Plus,
-  Trash2
+  Trash2,
+  AlertCircle
 } from 'lucide-react';
 import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
@@ -40,6 +41,7 @@ export const CreateProfilePage: React.FC = () => {
 
   const [currentStep, setCurrentStep] = useState<number>(1);
   const [promoteModalOpen, setPromoteModalOpen] = useState<boolean>(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Step 1: Basic Info
   const [name, setName] = useState(user?.name || '');
@@ -110,9 +112,133 @@ export const CreateProfilePage: React.FC = () => {
   // New Service draft state
   const [newServiceTitle, setNewServiceTitle] = useState('');
   const [newServiceCategory, setNewServiceCategory] = useState('Web Development');
-  const [newServicePrice, setNewServicePrice] = useState(50);
+  const [newServicePrice, setNewServicePrice] = useState<number>(50);
   const [newServiceDelivery, setNewServiceDelivery] = useState('3 days');
   const [newServiceDesc, setNewServiceDesc] = useState('');
+
+  // Helper to clear error on field change
+  const clearFieldError = (fieldName: string) => {
+    if (errors[fieldName]) {
+      setErrors(prev => {
+        const next = { ...prev };
+        delete next[fieldName];
+        return next;
+      });
+    }
+  };
+
+  // Step Validation Logic
+  const validateStep = (step: number): boolean => {
+    const stepErrors: Record<string, string> = {};
+
+    if (step === 1) {
+      if (!name.trim()) {
+        stepErrors.name = 'Full name is required';
+      } else if (name.trim().length < 2) {
+        stepErrors.name = 'Full name must be at least 2 characters';
+      }
+
+      if (!headline.trim()) {
+        stepErrors.headline = 'Professional headline is required (e.g. Senior Node.js Developer)';
+      } else if (headline.trim().length < 3) {
+        stepErrors.headline = 'Headline must be at least 3 characters';
+      }
+
+      if (!category.trim()) {
+        stepErrors.category = 'Primary category is required';
+      }
+
+      if (!location.trim()) {
+        stepErrors.location = 'Location / Country is required';
+      }
+
+      if (!bio.trim()) {
+        stepErrors.bio = 'Bio overview is required';
+      } else if (bio.trim().length < 15) {
+        stepErrors.bio = 'Bio must be at least 15 characters to explain your background';
+      }
+
+      if (!avatar.trim()) {
+        stepErrors.avatar = 'Avatar image URL is required';
+      }
+    }
+
+    if (step === 2) {
+      if (servicesList.length === 0) {
+        stepErrors.services = 'Please add at least 1 service before continuing';
+      }
+    }
+
+    if (step === 3) {
+      if (selectedSkills.length < 3) {
+        stepErrors.skills = 'Please select at least 3 skills for accurate search matching';
+      }
+    }
+
+    if (step === 4) {
+      if (experienceList.length === 0) {
+        stepErrors.experience = 'Please add at least 1 work experience entry';
+      }
+    }
+
+    if (step === 5) {
+      // Validate URLs if provided
+      const validateUrl = (url: string) => {
+        if (!url) return true;
+        try {
+          new URL(url);
+          return true;
+        } catch {
+          return false;
+        }
+      };
+
+      if (externalLinks.github && !validateUrl(externalLinks.github)) {
+        stepErrors.github = 'Please enter a valid URL (e.g. https://github.com/username)';
+      }
+      if (externalLinks.linkedin && !validateUrl(externalLinks.linkedin)) {
+        stepErrors.linkedin = 'Please enter a valid URL (e.g. https://linkedin.com/in/username)';
+      }
+      if (externalLinks.website && !validateUrl(externalLinks.website)) {
+        stepErrors.website = 'Please enter a valid website URL (e.g. https://mywebsite.com)';
+      }
+    }
+
+    if (step === 6) {
+      if (!hourlyRate || hourlyRate <= 0) {
+        stepErrors.hourlyRate = 'Base rate must be greater than $0';
+      }
+    }
+
+    setErrors(stepErrors);
+
+    if (Object.keys(stepErrors).length > 0) {
+      const firstError = Object.values(stepErrors)[0];
+      toast.error(firstError);
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNextStep = () => {
+    if (validateStep(currentStep)) {
+      setErrors({});
+      setCurrentStep(prev => prev + 1);
+    }
+  };
+
+  const handleStepClick = (targetStep: number) => {
+    if (targetStep < currentStep) {
+      setCurrentStep(targetStep);
+      setErrors({});
+    } else {
+      if (validateStep(currentStep)) {
+        setErrors({});
+        setCurrentStep(targetStep);
+      }
+    }
+  };
 
   // Dynamic Profile Completeness & ProRank Score (Backend formulas)
   const candidateMockPro: Professional = useMemo(() => ({
@@ -148,6 +274,7 @@ export const CreateProfilePage: React.FC = () => {
 
   // Handle Skill Toggle
   const toggleSkill = (skill: string) => {
+    clearFieldError('skills');
     if (selectedSkills.includes(skill)) {
       setSelectedSkills(prev => prev.filter(s => s !== skill));
     } else {
@@ -156,50 +283,59 @@ export const CreateProfilePage: React.FC = () => {
   };
 
   const handleAddService = () => {
+    const serviceErrors: Record<string, string> = {};
     if (!newServiceTitle.trim()) {
-      toast.error('Please enter a service title');
+      serviceErrors.newServiceTitle = 'Service title is required (e.g. Build a REST API with Node.js)';
+    }
+    if (!newServicePrice || newServicePrice <= 0) {
+      serviceErrors.newServicePrice = 'Starting price must be greater than $0';
+    }
+    if (!newServiceDelivery.trim()) {
+      serviceErrors.newServiceDelivery = 'Delivery time is required (e.g. 3 days)';
+    }
+
+    if (Object.keys(serviceErrors).length > 0) {
+      setErrors(serviceErrors);
+      toast.error(Object.values(serviceErrors)[0]);
       return;
     }
 
     setServicesList(prev => [
       ...prev,
       {
-        title: newServiceTitle,
+        title: newServiceTitle.trim(),
         category: newServiceCategory,
-        description: newServiceDesc || `${newServiceCategory} professional service.`,
+        description: newServiceDesc.trim() || `${newServiceCategory} professional deliverables and support.`,
         skills: selectedSkills.slice(0, 3),
         startingPrice: newServicePrice,
         priceType: 'starting_from',
-        deliveryTime: newServiceDelivery
+        deliveryTime: newServiceDelivery.trim()
       }
     ]);
 
     setNewServiceTitle('');
     setNewServiceDesc('');
-    toast.success('Service added!');
+    clearFieldError('services');
+    toast.success('Service added to profile!');
   };
 
   const handlePublishProfile = () => {
-    if (!name || !headline || !bio) {
-      toast.error('Please complete your basic information');
-      setCurrentStep(1);
-      return;
-    }
-
-    if (selectedSkills.length < 3) {
-      toast.error('Please select at least 3 skills');
-      setCurrentStep(3);
-      return;
+    // Validate all steps before publishing
+    for (let s = 1; s <= 6; s++) {
+      if (!validateStep(s)) {
+        setCurrentStep(s);
+        return;
+      }
     }
 
     const newProfile = addProfessional({
-      name,
-      title: headline,
+      name: name.trim(),
+      title: headline.trim(),
       category,
-      location,
+      location: location.trim(),
       country: location.split(',')[1]?.trim() || 'Global',
-      avatar,
-      bio,
+      avatar: avatar.trim(),
+      bio: bio.trim(),
       hourlyRate,
       experienceYears: Math.max(1, experienceList.length * 2),
       skills: selectedSkills,
@@ -289,7 +425,7 @@ export const CreateProfilePage: React.FC = () => {
             ].map(step => (
               <button
                 key={step.num}
-                onClick={() => setCurrentStep(step.num)}
+                onClick={() => handleStepClick(step.num)}
                 className={`py-1.5 px-1 border transition cursor-pointer ${
                   currentStep === step.num
                     ? 'bg-black text-white border-black shadow-xs'
@@ -318,42 +454,77 @@ export const CreateProfilePage: React.FC = () => {
               </div>
 
               {/* Photo & Name */}
-              <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 border border-slate-200">
+              <div className="flex flex-col sm:flex-row items-center gap-6 p-4 bg-slate-50 border-2 border-black">
                 <img
                   src={avatar}
-                  alt={name}
+                  alt={name || 'Avatar'}
                   className="w-20 h-20 border-2 border-black object-cover bg-orange-100 shrink-0"
                 />
-                <div className="flex-1 w-full space-y-2">
-                  <label className="block text-xs font-bold font-mono text-black uppercase">Avatar Image URL</label>
+                <div className="flex-1 w-full space-y-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <label className="block text-xs font-bold font-mono text-black uppercase">
+                      Avatar Image URL <span className="text-red-500 font-bold">*</span>
+                    </label>
+                    <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                      REQUIRED
+                    </span>
+                  </div>
                   <input
                     type="text"
                     value={avatar}
-                    onChange={(e) => setAvatar(e.target.value)}
+                    onChange={(e) => { setAvatar(e.target.value); clearFieldError('avatar'); }}
                     placeholder="https://..."
-                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium"
+                    className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
+                      errors.avatar ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                    }`}
                   />
+                  {errors.avatar && (
+                    <div className="text-[11px] text-red-600 font-bold font-mono flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.avatar}
+                    </div>
+                  )}
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold font-mono text-black uppercase mb-1">Full Name</label>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <label className="block text-xs font-bold font-mono text-black uppercase">
+                      Full Name <span className="text-red-500 font-bold">*</span>
+                    </label>
+                    <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                      REQUIRED
+                    </span>
+                  </div>
                   <input
                     type="text"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    placeholder="Ahmed Khan"
-                    className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium"
+                    onChange={(e) => { setName(e.target.value); clearFieldError('name'); }}
+                    placeholder="e.g. Ahmed Khan"
+                    className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
+                      errors.name ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                    }`}
                   />
+                  {errors.name && (
+                    <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.name}
+                    </div>
+                  )}
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold font-mono text-black uppercase mb-1">Primary Category</label>
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <label className="block text-xs font-bold font-mono text-black uppercase">
+                      Primary Category <span className="text-red-500 font-bold">*</span>
+                    </label>
+                    <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                      REQUIRED
+                    </span>
+                  </div>
                   <select
                     value={category}
-                    onChange={(e) => setCategory(e.target.value)}
-                    className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold"
+                    onChange={(e) => { setCategory(e.target.value); clearFieldError('category'); }}
+                    className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold focus:outline-hidden focus:border-[#e8622c]"
                   >
                     {PRESET_CATEGORIES.map(cat => (
                       <option key={cat} value={cat}>{cat}</option>
@@ -363,36 +534,78 @@ export const CreateProfilePage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold font-mono text-black uppercase mb-1">Professional Headline</label>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <label className="block text-xs font-bold font-mono text-black uppercase">
+                    Professional Headline <span className="text-red-500 font-bold">*</span>
+                  </label>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                    REQUIRED
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={headline}
-                  onChange={(e) => setHeadline(e.target.value)}
+                  onChange={(e) => { setHeadline(e.target.value); clearFieldError('headline'); }}
                   placeholder="e.g. Senior Node.js & Backend Developer"
-                  className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium"
+                  className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
+                    errors.headline ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                  }`}
                 />
+                {errors.headline && (
+                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.headline}
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold font-mono text-black uppercase mb-1">Location / Country</label>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <label className="block text-xs font-bold font-mono text-black uppercase">
+                    Location / Country <span className="text-red-500 font-bold">*</span>
+                  </label>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                    REQUIRED
+                  </span>
+                </div>
                 <input
                   type="text"
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
-                  placeholder="Lahore, Pakistan"
-                  className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium"
+                  onChange={(e) => { setLocation(e.target.value); clearFieldError('location'); }}
+                  placeholder="e.g. Lahore, Pakistan"
+                  className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
+                    errors.location ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                  }`}
                 />
+                {errors.location && (
+                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.location}
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-xs font-bold font-mono text-black uppercase mb-1">Bio / Overview</label>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <label className="block text-xs font-bold font-mono text-black uppercase">
+                    Bio / Overview <span className="text-red-500 font-bold">*</span>
+                  </label>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                    REQUIRED (MIN 15 CHARS)
+                  </span>
+                </div>
                 <textarea
                   value={bio}
-                  onChange={(e) => setBio(e.target.value)}
+                  onChange={(e) => { setBio(e.target.value); clearFieldError('bio'); }}
                   rows={4}
                   placeholder="Describe your technical background, core specialties, and what projects you enjoy building..."
-                  className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium"
+                  className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
+                    errors.bio ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                  }`}
                 />
+                {errors.bio && (
+                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.bio}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -402,9 +615,21 @@ export const CreateProfilePage: React.FC = () => {
             <div className="space-y-6 animate-fadeIn">
               <div>
                 <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 02 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">What services do you offer?</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-black text-black tracking-tight">What services do you offer?</h2>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
+                    AT LEAST 1 REQUIRED
+                  </span>
+                </div>
                 <p className="text-xs text-slate-600 mt-0.5">List one or multiple professional services with pricing and delivery times.</p>
               </div>
+
+              {errors.services && (
+                <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-xs font-mono font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errors.services}</span>
+                </div>
+              )}
 
               {/* Existing Services List */}
               <div className="space-y-3">
@@ -429,7 +654,7 @@ export const CreateProfilePage: React.FC = () => {
 
                     <button
                       onClick={() => setServicesList(prev => prev.filter((_, i) => i !== idx))}
-                      className="p-1.5 text-slate-400 hover:text-red-600 transition"
+                      className="p-1.5 text-slate-400 hover:text-red-600 transition cursor-pointer"
                       title="Remove service"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -439,67 +664,104 @@ export const CreateProfilePage: React.FC = () => {
               </div>
 
               {/* Add New Service Box */}
-              <div className="p-4 border-2 border-dashed border-slate-300 bg-orange-50/40 space-y-3">
+              <div className="p-4 border-2 border-dashed border-black bg-orange-50/40 space-y-3">
                 <div className="font-mono text-xs font-bold text-black uppercase flex items-center gap-1.5">
                   <Plus className="w-4 h-4 text-[#e8622c]" />
-                  <span>Add Another Service</span>
+                  <span>Add A New Service Offer</span>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <input
-                    type="text"
-                    value={newServiceTitle}
-                    onChange={(e) => setNewServiceTitle(e.target.value)}
-                    placeholder="Service title (e.g. Build a REST API with Node.js)"
-                    className="p-2 bg-white border-2 border-black text-xs font-medium"
-                  />
-                  <select
-                    value={newServiceCategory}
-                    onChange={(e) => setNewServiceCategory(e.target.value)}
-                    className="p-2 bg-white border-2 border-black text-xs font-bold"
-                  >
-                    {PRESET_CATEGORIES.map(c => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
+                  <div>
+                    <div className="flex items-center gap-1 mb-1">
+                      <label className="text-[10px] font-mono text-black font-bold uppercase">
+                        Service Title <span className="text-red-500">*</span>
+                      </label>
+                    </div>
+                    <input
+                      type="text"
+                      value={newServiceTitle}
+                      onChange={(e) => { setNewServiceTitle(e.target.value); clearFieldError('newServiceTitle'); }}
+                      placeholder="e.g. Build a REST API with Node.js"
+                      className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
+                        errors.newServiceTitle ? 'border-red-500' : 'border-black'
+                      }`}
+                    />
+                    {errors.newServiceTitle && (
+                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newServiceTitle}</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="text-[10px] font-mono text-black font-bold uppercase block mb-1">
+                      Service Category <span className="text-red-500">*</span>
+                    </label>
+                    <select
+                      value={newServiceCategory}
+                      onChange={(e) => setNewServiceCategory(e.target.value)}
+                      className="w-full p-2 bg-white border-2 border-black text-xs font-bold focus:outline-hidden"
+                    >
+                      {PRESET_CATEGORIES.map(c => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[10px] font-mono text-slate-600 mb-0.5">Starting Price ($ USD)</label>
+                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-0.5">
+                      Starting Price ($ USD) <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="number"
                       value={newServicePrice}
-                      onChange={(e) => setNewServicePrice(Number(e.target.value))}
-                      className="w-full p-2 bg-white border-2 border-black text-xs font-bold"
+                      onChange={(e) => { setNewServicePrice(Number(e.target.value)); clearFieldError('newServicePrice'); }}
+                      className={`w-full p-2 bg-white border-2 text-xs font-bold focus:outline-hidden ${
+                        errors.newServicePrice ? 'border-red-500' : 'border-black'
+                      }`}
                     />
+                    {errors.newServicePrice && (
+                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newServicePrice}</span>
+                    )}
                   </div>
                   <div>
-                    <label className="block text-[10px] font-mono text-slate-600 mb-0.5">Delivery Time</label>
+                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-0.5">
+                      Delivery Time <span className="text-red-500">*</span>
+                    </label>
                     <input
                       type="text"
                       value={newServiceDelivery}
-                      onChange={(e) => setNewServiceDelivery(e.target.value)}
+                      onChange={(e) => { setNewServiceDelivery(e.target.value); clearFieldError('newServiceDelivery'); }}
                       placeholder="e.g. 3 days"
-                      className="w-full p-2 bg-white border-2 border-black text-xs font-bold"
+                      className={`w-full p-2 bg-white border-2 text-xs font-bold focus:outline-hidden ${
+                        errors.newServiceDelivery ? 'border-red-500' : 'border-black'
+                      }`}
                     />
+                    {errors.newServiceDelivery && (
+                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newServiceDelivery}</span>
+                    )}
                   </div>
                 </div>
 
-                <textarea
-                  value={newServiceDesc}
-                  onChange={(e) => setNewServiceDesc(e.target.value)}
-                  rows={2}
-                  placeholder="Short description of deliverables..."
-                  className="w-full p-2 bg-white border-2 border-black text-xs font-medium"
-                />
+                <div>
+                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-0.5">
+                    Deliverables & Overview
+                  </label>
+                  <textarea
+                    value={newServiceDesc}
+                    onChange={(e) => setNewServiceDesc(e.target.value)}
+                    rows={2}
+                    placeholder="Short description of deliverables..."
+                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden"
+                  />
+                </div>
 
                 <button
                   type="button"
                   onClick={handleAddService}
-                  className="px-4 py-2 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition"
+                  className="px-4 py-2 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition cursor-pointer shadow-xs"
                 >
-                  [ + SAVE SERVICE ]
+                  [ + SAVE SERVICE TO PROFILE ]
                 </button>
               </div>
             </div>
@@ -510,9 +772,21 @@ export const CreateProfilePage: React.FC = () => {
             <div className="space-y-6 animate-fadeIn">
               <div>
                 <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 03 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">Select Your Core Skills</h2>
-                <p className="text-xs text-slate-600 mt-0.5">Pick at least 3 skills to ensure accurate search matching.</p>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-black text-black tracking-tight">Select Your Core Skills</h2>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
+                    MINIMUM 3 REQUIRED
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 mt-0.5">Pick at least 3 skills to ensure accurate search matching and candidate ranking.</p>
               </div>
+
+              {errors.skills && (
+                <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-xs font-mono font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errors.skills}</span>
+                </div>
+              )}
 
               {/* Search Filter */}
               <input
@@ -520,7 +794,7 @@ export const CreateProfilePage: React.FC = () => {
                 value={skillSearch}
                 onChange={(e) => setSkillSearch(e.target.value)}
                 placeholder="Search skills (e.g. Node.js, React, SEO, Webflow)..."
-                className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium"
+                className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
               />
 
               {/* Preset Chips */}
@@ -544,8 +818,11 @@ export const CreateProfilePage: React.FC = () => {
                 })}
               </div>
 
-              <div className="p-3 bg-slate-50 border border-slate-200 text-xs font-mono text-slate-600">
-                <span>Selected skills: {selectedSkills.length}</span>
+              <div className="p-3 bg-slate-50 border-2 border-black text-xs font-mono text-slate-700 flex items-center justify-between">
+                <span>Selected Skills: <strong className="text-black">{selectedSkills.length}</strong> (Minimum 3 required)</span>
+                <span className={selectedSkills.length >= 3 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
+                  {selectedSkills.length >= 3 ? '✓ Minimum requirement met' : '⚠ Need more skills'}
+                </span>
               </div>
             </div>
           )}
@@ -555,9 +832,21 @@ export const CreateProfilePage: React.FC = () => {
             <div className="space-y-6 animate-fadeIn">
               <div>
                 <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 04 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">Work Experience</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-black text-black tracking-tight">Work Experience</h2>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
+                    AT LEAST 1 REQUIRED
+                  </span>
+                </div>
                 <p className="text-xs text-slate-600 mt-0.5">Demonstrate past projects and professional roles.</p>
               </div>
+
+              {errors.experience && (
+                <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-xs font-mono font-bold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{errors.experience}</span>
+                </div>
+              )}
 
               <div className="space-y-3">
                 {experienceList.map(exp => (
@@ -569,7 +858,8 @@ export const CreateProfilePage: React.FC = () => {
                     </div>
                     <button
                       onClick={() => setExperienceList(prev => prev.filter(e => e.id !== exp.id))}
-                      className="text-slate-400 hover:text-red-600"
+                      className="text-slate-400 hover:text-red-600 cursor-pointer"
+                      title="Remove experience"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -585,15 +875,16 @@ export const CreateProfilePage: React.FC = () => {
                     {
                       id: `exp-${Date.now()}`,
                       role: 'Software Engineer',
-                      company: 'Client Project',
+                      company: 'Client / Enterprise Project',
                       period: '2023 - 2024',
-                      description: 'Delivered custom software architecture.'
+                      description: 'Delivered production software architecture and backend systems.'
                     }
                   ]);
+                  clearFieldError('experience');
                 }}
-                className="px-4 py-2 border-2 border-black bg-white hover:bg-slate-100 font-mono text-xs font-bold transition"
+                className="px-4 py-2 border-2 border-black bg-white hover:bg-slate-100 font-mono text-xs font-bold transition cursor-pointer"
               >
-                [ + ADD EXPERIENCE ]
+                [ + ADD WORK EXPERIENCE ]
               </button>
             </div>
           )}
@@ -619,7 +910,7 @@ export const CreateProfilePage: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setPortfolioList(prev => prev.filter(p => p.id !== item.id))}
-                      className="text-slate-400 hover:text-red-600 text-xs font-bold"
+                      className="text-slate-400 hover:text-red-600 text-xs font-bold cursor-pointer"
                     >
                       Remove
                     </button>
@@ -633,41 +924,53 @@ export const CreateProfilePage: React.FC = () => {
                       ...prev,
                       {
                         id: `port-${Date.now()}`,
-                        title: 'API Microservice Project',
+                        title: 'Production API Microservice',
                         description: 'Scalable backend service built for client.',
                         imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
                         tags: ['FullStack']
                       }
                     ]);
                   }}
-                  className="px-3 py-1.5 border border-black bg-white hover:bg-slate-100 font-mono text-xs font-bold transition"
+                  className="px-3 py-1.5 border border-black bg-white hover:bg-slate-100 font-mono text-xs font-bold transition cursor-pointer"
                 >
                   [ + ADD PROJECT ]
                 </button>
               </div>
 
               {/* External Links */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div>
                   <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">GitHub URL</label>
                   <input
                     type="url"
                     value={externalLinks.github || ''}
-                    onChange={(e) => setExternalLinks({ ...externalLinks, github: e.target.value })}
+                    onChange={(e) => { setExternalLinks({ ...externalLinks, github: e.target.value }); clearFieldError('github'); }}
                     placeholder="https://github.com/username"
-                    className="w-full p-2 bg-slate-50 border-2 border-black text-xs"
+                    className={`w-full p-2 bg-slate-50 border-2 text-xs focus:outline-hidden ${
+                      errors.github ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
+                    }`}
                   />
+                  {errors.github && (
+                    <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.github}</span>
+                  )}
                 </div>
+
                 <div>
                   <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">LinkedIn URL</label>
                   <input
                     type="url"
                     value={externalLinks.linkedin || ''}
-                    onChange={(e) => setExternalLinks({ ...externalLinks, linkedin: e.target.value })}
+                    onChange={(e) => { setExternalLinks({ ...externalLinks, linkedin: e.target.value }); clearFieldError('linkedin'); }}
                     placeholder="https://linkedin.com/in/username"
-                    className="w-full p-2 bg-slate-50 border-2 border-black text-xs"
+                    className={`w-full p-2 bg-slate-50 border-2 text-xs focus:outline-hidden ${
+                      errors.linkedin ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
+                    }`}
                   />
+                  {errors.linkedin && (
+                    <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.linkedin}</span>
+                  )}
                 </div>
+
                 <div>
                   <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">Upwork / Fiverr Profile</label>
                   <input
@@ -675,18 +978,24 @@ export const CreateProfilePage: React.FC = () => {
                     value={externalLinks.upwork || ''}
                     onChange={(e) => setExternalLinks({ ...externalLinks, upwork: e.target.value })}
                     placeholder="https://upwork.com/freelancers/..."
-                    className="w-full p-2 bg-slate-50 border-2 border-black text-xs"
+                    className="w-full p-2 bg-slate-50 border-2 border-black text-xs focus:outline-hidden focus:border-[#e8622c]"
                   />
                 </div>
+
                 <div>
                   <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">Personal Portfolio / Website</label>
                   <input
                     type="url"
                     value={externalLinks.website || ''}
-                    onChange={(e) => setExternalLinks({ ...externalLinks, website: e.target.value })}
+                    onChange={(e) => { setExternalLinks({ ...externalLinks, website: e.target.value }); clearFieldError('website'); }}
                     placeholder="https://mywebsite.com"
-                    className="w-full p-2 bg-slate-50 border-2 border-black text-xs"
+                    className={`w-full p-2 bg-slate-50 border-2 text-xs focus:outline-hidden ${
+                      errors.website ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
+                    }`}
                   />
+                  {errors.website && (
+                    <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.website}</span>
+                  )}
                 </div>
               </div>
             </div>
@@ -697,7 +1006,12 @@ export const CreateProfilePage: React.FC = () => {
             <div className="space-y-6 animate-fadeIn">
               <div>
                 <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 06 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">Set Your Pricing Model</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-2xl font-black text-black tracking-tight">Set Your Pricing Model</h2>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
+                    REQUIRED
+                  </span>
+                </div>
                 <p className="text-xs text-slate-600 mt-0.5">Flexible pricing structure for direct client inquiries.</p>
               </div>
 
@@ -721,18 +1035,30 @@ export const CreateProfilePage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-bold font-mono text-black uppercase mb-1">
-                  Base Rate ($ USD)
-                </label>
+                <div className="flex items-center gap-1.5 mb-1">
+                  <label className="block text-xs font-bold font-mono text-black uppercase">
+                    Base Rate ($ USD) <span className="text-red-500 font-bold">*</span>
+                  </label>
+                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
+                    REQUIRED ($1+)
+                  </span>
+                </div>
                 <div className="relative max-w-xs">
                   <span className="absolute left-3 top-2.5 font-black text-sm">$</span>
                   <input
                     type="number"
                     value={hourlyRate}
-                    onChange={(e) => setHourlyRate(Number(e.target.value))}
-                    className="w-full pl-7 pr-3 py-2.5 bg-slate-50 border-2 border-black text-sm font-black"
+                    onChange={(e) => { setHourlyRate(Number(e.target.value)); clearFieldError('hourlyRate'); }}
+                    className={`w-full pl-7 pr-3 py-2.5 bg-slate-50 border-2 text-sm font-black focus:outline-hidden ${
+                      errors.hourlyRate ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
+                    }`}
                   />
                 </div>
+                {errors.hourlyRate && (
+                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.hourlyRate}
+                  </div>
+                )}
               </div>
             </div>
           )}
@@ -815,7 +1141,7 @@ export const CreateProfilePage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setPromoteModalOpen(true)}
-                  className="px-4 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition shrink-0"
+                  className="px-4 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition shrink-0 cursor-pointer"
                 >
                   [ 🔥 PROMOTE FOR $1 ]
                 </button>
@@ -828,8 +1154,8 @@ export const CreateProfilePage: React.FC = () => {
             {currentStep > 1 ? (
               <button
                 type="button"
-                onClick={() => setCurrentStep(prev => prev - 1)}
-                className="px-4 py-2 bg-white border-2 border-black font-mono text-xs font-bold hover:bg-slate-100 transition"
+                onClick={() => { setErrors({}); setCurrentStep(prev => prev - 1); }}
+                className="px-4 py-2 bg-white border-2 border-black font-mono text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
               >
                 [ PREVIOUS STEP ]
               </button>
@@ -838,8 +1164,8 @@ export const CreateProfilePage: React.FC = () => {
             {currentStep < 7 ? (
               <button
                 type="button"
-                onClick={() => setCurrentStep(prev => prev + 1)}
-                className="px-6 py-2.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                onClick={handleNextStep}
+                className="px-6 py-2.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
               >
                 <span>NEXT STEP</span>
                 <ArrowRight className="w-4 h-4" />
@@ -848,7 +1174,7 @@ export const CreateProfilePage: React.FC = () => {
               <button
                 type="button"
                 onClick={handlePublishProfile}
-                className="px-8 py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                className="px-8 py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 <span>[ PUBLISH PROFESSIONAL PROFILE ]</span>
