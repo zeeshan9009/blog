@@ -66,6 +66,13 @@ export interface Professional {
   clicksCount: number;
   inquiriesCount: number;
   createdAt: string;
+  // Marketplace / Ranking Page Fields
+  gigImage?: string;
+  gigTitle?: string;
+  levelBadge?: string;
+  isOnline?: boolean;
+  deliveryTime?: string;
+  offersConsultation?: boolean;
 }
 
 export interface Inquiry {

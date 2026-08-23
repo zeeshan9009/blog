@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   ChevronDown,
   Menu,
@@ -26,6 +27,7 @@ import { useAuth } from '../../context/AuthContext';
 import { AuthModal } from '../modals/AuthModal';
 
 export const Navbar: React.FC = () => {
+  const navigate = useNavigate();
   const { setSearchQuery } = useTalent();
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -86,10 +88,9 @@ export const Navbar: React.FC = () => {
     e.preventDefault();
     if (navSearch.trim()) {
       setSearchQuery(navSearch.trim());
-    }
-    const el = document.getElementById('talent') || document.getElementById('discovery');
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
+      navigate(`/developers?q=${encodeURIComponent(navSearch.trim())}`);
+    } else {
+      navigate('/developers');
     }
     setActiveMenu(null);
   };
@@ -102,9 +103,13 @@ export const Navbar: React.FC = () => {
       setSearchQuery(query);
     }
 
+    if (path.includes('search') || path.includes('developers') || path.includes('talent')) {
+      navigate(query ? `/developers?q=${encodeURIComponent(query)}` : '/developers');
+      return;
+    }
+
     let targetId = 'main-content';
     if (path.includes('promote') || path.includes('pricing')) targetId = 'pricing';
-    else if (path.includes('search') || path.includes('talent') || query) targetId = 'talent';
     else if (path.includes('create-profile') || path.includes('dashboard')) targetId = 'cta';
     else if (path.includes('faq')) targetId = 'faq';
     else if (path.includes('features') || path.includes('discover')) targetId = 'features';
@@ -112,6 +117,8 @@ export const Navbar: React.FC = () => {
     const el = document.getElementById(targetId);
     if (el) {
       el.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/');
     }
   };
 
