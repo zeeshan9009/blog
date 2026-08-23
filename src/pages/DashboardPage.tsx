@@ -6,13 +6,12 @@ import {
   Settings,
   Search,
   CheckCircle2,
+  AlertCircle,
   Briefcase,
-  TrendingUp,
   Cpu,
   BarChart3,
   Layers,
   ShieldCheck,
-  UserCheck,
   Eye,
   Sliders,
   Check
@@ -66,10 +65,17 @@ export const DashboardPage: React.FC = () => {
   const [testQuery, setTestQuery] = useState('Full Stack');
   const [currentMicroRotation, setCurrentMicroRotation] = useState<number>(0);
 
-  // Target provider profile with safe fallback
+  // Target provider profile with real metrics (0 if not recorded)
   const myProfile = useMemo<Professional>(() => {
-    const found = professionals.find(p => p.userId === user?.id || p.id === user?.id) || professionals[0];
-    if (found) return found;
+    const found = professionals.find(p => p.userId === user?.id || p.id === user?.id) || (user ? null : professionals[0]);
+    if (found) {
+      return {
+        ...found,
+        viewsCount: found.viewsCount || 0,
+        clicksCount: found.clicksCount || 0,
+        inquiriesCount: found.inquiriesCount || 0
+      };
+    }
     return {
       id: user?.id || 'guest',
       userId: user?.id || 'guest',
@@ -79,38 +85,22 @@ export const DashboardPage: React.FC = () => {
       location: 'Global',
       country: 'Global',
       avatar: user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.name || 'Pro')}`,
-      bio: 'Verified specialist delivering high-end digital solutions on RankLancr.',
-      hourlyRate: 65,
-      experienceYears: 3,
-      score: 92,
+      bio: '',
+      hourlyRate: 50,
+      experienceYears: 0,
+      score: 50,
       rating: 5.0,
-      reviewCount: 4,
-      skills: ['React', 'TypeScript', 'Node.js', 'PostgreSQL', 'TailwindCSS'],
-      experience: [
-        {
-          id: 'exp-1',
-          role: 'Senior Developer',
-          company: 'Tech Solutions',
-          period: '2022 - Present',
-          description: 'Architecting scalable applications and microservices.'
-        }
-      ],
-      portfolio: [
-        {
-          id: 'port-1',
-          title: 'Enterprise Analytics Dashboard',
-          description: 'High-performance real-time data visualization suite.',
-          imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80',
-          tags: ['React', 'D3.js']
-        }
-      ],
+      reviewCount: 0,
+      skills: [],
+      experience: [],
+      portfolio: [],
       reviews: [],
-      externalLinks: { github: 'https://github.com' },
-      isVerified: true,
+      externalLinks: {},
+      isVerified: false,
       isPromoted: false,
-      viewsCount: 1420,
-      clicksCount: 98,
-      inquiriesCount: 14,
+      viewsCount: 0,
+      clicksCount: 0,
+      inquiriesCount: 0,
       createdAt: new Date().toISOString()
     };
   }, [professionals, user]);
@@ -141,6 +131,7 @@ export const DashboardPage: React.FC = () => {
   // ==========================================
   const qualityScoreNorm = useMemo(() => calculateProfileQualityScore(myProfile), [myProfile]);
   const completenessPercent = Math.round(qualityScoreNorm * 100);
+  const isProfilePubliclyVisible = completenessPercent >= 90;
   
   const proScoreResult = useMemo(() => calculateProfessionalScore(myProfile), [myProfile]);
   const proScore = proScoreResult.displayScore;
@@ -270,10 +261,17 @@ export const DashboardPage: React.FC = () => {
 
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-500/20 text-[#e8622c] border border-orange-500/40 font-mono text-[9px] font-bold uppercase">
-                    <UserCheck className="w-3 h-3" />
-                    <span>VERIFIED SPECIALIST</span>
-                  </span>
+                  {isProfilePubliclyVisible ? (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono text-[9px] font-bold uppercase">
+                      <CheckCircle2 className="w-3 h-3" />
+                      <span>PUBLIC SEARCH VISIBILITY: ACTIVE (≥90%)</span>
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono text-[9px] font-bold uppercase">
+                      <AlertCircle className="w-3 h-3" />
+                      <span>SEARCH VISIBILITY: DRAFT (NEEDS ≥90% COMPLETENESS)</span>
+                    </span>
+                  )}
 
                   {myProfile.isPromoted ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono text-[9px] font-bold uppercase">
@@ -364,7 +362,7 @@ export const DashboardPage: React.FC = () => {
                     : 'bg-white text-slate-700 border-black hover:bg-orange-50'
                 }`}
               >
-                <Cpu className="w-3.5 h-3.5 text-[#e8622c]" />
+                <Cpu className="w-3.5 h-3.5 text-[#e8622c] group-hover:text-black" />
                 <span>[ 2. ALGORITHM INSPECTOR ({proScore}/100) ]</span>
               </button>
 
@@ -436,8 +434,46 @@ export const DashboardPage: React.FC = () => {
         {/* ========================================================= */}
         {activeRoleView === 'provider' && activeSubTab === 'overview' && (
           <div className="space-y-8 animate-fadeIn">
+
+            {/* Strict 90% Profile Completeness Visibility Banner */}
+            {!isProfilePubliclyVisible ? (
+              <div className="p-5 bg-amber-50 border-2 border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-3">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                  <div className="flex items-center gap-2 text-amber-900 font-bold font-mono text-xs uppercase">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    <span>MARKETPLACE VISIBILITY INACTIVE: {completenessPercent}% / 90% MINIMUM REQUIRED</span>
+                  </div>
+                  <span className="px-2 py-0.5 bg-amber-200 border border-amber-400 text-amber-950 font-mono text-[10px] font-bold">
+                    NEEDS +{90 - completenessPercent}% MORE COMPLETENESS
+                  </span>
+                </div>
+                <p className="text-xs text-slate-700 leading-relaxed">
+                  Your profile and services are currently <strong>hidden from public client search results</strong>. RankLancr requires at least <strong>90% profile completeness</strong> (Bio, Skills, Published Services, Portfolio) before profiles are indexed in the public algorithm.
+                </p>
+                <button
+                  onClick={() => navigate('/create-profile')}
+                  className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-xs"
+                >
+                  [ 🚀 COMPLETE PROFILE TO REACH 90% & GO LIVE ]
+                </button>
+              </div>
+            ) : (
+              <div className="p-4 bg-emerald-50 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div className="flex items-center gap-2.5">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                  <div>
+                    <div className="text-xs font-mono font-bold text-emerald-900 uppercase">
+                      ✓ PROFILE PUBLICLY INDEXED & LIVE ({completenessPercent}%)
+                    </div>
+                    <div className="text-[11px] text-slate-600">
+                      Your profile satisfies the 90%+ quality threshold and is receiving live organic algorithmic traffic.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
             
-            {/* 4 Live KPI Cards */}
+            {/* 4 Live KPI Cards (Real numbers without mock fallback) */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -446,20 +482,29 @@ export const DashboardPage: React.FC = () => {
                   <Cpu className="w-4 h-4 text-[#e8622c]" />
                 </div>
                 <div className="text-3xl font-black text-black mt-2">{proScore}/100</div>
-                <div className="text-[11px] font-mono text-emerald-600 mt-1 flex items-center gap-1">
-                  <TrendingUp className="w-3 h-3" />
-                  <span>High Tier Placement</span>
+                <div className="text-[11px] font-mono mt-1 flex items-center gap-1">
+                  {isProfilePubliclyVisible ? (
+                    <span className="text-emerald-600 font-bold">✓ Active in Search Engine</span>
+                  ) : (
+                    <span className="text-amber-600 font-bold">⚠️ Hidden (Needs ≥90%)</span>
+                  )}
                 </div>
               </div>
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 font-bold uppercase">
-                  <span>Profile Quality Score</span>
-                  <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                  <span>Profile Completeness</span>
+                  <CheckCircle2 className={`w-4 h-4 ${isProfilePubliclyVisible ? 'text-emerald-600' : 'text-amber-500'}`} />
                 </div>
-                <div className="text-3xl font-black text-black mt-2">{completenessPercent}%</div>
+                <div className="text-3xl font-black text-black mt-2">
+                  {completenessPercent}%
+                  <span className="text-xs font-mono font-normal text-slate-400 ml-1.5">/ 90% min</span>
+                </div>
                 <div className="w-full bg-slate-200 h-2 mt-2 overflow-hidden border border-black">
-                  <div className="bg-[#e8622c] h-full transition-all duration-500" style={{ width: `${completenessPercent}%` }} />
+                  <div
+                    className={`h-full transition-all duration-500 ${isProfilePubliclyVisible ? 'bg-emerald-500' : 'bg-[#e8622c]'}`}
+                    style={{ width: `${completenessPercent}%` }}
+                  />
                 </div>
               </div>
 
@@ -469,11 +514,11 @@ export const DashboardPage: React.FC = () => {
                   <Eye className="w-4 h-4 text-slate-700" />
                 </div>
                 <div className="text-3xl font-black text-black mt-2">
-                  {myProfile.viewsCount || 1420}
-                  <span className="text-xs font-mono font-normal text-slate-500 ml-1">/ {myProfile.clicksCount || 98} clicks</span>
+                  {myProfile.viewsCount || 0}
+                  <span className="text-xs font-mono font-normal text-slate-500 ml-1">/ {myProfile.clicksCount || 0} clicks</span>
                 </div>
                 <div className="text-[11px] font-mono text-[#e8622c] mt-1 font-bold">
-                  CTR: {(((myProfile.clicksCount || 98) / (myProfile.viewsCount || 1420)) * 100).toFixed(1)}%
+                  CTR: {myProfile.viewsCount > 0 ? (((myProfile.clicksCount || 0) / myProfile.viewsCount) * 100).toFixed(1) : '0.0'}%
                 </div>
               </div>
 
@@ -493,16 +538,16 @@ export const DashboardPage: React.FC = () => {
 
             </div>
 
-            {/* Quality Checklist & Algorithm Recommendation */}
+            {/* Live Profile Quality Factors & Dynamic Real Status Checklist */}
             <div className="p-5 bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div>
                   <h3 className="text-sm font-black text-black uppercase font-mono flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-[#e8622c]" />
-                    <span>Profile Quality Factors & Algorithm Checklist</span>
+                    <span>Profile Quality Factors & Algorithm Checklist (90% Requirement)</span>
                   </h3>
                   <p className="text-xs text-slate-600 mt-0.5">
-                    ProRank dynamically scores profiles based on complete portfolios, verified skills, and fair exposure.
+                    ProRank checks each factor below in real time to calculate your eligibility and marketplace score.
                   </p>
                 </div>
 
@@ -515,36 +560,60 @@ export const DashboardPage: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+                {/* 1. Bio Check */}
                 <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
                   <div className="flex items-center gap-1.5 font-bold text-black">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    {myProfile.bio && myProfile.bio.length >= 15 ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    )}
                     <span>Bio & Overview</span>
                   </div>
-                  <div className="text-[10px] font-mono text-emerald-700 mt-0.5">✓ 15+ Characters Verified</div>
-                </div>
-
-                <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-black">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Skills Tags ({myProfile.skills.length})</span>
+                  <div className={`text-[10px] font-mono mt-0.5 ${myProfile.bio && myProfile.bio.length >= 15 ? 'text-emerald-700 font-bold' : 'text-amber-700'}`}>
+                    {myProfile.bio && myProfile.bio.length >= 15 ? '✓ 15+ Chars Verified' : '⚠️ Missing / Too Short'}
                   </div>
-                  <div className="text-[10px] font-mono text-emerald-700 mt-0.5">✓ Relevant Taxonomy</div>
                 </div>
 
+                {/* 2. Skills Check */}
                 <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
                   <div className="flex items-center gap-1.5 font-bold text-black">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    {myProfile.skills && myProfile.skills.length >= 3 ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    )}
+                    <span>Skills Tags ({myProfile.skills?.length || 0})</span>
+                  </div>
+                  <div className={`text-[10px] font-mono mt-0.5 ${myProfile.skills && myProfile.skills.length >= 3 ? 'text-emerald-700 font-bold' : 'text-amber-700'}`}>
+                    {myProfile.skills && myProfile.skills.length >= 3 ? '✓ Taxonomy Verified' : '⚠️ Need at least 3 skills'}
+                  </div>
+                </div>
+
+                {/* 3. Published Services Check */}
+                <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
+                  <div className="flex items-center gap-1.5 font-bold text-black">
+                    {myServices.length >= 1 ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                    ) : (
+                      <AlertCircle className="w-3.5 h-3.5 text-amber-500 shrink-0" />
+                    )}
                     <span>Published Services ({myServices.length})</span>
                   </div>
-                  <div className="text-[10px] font-mono text-emerald-700 mt-0.5">✓ Ready for Direct Hire</div>
+                  <div className={`text-[10px] font-mono mt-0.5 ${myServices.length >= 1 ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}`}>
+                    {myServices.length >= 1 ? '✓ Ready for Direct Hire' : '⚠️ 1+ Service Required'}
+                  </div>
                 </div>
 
+                {/* 4. Rotation Engine Check */}
                 <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
                   <div className="flex items-center gap-1.5 font-bold text-black">
                     <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                     <span>Fair Rotation Engine</span>
                   </div>
-                  <div className="text-[10px] font-mono text-emerald-700 mt-0.5">✓ 5-Min Micro-Rotation</div>
+                  <div className="text-[10px] font-mono text-emerald-700 mt-0.5 font-bold">
+                    ✓ 5-Min Micro-Rotation
+                  </div>
                 </div>
               </div>
             </div>

@@ -1,6 +1,7 @@
 import type { Professional } from '../../types/talent';
 import { rankSponsoredProfiles, type RankedSponsoredProfile } from './promotionRanker';
 import { rankOrganicProfiles, type RankedOrganicProfile } from './organicRanker';
+import { calculateProfileQualityScore } from './profileQualityScore';
 
 export interface SearchOptions {
   query: string;
@@ -44,8 +45,13 @@ export function executeProRankSearch(
     limit = 20
   } = options;
 
-  // 1. Candidate pre-filtering (status, rate, category if specified)
+  // 1. Candidate pre-filtering (status, 90% completeness gate, rate, category)
   const candidates = allProfiles.filter(p => {
+    // Quality completeness gate (must reach 90% completeness to appear in public search)
+    const quality = calculateProfileQualityScore(p);
+    if (quality < 0.90 && allProfiles.length > 4) {
+      return false;
+    }
     if (category !== 'All' && p.category && p.category.toLowerCase() !== category.toLowerCase()) {
       return false;
     }

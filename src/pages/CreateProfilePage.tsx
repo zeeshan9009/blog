@@ -353,6 +353,20 @@ export const CreateProfilePage: React.FC = () => {
       }
     }
 
+    if (completenessPercent < 90) {
+      toast.error(`⚠️ Minimum 90% profile completeness required to go live (Current: ${completenessPercent}%).`);
+      if (!bio || bio.length < 50) {
+        setCurrentStep(1);
+      } else if (servicesList.length === 0) {
+        setCurrentStep(2);
+      } else if (selectedSkills.length < 3) {
+        setCurrentStep(3);
+      } else if (portfolioList.length === 0) {
+        setCurrentStep(5);
+      }
+      return;
+    }
+
     const newProfile = addProfessional({
       name: name.trim(),
       title: headline.trim(),
@@ -1166,14 +1180,34 @@ export const CreateProfilePage: React.FC = () => {
                     <div className="text-[10px] text-slate-400">PRO SCORE</div>
                   </div>
                   <div>
-                    <div className="text-base font-black text-black">{completenessPercent}%</div>
-                    <div className="text-[10px] text-slate-400">COMPLETENESS</div>
+                    <div className={`text-base font-black ${completenessPercent >= 90 ? 'text-emerald-600' : 'text-[#e8622c]'}`}>
+                      {completenessPercent}%
+                    </div>
+                    <div className="text-[10px] text-slate-400">COMPLETENESS (90% MIN)</div>
                   </div>
                   <div className="col-span-2 sm:col-span-1">
                     <div className="text-base font-black text-black">{servicesList.length}</div>
                     <div className="text-[10px] text-slate-400">SERVICES</div>
                   </div>
                 </div>
+
+                {/* Completeness Status Warning */}
+                {completenessPercent < 90 ? (
+                  <div className="p-3 bg-amber-50 border-2 border-amber-400 text-xs text-amber-900 space-y-1">
+                    <div className="font-bold font-mono flex items-center gap-1.5 uppercase">
+                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                      <span>90% Profile Completeness Required for Public Search</span>
+                    </div>
+                    <p className="text-[11px] text-slate-700">
+                      Your profile is currently at <strong>{completenessPercent}%</strong>. You must reach at least <strong>90%</strong> for your profile and services to be publicly visible to clients on RankLancr.com.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="p-3 bg-emerald-50 border-2 border-emerald-400 text-xs text-emerald-900 flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                    <span className="font-mono font-bold">✓ Ready for Public Search Indexing (90%+ Complete)</span>
+                  </div>
+                )}
 
                 {/* Services List Preview */}
                 <div className="space-y-2">
