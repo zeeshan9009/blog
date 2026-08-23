@@ -14,6 +14,7 @@ import { calculateProfileQualityScore } from '../services/ranking/profileQuality
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
 import { PromoteModal } from '../components/modals/PromoteModal';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
+import type { Professional } from '../types/talent';
 
 export const DashboardPage: React.FC = () => {
   const navigate = useNavigate();
@@ -47,20 +48,48 @@ export const DashboardPage: React.FC = () => {
 
   const [promoteModalOpen, setPromoteModalOpen] = useState(false);
 
-  // Target provider profile
-  const myProfile = useMemo(() => {
-    return professionals.find(p => p.id === 'ali-raza') || professionals[0];
-  }, [professionals]);
+  // Target provider profile with safe fallback
+  const myProfile = useMemo<Professional>(() => {
+    const found = professionals.find(p => p.userId === user?.id || p.id === user?.id) || professionals[0];
+    if (found) return found;
+    return {
+      id: user?.id || 'guest',
+      userId: user?.id || 'guest',
+      name: user?.name || 'Professional',
+      title: 'Independent Specialist',
+      category: 'Development',
+      location: 'Global',
+      country: 'Global',
+      avatar: user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.name || 'Pro')}`,
+      bio: 'Professional profile on RankLancr.',
+      hourlyRate: 50,
+      experienceYears: 1,
+      score: 50,
+      rating: 5.0,
+      reviewCount: 0,
+      skills: ['Specialist'],
+      experience: [],
+      portfolio: [],
+      reviews: [],
+      externalLinks: {},
+      isVerified: false,
+      isPromoted: false,
+      viewsCount: 0,
+      clicksCount: 0,
+      inquiriesCount: 0,
+      createdAt: new Date().toISOString()
+    };
+  }, [professionals, user]);
 
   // Provider's services
   const myServices = useMemo(() => {
-    return services.filter(s => s.providerId === myProfile.id || s.providerId === 'ali-raza');
-  }, [services, myProfile]);
+    return services.filter(s => s.providerId === myProfile.id || (user?.id && s.providerId === user.id));
+  }, [services, myProfile.id, user?.id]);
 
   // Incoming requests for provider
   const incomingRequests = useMemo(() => {
-    return serviceRequests.filter(r => r.providerId === myProfile.id || r.providerId === 'ali-raza');
-  }, [serviceRequests, myProfile]);
+    return serviceRequests.filter(r => r.providerId === myProfile.id || (user?.id && r.providerId === user.id));
+  }, [serviceRequests, myProfile.id, user?.id]);
 
   // Outgoing requests by buyer
   const mySentRequests = useMemo(() => {

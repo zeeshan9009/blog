@@ -27,10 +27,10 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
 
   if (!isOpen) return null;
 
-  const targetPro = professionals.find(p => p.id === selectedProId) || currentProfile || professionals[0];
+  const targetPro = professionals.find(p => p.id === selectedProId) || professional || currentProfile || professionals[0] || null;
   const eligibility = targetPro ? verifyProfilePromotionEligibility(targetPro) : { isEligible: true, reasons: [] };
 
-  const isAlreadyPromoted = targetPro?.isPromoted && targetPro?.promotionExpiresAt && new Date(targetPro.promotionExpiresAt).getTime() > Date.now();
+  const isAlreadyPromoted = Boolean(targetPro?.isPromoted && targetPro?.promotionExpiresAt && new Date(targetPro.promotionExpiresAt).getTime() > Date.now());
 
   const handlePayAndPromote = async (e: React.FormEvent) => {
     e.preventDefault();

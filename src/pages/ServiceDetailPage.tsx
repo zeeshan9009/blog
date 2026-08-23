@@ -12,6 +12,7 @@ import { useTalent } from '../context/TalentContext';
 import { HireRequestModal } from '../components/modals/HireRequestModal';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { ContactModal } from '../components/modals/ContactModal';
+import type { Professional } from '../types/talent';
 
 export const ServiceDetailPage: React.FC = () => {
   const { serviceId } = useParams<{ serviceId: string }>();
@@ -27,8 +28,36 @@ export const ServiceDetailPage: React.FC = () => {
   }, [services, serviceId]);
 
   // Find provider profile
-  const provider = useMemo(() => {
-    return professionals.find(p => p.id === service?.providerId) || professionals[0];
+  const provider = useMemo<Professional>(() => {
+    const found = professionals.find(p => p.id === service?.providerId);
+    if (found) return found;
+    return {
+      id: service?.providerId || 'pro',
+      userId: service?.providerId || 'pro',
+      name: service?.providerName || 'Pro Specialist',
+      title: service?.title || 'Professional Specialist',
+      category: service?.category || 'Development',
+      location: 'Global',
+      country: 'Global',
+      avatar: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(service?.providerName || 'Pro')}`,
+      bio: 'Professional service provider on RankLancr.',
+      hourlyRate: service?.startingPrice || 50,
+      experienceYears: 1,
+      score: 85,
+      rating: 5.0,
+      reviewCount: 0,
+      skills: ['Specialist'],
+      experience: [],
+      portfolio: [],
+      reviews: [],
+      externalLinks: {},
+      isVerified: true,
+      isPromoted: false,
+      viewsCount: 0,
+      clicksCount: 0,
+      inquiriesCount: 0,
+      createdAt: new Date().toISOString()
+    };
   }, [professionals, service]);
 
   const isSaved = savedProfessionals.includes(provider.id);
@@ -194,7 +223,7 @@ export const ServiceDetailPage: React.FC = () => {
               {provider.experience && provider.experience.length > 0 && (
                 <div className="space-y-2 pt-2">
                   <h4 className="text-xs font-bold font-mono text-black uppercase">Verified Experience</h4>
-                  {provider.experience.map((exp, i) => (
+                  {provider.experience.map((exp: any, i: number) => (
                     <div key={i} className="p-3 bg-slate-50 border border-slate-200 text-xs">
                       <div className="font-bold text-black">{exp.role}</div>
                       <div className="text-[11px] font-mono text-[#e8622c]">{exp.company} • {exp.period}</div>
