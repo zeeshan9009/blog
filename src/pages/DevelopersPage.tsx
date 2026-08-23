@@ -19,7 +19,6 @@ import {
 import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
 import { ContactModal } from '../components/modals/ContactModal';
-import { AuthModal } from '../components/modals/AuthModal';
 import { executeProRankSearch } from '../services/ranking/searchEngine';
 import type { Professional } from '../types/talent';
 
@@ -436,7 +435,6 @@ export const DevelopersPage: React.FC = () => {
   // Modals
   const [selectedDevForContact, setSelectedDevForContact] = useState<Professional | null>(null);
   const [quickViewDev, setQuickViewDev] = useState<Professional | null>(null);
-  const [authModalOpen, setAuthModalOpen] = useState(false);
 
   // Dropdown open states
   const [openDropdown, setOpenDropdown] = useState<'service' | 'seller' | 'budget' | 'delivery' | null>(null);
@@ -557,7 +555,7 @@ export const DevelopersPage: React.FC = () => {
               </div>
             ) : (
               <button
-                onClick={() => setAuthModalOpen(true)}
+                onClick={() => navigate('/login')}
                 className="px-3.5 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer"
               >
                 [ SIGN IN ]
@@ -1285,14 +1283,6 @@ export const DevelopersPage: React.FC = () => {
           professional={selectedDevForContact}
         />
       )}
-
-      {/* ========================================================= */}
-      {/* 6. AUTH MODAL */}
-      {/* ========================================================= */}
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-      />
 
     </div>
   );

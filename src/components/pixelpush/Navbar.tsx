@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
 import { useAuth } from '../../context/AuthContext';
-import { AuthModal } from '../modals/AuthModal';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -38,9 +37,7 @@ export const Navbar: React.FC = () => {
   // User Profile Dropdown
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
 
-  // Modals for Auth, Docs and Policies
-  const [authModalOpen, setAuthModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  // Modals for Docs and Policies
   const [docsModalOpen, setDocsModalOpen] = useState(false);
   const [policyModalOpen, setPolicyModalOpen] = useState(false);
 
@@ -72,7 +69,6 @@ export const Navbar: React.FC = () => {
         setUserDropdownOpen(false);
         setDocsModalOpen(false);
         setPolicyModalOpen(false);
-        setAuthModalOpen(false);
       }
     };
 
@@ -307,10 +303,7 @@ export const Navbar: React.FC = () => {
                 </div>
               ) : (
                 <button
-                  onClick={() => {
-                    setAuthMode('login');
-                    setAuthModalOpen(true);
-                  }}
+                  onClick={() => navigate('/login')}
                   className="text-xs font-bold text-slate-800 hover:text-black px-2.5 transition cursor-pointer"
                 >
                   Sign in
@@ -789,8 +782,7 @@ export const Navbar: React.FC = () => {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setAuthMode('register');
-                      setAuthModalOpen(true);
+                      navigate('/register');
                     }}
                     className="pixel-btn-black block w-full py-2.5 text-center font-bold text-xs"
                   >
@@ -799,8 +791,7 @@ export const Navbar: React.FC = () => {
                   <button
                     onClick={() => {
                       setMobileMenuOpen(false);
-                      setAuthMode('login');
-                      setAuthModalOpen(true);
+                      navigate('/login');
                     }}
                     className="block w-full py-2 text-center text-xs font-bold text-slate-700 hover:text-black border border-slate-300"
                   >
@@ -956,14 +947,6 @@ export const Navbar: React.FC = () => {
         </div>
       )}
 
-      {/* ========================================================= */}
-      {/* 5. SQUARE UI AUTH MODAL (LOGIN & REGISTER) */}
-      {/* ========================================================= */}
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        defaultMode={authMode}
-      />
     </>
   );
 };
