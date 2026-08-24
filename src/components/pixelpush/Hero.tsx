@@ -3,19 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import {
   Globe,
   ChevronDown,
-  Search,
-  Bot,
-  Sparkles,
-  Megaphone,
-  Code,
-  FolderKanban,
-  Users,
   ExternalLink,
   Flame,
   Zap,
+  Tag,
   ArrowUpRight,
-  TrendingUp,
-  Tag
+  ShieldCheck
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { OutbidModal } from '../modals/OutbidModal';
@@ -26,9 +19,9 @@ import toast from 'react-hot-toast';
 
 const CATEGORY_TABS = [
   { id: 'All', label: 'All', icon: '⊞' },
+  { id: 'Developer', label: 'Developer', icon: '</>' },
   { id: 'SEO', label: 'SEO', icon: '🔍' },
   { id: 'Agents', label: 'AI Agents', icon: '🤖' },
-  { id: 'Developer', label: 'Developer', icon: '</>' },
   { id: 'Design', label: 'Design & UI', icon: '🎨' },
   { id: 'Marketing', label: 'Marketing', icon: '📢' },
   { id: 'Productivity', label: 'Productivity', icon: '🗂' },
@@ -168,7 +161,7 @@ export const Hero: React.FC = () => {
     fetchCampaigns();
 
     const channel = supabase
-      .channel('hero_promoted_live')
+      .channel('hero_promoted_live_square')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'promoted_campaigns' },
@@ -190,7 +183,6 @@ export const Hero: React.FC = () => {
       return;
     }
 
-    // Check if entered URL matches an existing campaign
     const existing = campaigns.find(
       c => c.destinationUrl.toLowerCase().includes(urlInput.toLowerCase()) || c.title.toLowerCase().includes(urlInput.toLowerCase())
     );
@@ -210,33 +202,33 @@ export const Hero: React.FC = () => {
   }, [campaigns, selectedCategory]);
 
   return (
-    <section className="pt-8 sm:pt-12 pb-16 bg-[#fffaf5] text-slate-900 font-sans border-b border-orange-100">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-7">
+    <section className="pt-8 sm:pt-12 pb-16 bg-[#faf8f5] text-slate-900 font-sans border-b-2 border-black">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
         
-        {/* Top Floating Action & Search Bar */}
+        {/* Top Square Action & Search Bar */}
         <div className="space-y-2">
           <form
             onSubmit={handleOutbidBarSubmit}
-            className="flex flex-col sm:flex-row items-center gap-2 bg-white rounded-full p-2 border border-orange-200/80 shadow-[0_4px_20px_-4px_rgba(232,98,44,0.12)] transition focus-within:border-[#e8622c] focus-within:ring-2 focus-within:ring-orange-500/20"
+            className="flex flex-col sm:flex-row items-stretch bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-1.5 focus-within:border-[#e8622c]"
           >
             {/* Input URL or Handle */}
-            <div className="flex items-center gap-3 pl-4 pr-2 py-1 flex-1 w-full">
-              <Globe className="w-5 h-5 text-slate-400 shrink-0" />
+            <div className="flex items-center gap-2.5 px-3 py-2 flex-1">
+              <Globe className="w-4 h-4 text-black shrink-0" />
               <input
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Your product URL, LinkedIn, or @handle"
-                className="w-full text-sm font-medium text-slate-800 placeholder:text-slate-400 bg-transparent focus:outline-hidden"
+                placeholder="Your product URL, LinkedIn, Upwork, or @handle"
+                className="w-full text-xs sm:text-sm font-mono font-bold text-black placeholder:text-slate-400 bg-transparent focus:outline-hidden"
               />
             </div>
 
             {/* Category Dropdown */}
-            <div className="relative border-t sm:border-t-0 sm:border-l border-slate-200 pl-3 pr-2 py-1 flex items-center w-full sm:w-auto shrink-0">
+            <div className="relative border-t-2 sm:border-t-0 sm:border-l-2 border-black px-3 py-2 flex items-center shrink-0 bg-slate-50">
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="text-xs font-semibold text-slate-700 bg-transparent focus:outline-hidden pr-6 cursor-pointer appearance-none"
+                className="text-xs font-mono font-bold uppercase text-black bg-transparent focus:outline-hidden pr-6 cursor-pointer appearance-none"
               >
                 <option value="All">Choose a category</option>
                 <option value="Developer">Developer</option>
@@ -247,36 +239,37 @@ export const Hero: React.FC = () => {
                 <option value="Productivity">Productivity</option>
                 <option value="People">People</option>
               </select>
-              <ChevronDown className="w-3.5 h-3.5 text-slate-400 absolute right-3 pointer-events-none" />
+              <ChevronDown className="w-3.5 h-3.5 text-black absolute right-3 pointer-events-none" />
             </div>
 
             {/* Outbid Action Button */}
             <button
               type="submit"
-              className="w-full sm:w-auto px-7 py-2.5 bg-[#f59e7a] hover:bg-[#e8622c] text-white font-bold text-sm rounded-full transition shadow-xs cursor-pointer shrink-0 text-center"
+              className="px-8 py-3 bg-[#e8622c] hover:bg-black text-white font-mono font-black text-xs uppercase tracking-wider transition cursor-pointer shrink-0 text-center border-t-2 sm:border-t-0 sm:border-l-2 border-black"
             >
-              Outbid
+              [ OUTBID ⚡ ]
             </button>
           </form>
 
           {/* Subtext info */}
-          <p className="text-center text-xs text-slate-400 font-medium">
-            Already on the list? Enter the same URL or @handle and up your bid.
-          </p>
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 px-1">
+            <span>Already on the list? Enter the same URL or @handle and up your bid.</span>
+            <span className="font-bold text-black uppercase hidden sm:inline-block">24H AUCTION • $2 MIN</span>
+          </div>
         </div>
 
-        {/* Category Pill Navigation */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none justify-start sm:justify-center">
+        {/* Category Square Button Navigation */}
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none justify-start sm:justify-center">
           {CATEGORY_TABS.map((tab) => {
             const isActive = selectedCategory === tab.id;
             return (
               <button
                 key={tab.id}
                 onClick={() => setSelectedCategory(tab.id)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center gap-1.5 transition whitespace-nowrap cursor-pointer ${
+                className={`px-3 py-1.5 border-2 border-black text-xs font-mono font-bold uppercase flex items-center gap-1.5 transition whitespace-nowrap cursor-pointer ${
                   isActive
-                    ? 'bg-[#e8622c] text-white shadow-xs'
-                    : 'bg-white text-slate-600 border border-slate-200/80 hover:bg-orange-50/50 hover:text-slate-900'
+                    ? 'bg-black text-white shadow-[2px_2px_0px_0px_#e8622c]'
+                    : 'bg-white text-black hover:bg-orange-50/80 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -286,45 +279,48 @@ export const Hero: React.FC = () => {
           })}
         </div>
 
-        {/* Ranked Auction Cards List */}
-        <div className="space-y-3.5">
+        {/* Ranked Auction Cards List (Square UI) */}
+        <div className="space-y-4">
           {filteredCampaigns.map((camp, idx) => (
             <div
               key={camp.id}
               onClick={() => setSelectedOutbidCampaign(camp)}
-              className="group bg-[#fff5ee]/90 hover:bg-[#ffece0] border border-[#fbd3c1] rounded-3xl p-4 sm:p-5 transition-all duration-200 cursor-pointer shadow-xs hover:shadow-md flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+              className="group bg-white border-2 border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_#e8622c] transition-all duration-150 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
             >
-              {/* Left Rank Pill & Logo Info */}
-              <div className="flex items-start sm:items-center gap-3.5 flex-1 min-w-0">
+              {/* Left Rank & Info */}
+              <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                
                 {/* # Rank Tag */}
-                <div className="px-2.5 py-1 bg-[#f5835b] text-white rounded-full font-black text-xs font-mono shrink-0 shadow-xs">
-                  #{idx + 1}
+                <div className={`px-3 py-1.5 border-2 border-black font-mono font-black text-xs shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                  idx === 0 ? 'bg-[#e8622c] text-white' : idx === 1 ? 'bg-amber-400 text-black' : 'bg-black text-white'
+                }`}>
+                  #{idx + 1} {idx === 0 && '🔥'}
                 </div>
 
-                {/* Avatar Icon */}
-                <div className="w-12 h-12 rounded-2xl bg-slate-900 overflow-hidden flex items-center justify-center shrink-0 border border-black/10 shadow-xs">
+                {/* Avatar Icon (Square) */}
+                <div className="w-13 h-13 border-2 border-black bg-black overflow-hidden flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                   {camp.avatarUrl ? (
                     <img src={camp.avatarUrl} alt={camp.authorName} className="w-full h-full object-cover" />
                   ) : (
-                    <span className="text-white font-bold text-base">{camp.authorName.charAt(0)}</span>
+                    <span className="text-white font-mono font-black text-lg">{camp.authorName.charAt(0)}</span>
                   )}
                 </div>
 
                 {/* Content */}
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-extrabold text-slate-900 text-sm sm:text-base tracking-tight truncate group-hover:text-[#e8622c] transition">
+                    <h3 className="font-black text-black text-sm sm:text-base tracking-tight truncate group-hover:text-[#e8622c] transition">
                       {camp.title}
                     </h3>
                   </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-normal">
+                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium">
                     {camp.description}
                   </p>
 
                   {/* Metadata Row */}
-                  <div className="flex items-center gap-2.5 text-[11px] text-slate-500 font-medium flex-wrap pt-0.5">
-                    <span className="text-slate-400">active</span>
+                  <div className="flex items-center gap-2.5 text-[11px] font-mono text-slate-500 font-bold flex-wrap pt-1">
+                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-300 px-1 py-0.2">ACTIVE</span>
                     <a
                       href={camp.destinationUrl}
                       target="_blank"
@@ -337,29 +333,25 @@ export const Hero: React.FC = () => {
                           body: JSON.stringify({ campaignId: camp.id, eventType: 'external_visit' })
                         }).catch(() => {});
                       }}
-                      className="text-slate-700 hover:text-[#e8622c] font-semibold underline underline-offset-2 flex items-center gap-0.5"
+                      className="text-black hover:text-[#e8622c] underline flex items-center gap-0.5"
                     >
                       <span>{camp.destinationUrl.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</span>
                       <ExternalLink className="w-2.5 h-2.5" />
                     </a>
-                    <span className="text-slate-300">•</span>
-                    <span className="inline-flex items-center gap-1 text-slate-600">
-                      <Tag className="w-3 h-3 text-slate-400" />
-                      <span>{camp.category}</span>
+                    <span>•</span>
+                    <span className="text-slate-700">[{camp.category}]</span>
+                    <span>•</span>
+                    <span className="text-black">
+                      {(camp.clicks || 0).toLocaleString()} CLICKS
                     </span>
-                    <span className="text-slate-300">•</span>
-                    <span className="font-bold text-slate-700">
-                      {(camp.clicks || 0).toLocaleString()} clicks
-                    </span>
-                    <span className="text-slate-400">see details</span>
                   </div>
                 </div>
               </div>
 
               {/* Right Bid & Outbid Action */}
-              <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto shrink-0 pl-12 sm:pl-0">
+              <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto shrink-0 pl-16 sm:pl-0 pt-2 sm:pt-0 border-t-2 sm:border-t-0 border-black/10">
                 <div className="text-right">
-                  <div className="text-lg sm:text-xl font-black text-[#e8622c] tracking-tight font-mono">
+                  <div className="text-xl sm:text-2xl font-black text-[#e8622c] tracking-tight font-mono">
                     ${(camp.currentBid || 2).toLocaleString()}
                   </div>
                 </div>
@@ -369,10 +361,10 @@ export const Hero: React.FC = () => {
                     e.stopPropagation();
                     setSelectedOutbidCampaign(camp);
                   }}
-                  className="mt-1 px-3 py-1 bg-white hover:bg-black hover:text-white border border-[#f5835b] text-[#e8622c] text-[11px] font-bold rounded-full transition shadow-xs flex items-center gap-1 cursor-pointer"
+                  className="px-4 py-1.5 bg-[#e8622c] hover:bg-black text-white border-2 border-black font-mono text-xs font-black uppercase transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex items-center gap-1.5 cursor-pointer"
                 >
-                  <span>Outbid</span>
-                  <Zap className="w-3 h-3 fill-current" />
+                  <span>OUTBID</span>
+                  <Zap className="w-3.5 h-3.5 fill-white" />
                 </button>
               </div>
 
