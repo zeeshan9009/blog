@@ -13,6 +13,7 @@ import FindServicesPage from "./pages/FindServicesPage";
 import ServiceDetailPage from "./pages/ServiceDetailPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
+import PromotedRankingPage from "./pages/PromotedRankingPage";
 
 export default function App() {
   return (
@@ -49,6 +50,10 @@ export default function App() {
 
           {/* Settings & Role Management */}
           <Route path="/settings" element={<SettingsPage />} />
+
+          {/* Dedicated Promoted Ranking & Boost Auction */}
+          <Route path="/promoted-ranking" element={<PromotedRankingPage />} />
+          <Route path="/boost" element={<PromotedRankingPage />} />
 
           {/* Dedicated Developers & Ranking Directory */}
           <Route path="/developers" element={<DevelopersPage />} />

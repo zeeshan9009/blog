@@ -174,6 +174,14 @@ export const Navbar: React.FC = () => {
                   <span>Professionals</span>
                 </Link>
 
+                <Link
+                  to="/promoted-ranking"
+                  className="hover:text-[#e8622c] transition py-1.5 px-2 flex items-center gap-1 text-[#e8622c] font-black"
+                >
+                  <Flame className="w-3.5 h-3.5 fill-[#e8622c]" />
+                  <span>Promoted Ranking</span>
+                </Link>
+
                 <a href="#features" onClick={() => setActiveMenu(null)} className="hover:text-black transition py-1.5 px-2">
                   How It Works
                 </a>
