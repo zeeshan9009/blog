@@ -306,17 +306,29 @@ async function runAutocannonStage(
 }
 
 export async function runFullBenchmarkSuite() {
-  const PORT = 8089;
-  const server = createSearchBenchmarkServer(DATASET_10K);
+  const targetFromCli = process.argv[2]?.startsWith('http') ? process.argv[2] : undefined;
+  const deployedUrl = process.env.TARGET_URL || process.env.DEPLOYED_URL || targetFromCli;
 
-  await new Promise<void>((resolve) => {
-    server.listen(PORT, '127.0.0.1', () => {
-      console.log(`[SERVER] Benchmark HTTP server active on http://127.0.0.1:${PORT}`);
-      resolve();
+  let baseUrl = deployedUrl;
+  let server: http.Server | null = null;
+
+  if (!baseUrl) {
+    const PORT = 8089;
+    server = createSearchBenchmarkServer(DATASET_10K);
+
+    await new Promise<void>((resolve) => {
+      server!.listen(PORT, '127.0.0.1', () => {
+        console.log(`[SERVER] Benchmark HTTP server active on http://127.0.0.1:${PORT}`);
+        resolve();
+      });
     });
-  });
 
-  const baseUrl = `http://127.0.0.1:${PORT}`;
+    baseUrl = `http://127.0.0.1:${PORT}`;
+    console.log(`[TARGET] Running benchmark against local engine simulation (${baseUrl})...`);
+  } else {
+    console.log(`\n🌐 [DEPLOYED TARGET DETECTED] Benchmarking Live Cloud URL: ${baseUrl}\n`);
+  }
+
   const allStageResults: StageResult[] = [];
 
   try {
@@ -362,7 +374,7 @@ export async function runFullBenchmarkSuite() {
     console.log(`========================================================================================\n`);
 
   } finally {
-    server.close();
+    server?.close();
   }
 }
 
