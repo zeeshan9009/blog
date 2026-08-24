@@ -17,7 +17,8 @@ export interface PortfolioItem {
 
 export interface ExperienceItem {
   id: string;
-  role: string;
+  role?: string;
+  title?: string;
   company: string;
   period: string;
   description: string;

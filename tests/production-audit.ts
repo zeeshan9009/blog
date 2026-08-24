@@ -224,8 +224,8 @@ export function executeProductionAudit() {
   // ==========================================
   // 2. PAYMENT & WEBHOOK IDEMPOTENCY
   // ==========================================
-  const invalidPaymentAmount = 100; // $1.00 instead of $2.00
-  const validPaymentAmount = 200; // $2.00 (200 cents)
+  const invalidPaymentAmount: number = 100; // $1.00 instead of $2.00
+  const validPaymentAmount: number = 200; // $2.00 (200 cents)
   const paymentValidationPassed = invalidPaymentAmount !== 200 && validPaymentAmount === 200;
 
   recordAudit(
