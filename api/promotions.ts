@@ -420,6 +420,23 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
+    if (req.method === "DELETE") {
+      try {
+        const campaignId = parsedUrl.searchParams.get("id");
+        if (campaignId) {
+          await supabase.from("promoted_campaigns").update({ status: "cancelled" }).eq("id", campaignId);
+        } else {
+          await supabase.from("promoted_campaigns").update({ status: "cancelled" }).or("title.eq.react,title.ilike.%react%,destination_url.ilike.%github.com/zeeshan9009%");
+        }
+        res.statusCode = 200;
+        res.end(JSON.stringify({ success: true, message: "Campaign deleted/cancelled" }));
+      } catch (err: any) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: err.message }));
+      }
+      return;
+    }
+
     if (req.method === "POST") {
       let body = "";
       req.on("data", chunk => (body += chunk));

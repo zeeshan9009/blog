@@ -302,7 +302,16 @@ export const Hero: React.FC = () => {
             filteredCampaigns.map((camp, idx) => (
               <div
                 key={camp.id}
-                onClick={() => setSelectedOutbidCampaign(camp)}
+                onClick={() => {
+                  if (camp.destinationUrl) {
+                    fetch('/api/promotions/auction/analytics', {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ campaignId: camp.id, eventType: 'external_visit' })
+                    }).catch(() => {});
+                    window.open(camp.destinationUrl, '_blank', 'noopener,noreferrer');
+                  }
+                }}
                 className="group bg-white border-2 border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_#e8622c] transition-all duration-150 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
               >
                 {/* Left Rank & Info */}
@@ -326,8 +335,9 @@ export const Hero: React.FC = () => {
                 {/* Content */}
                 <div className="space-y-1 min-w-0 flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-black text-black text-sm sm:text-base tracking-tight truncate group-hover:text-[#e8622c] transition">
-                      {camp.title}
+                    <h3 className="font-black text-black text-sm sm:text-base tracking-tight truncate group-hover:text-[#e8622c] transition flex items-center gap-1.5">
+                      <span>{camp.title}</span>
+                      <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#e8622c] transition" />
                     </h3>
                   </div>
 
@@ -344,23 +354,9 @@ export const Hero: React.FC = () => {
                       <PlatformBrandIcon platform={camp.destinationType || 'website'} className="w-3.5 h-3.5 text-black" />
                       <span>{camp.destinationType || 'LINK'}</span>
                     </span>
-                    <a
-                      href={camp.destinationUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fetch('/api/promotions/auction/analytics', {
-                          method: 'POST',
-                          headers: { 'Content-Type': 'application/json' },
-                          body: JSON.stringify({ campaignId: camp.id, eventType: 'external_visit' })
-                        }).catch(() => {});
-                      }}
-                      className="text-black hover:text-[#e8622c] underline flex items-center gap-0.5"
-                    >
+                    <span className="text-black underline flex items-center gap-0.5">
                       <span>{camp.destinationUrl.replace(/^https?:\/\/(www\.)?/, '').split('/')[0]}</span>
-                      <ExternalLink className="w-2.5 h-2.5" />
-                    </a>
+                    </span>
                     <span>•</span>
                     <span className="text-slate-700">[{camp.category}]</span>
                     <span>•</span>
@@ -373,13 +369,20 @@ export const Hero: React.FC = () => {
 
               {/* Right Bid & Outbid Action */}
               <div className="flex sm:flex-col items-center sm:items-end justify-between w-full sm:w-auto shrink-0 pl-16 sm:pl-0 pt-2 sm:pt-0 border-t-2 sm:border-t-0 border-black/10">
-                <div className="text-right">
+                <div
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedOutbidCampaign(camp);
+                  }}
+                  className="text-right cursor-pointer"
+                >
                   <div className="text-xl sm:text-2xl font-black text-[#e8622c] tracking-tight font-mono">
                     ${(camp.currentBid || 2).toLocaleString()}
                   </div>
                 </div>
 
                 <button
+                  type="button"
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedOutbidCampaign(camp);
