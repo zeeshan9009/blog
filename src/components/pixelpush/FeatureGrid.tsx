@@ -12,7 +12,7 @@ export const FeatureGrid: React.FC = () => {
   const features = [
     {
       icon: <Zap className="w-6 h-6 text-[#e8622c]" />,
-      title: '24-Hour $1 Sponsored Boost',
+      title: '24-Hour $2 Sponsored Boost',
       description: 'Pin your profile at the top of relevant talent searches for a full 24 hours. Transparent pricing with instant activation.'
     },
     {

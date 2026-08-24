@@ -1227,7 +1227,7 @@ export const CreateProfilePage: React.FC = () => {
                   <Zap className="w-5 h-5 text-[#e8622c] shrink-0" />
                   <div>
                     <div className="font-bold text-xs text-black">Want Sponsored Visibility?</div>
-                    <div className="text-[11px] text-slate-600">Promote your profile for $1 to gain 24 hours of top search placement.</div>
+                    <div className="text-[11px] text-slate-600">Promote your profile for $2 to gain 24 hours of top search placement.</div>
                   </div>
                 </div>
                 <button
@@ -1235,7 +1235,7 @@ export const CreateProfilePage: React.FC = () => {
                   onClick={() => setPromoteModalOpen(true)}
                   className="px-4 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition shrink-0 cursor-pointer"
                 >
-                  [ 🔥 PROMOTE FOR $1 ]
+                  [ 🔥 PROMOTE FOR $2 ]
                 </button>
               </div>
             </div>

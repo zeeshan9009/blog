@@ -3,6 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { INITIAL_PROFESSIONALS } from "../src/data/mockTalentData";
 import { executeProRankSearch } from "../src/services/ranking/searchEngine";
 import { validateSearchRateLimit } from "../src/services/ranking/antiAbuse";
+import { tokenize } from "../src/services/ranking/relevanceScore";
 import type { Professional } from "../src/types/talent";
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://femtnrbswscrxidxuzgb.supabase.co";
@@ -47,16 +48,60 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    // 1. Fetch live profiles from Supabase
+    // 1. Fetch filtered candidate subset from Supabase (Optimized for 10k+ scale)
     let candidateProfiles: Professional[] = INITIAL_PROFESSIONALS;
     try {
-      const { data: dbProfiles } = await supabase
+      let queryBuilder = supabase
         .from("profiles")
         .select("*")
-        .eq("status", "published");
+        .eq("status", "published")
+        .gte("profile_completeness", 90);
 
-      if (dbProfiles && dbProfiles.length > 0) {
-        // Fetch active promotions
+      if (category && category !== "All") {
+        queryBuilder = queryBuilder.ilike("category_id", category);
+      }
+
+      if (maxRate && maxRate > 0) {
+        queryBuilder = queryBuilder.lte("hourly_rate", maxRate);
+      }
+
+      if (location && location.trim().length > 0) {
+        queryBuilder = queryBuilder.ilike("location", `%${location.trim()}%`);
+      }
+
+      const hasQuery = query && query.trim().length > 0;
+      const candidatePoolLimit = hasQuery ? Math.max(150, limit * 5) : 100;
+
+      if (hasQuery) {
+        const cleanQ = query.trim();
+        const tokens = tokenize(cleanQ);
+
+        // Build relevance-aware candidate filter with skills array overlap and text search
+        const conditions: string[] = [
+          `headline.ilike.%${cleanQ}%`,
+          `bio.ilike.%${cleanQ}%`,
+          `name.ilike.%${cleanQ}%`
+        ];
+
+        if (tokens.length > 0) {
+          // PostgREST array overlap operator: skills.ov.{token1,token2}
+          conditions.push(`skills.ov.{${tokens.join(',')}}`);
+          for (const t of tokens.slice(0, 3)) {
+            conditions.push(`headline.ilike.%${t}%`);
+            conditions.push(`bio.ilike.%${t}%`);
+          }
+        }
+
+        queryBuilder = queryBuilder.or(conditions.join(','));
+      }
+
+      // Order by cached_score and fetch bounded top candidate pool
+      queryBuilder = queryBuilder.order("cached_score", { ascending: false }).limit(candidatePoolLimit);
+
+      const { data: dbProfiles, error: dbError } = await queryBuilder;
+
+      if (!dbError && dbProfiles && dbProfiles.length > 0) {
+        // Fetch active promotions with single indexed lookup
         const nowIso = new Date().toISOString();
         const { data: promotions } = await supabase
           .from("promotions")
@@ -78,9 +123,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           bio: row.bio || "",
           hourlyRate: row.hourly_rate || 50,
           experienceYears: row.experience_years || 3,
-          score: row.professional_score || 80,
-          rating: 5.0,
-          reviewCount: 0,
+          score: row.cached_score || row.professional_score || 80,
+          rating: Number(row.rating || 5.0),
+          reviewCount: Number(row.review_count || 0),
+          activeDisputes: Number(row.active_disputes || 0),
+          accountStanding: row.account_standing || 'active',
           skills: Array.isArray(row.skills) ? row.skills : [],
           experience: Array.isArray(row.experience) ? row.experience : [],
           portfolio: Array.isArray(row.portfolio) ? row.portfolio : [],

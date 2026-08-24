@@ -115,7 +115,7 @@ export const SettingsPage: React.FC = () => {
                   <span className="font-bold text-sm text-black">Offer Services (Provider)</span>
                 </div>
                 <p className="text-xs text-slate-600">
-                  Publish your developer/creator profile, list custom gig services, and activate $1/24h sponsored visibility.
+                  Publish your developer/creator profile, list custom gig services, and activate $2/24h sponsored visibility.
                 </p>
               </div>
             </div>

@@ -9,7 +9,7 @@ export const UseCases: React.FC = () => {
     {
       label: 'For Independent Talent',
       icon: <UserCheck className="w-9 h-9 text-[#e8622c]" strokeWidth={1.75} />,
-      headline: 'Get discovered by top clients with a $1 daily boost.',
+      headline: 'Get discovered by top clients with a $2 daily boost.',
       description: 'Activate 24-hour sponsored visibility at the top of relevant search results and receive high-budget client inquiries with zero platform commission cuts.',
       action: 'Promote Profile',
       link: '/promote'

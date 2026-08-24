@@ -1,6 +1,11 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
+import {
+  SPONSORED_BOOST_PRICE_CENTS,
+  SPONSORED_BOOST_CURRENCY,
+  SPONSORED_BOOST_DURATION_HOURS
+} from "../../src/config/pricing";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -51,21 +56,21 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
       let paymentId: string;
       let profileId: string;
-      let amountCents: number = 100;
-      let currency: string = "USD";
+      let amountCents: number = SPONSORED_BOOST_PRICE_CENTS;
+      let currency: string = SPONSORED_BOOST_CURRENCY;
 
       if (event && event.type === "checkout.session.completed") {
         const session = event.data.object as Stripe.Checkout.Session;
         paymentId = session.payment_intent as string || session.id;
         profileId = session.metadata?.profile_id || "";
-        amountCents = session.amount_total || 100;
-        currency = session.currency?.toUpperCase() || "USD";
+        amountCents = session.amount_total || SPONSORED_BOOST_PRICE_CENTS;
+        currency = session.currency?.toUpperCase() || SPONSORED_BOOST_CURRENCY;
       } else {
         const payload = JSON.parse(body || "{}");
         paymentId = payload.payment_id;
         profileId = payload.profile_id;
-        amountCents = payload.amount_cents || 100;
-        currency = payload.currency?.toUpperCase() || "USD";
+        amountCents = payload.amount_cents || SPONSORED_BOOST_PRICE_CENTS;
+        currency = payload.currency?.toUpperCase() || SPONSORED_BOOST_CURRENCY;
       }
 
       if (!paymentId || !profileId) {
@@ -81,17 +86,17 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return;
       }
 
-      // 3. Validate payment amount & currency ($1.00 USD)
-      if (amountCents !== 100 || currency !== "USD") {
+      // 3. Validate payment amount & currency ($2.00 USD)
+      if (amountCents !== SPONSORED_BOOST_PRICE_CENTS || currency !== SPONSORED_BOOST_CURRENCY) {
         res.statusCode = 400;
-        res.end(JSON.stringify({ error: "Invalid payment amount or currency. Required: 100 cents USD." }));
+        res.end(JSON.stringify({ error: `Invalid payment amount or currency. Required: ${SPONSORED_BOOST_PRICE_CENTS} cents ${SPONSORED_BOOST_CURRENCY}.` }));
         return;
       }
 
       // 4. Calculate 24-Hour Promotion Window
       const now = Date.now();
       const startsAt = new Date(now).toISOString();
-      const durationMs = 24 * 60 * 60 * 1000; // 24 hours
+      const durationMs = SPONSORED_BOOST_DURATION_HOURS * 60 * 60 * 1000;
       const endsAt = new Date(now + durationMs).toISOString();
 
       processedPaymentIds.add(paymentId);
@@ -100,8 +105,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       await supabase.from("promotions").insert([{
         profile_id: profileId,
         status: "active",
-        amount_cents: 100,
-        currency: "USD",
+        amount_cents: SPONSORED_BOOST_PRICE_CENTS,
+        currency: SPONSORED_BOOST_CURRENCY,
         starts_at: startsAt,
         ends_at: endsAt,
         payment_id: paymentId,
@@ -115,8 +120,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           profile_id: profileId,
           payment_id: paymentId,
           status: "active",
-          amount_cents: 100,
-          currency: "USD",
+          amount_cents: SPONSORED_BOOST_PRICE_CENTS,
+          currency: SPONSORED_BOOST_CURRENCY,
           starts_at: startsAt,
           ends_at: endsAt,
           created_at: new Date().toISOString(),

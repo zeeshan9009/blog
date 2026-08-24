@@ -14,7 +14,47 @@ const contactRateLimits = new Map<string, { count: number; resetAt: number }>();
 const COOLDOWN_WINDOW_MS = 30 * 60 * 1000; // 30 minutes
 
 /**
- * Verify profile meets all requirements before $1 promotion can be purchased
+ * Quality Gate & Verification check for Sponsored Placement:
+ * 1. Rating >= 4.0 OR reviewCount < 3 (Grace period for new/emerging freelancers)
+ * 2. Active disputes === 0 (Zero unresolved disputes/complaints)
+ * 3. Account standing !== 'flagged' and !== 'suspended'
+ */
+export function isSponsoredEligible(profile: Partial<Professional>): EligibilityResult {
+  const reasons: string[] = [];
+
+  // 1. Rating & Review Quality Gate
+  const reviewCount = profile.reviewCount ?? 0;
+  const rating = profile.rating ?? 5.0;
+
+  if (reviewCount >= 3 && rating < 4.0) {
+    reasons.push(
+      `Your rating (${rating.toFixed(1)}/5.0) needs to be 4.0+ with 3 or more reviews to appear in Sponsored results.`
+    );
+  }
+
+  // 2. Active Disputes Gate (must be 0)
+  const activeDisputes = profile.activeDisputes ?? 0;
+  if (activeDisputes > 0) {
+    reasons.push(
+      `Account has ${activeDisputes} active dispute${activeDisputes > 1 ? 's' : ''} pending resolution.`
+    );
+  }
+
+  // 3. Account Standing Gate
+  if (profile.accountStanding === 'flagged') {
+    reasons.push('Account standing is currently flagged for review.');
+  } else if (profile.accountStanding === 'suspended') {
+    reasons.push('Account standing is currently suspended.');
+  }
+
+  return {
+    isEligible: reasons.length === 0,
+    reasons,
+  };
+}
+
+/**
+ * Verify profile meets all requirements (completeness + quality gate) before $2 promotion can be purchased/activated
  */
 export function verifyProfilePromotionEligibility(profile: Partial<Professional>): EligibilityResult {
   const reasons: string[] = [];
@@ -40,6 +80,12 @@ export function verifyProfilePromotionEligibility(profile: Partial<Professional>
 
   if (!hasPortfolio && !hasExternalLink) {
     reasons.push('At least 1 portfolio item or external professional link (GitHub, LinkedIn, Upwork) is required.');
+  }
+
+  // Combine with Quality Gate
+  const qualityGate = isSponsoredEligible(profile);
+  if (!qualityGate.isEligible) {
+    reasons.push(...qualityGate.reasons);
   }
 
   return {

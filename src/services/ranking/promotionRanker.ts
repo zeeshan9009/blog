@@ -5,6 +5,7 @@ import { calculateProfessionalScore } from './professionalScore';
 import { calculateFreshnessScore } from './freshnessScore';
 import { calculateFairnessScore } from './fairnessScore';
 import { calculateRotationFactor } from './rotation';
+import { isSponsoredEligible } from './antiAbuse';
 
 export interface RankedSponsoredProfile {
   profile: Professional;
@@ -29,7 +30,7 @@ export function rankSponsoredProfiles(
 ): RankedSponsoredProfile[] {
   const now = Date.now();
 
-  // 1. Filter only actively promoted profiles whose 24-hour promotion has NOT expired
+  // 1. Filter only actively promoted profiles that are NOT expired AND pass the Quality Gate
   const activePromotedProfiles = allProfiles.filter(p => {
     if (!p.isPromoted) return false;
     if (p.promotionExpiresAt) {
@@ -37,6 +38,11 @@ export function rankSponsoredProfiles(
       if (expiresAt <= now) {
         return false; // Expired
       }
+    }
+    // Quality Gate: rating >= 4.0 OR reviewCount < 3, 0 active disputes, active standing
+    const gate = isSponsoredEligible(p);
+    if (!gate.isEligible) {
+      return false; // Excluded from sponsored ranking due to quality gate violation
     }
     return true;
   });

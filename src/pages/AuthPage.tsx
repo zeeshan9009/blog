@@ -131,7 +131,7 @@ export const AuthPage: React.FC = () => {
               Direct Client Inquiries With <span className="text-[#e8622c]">0% Marketplace Fee.</span>
             </h2>
             <p className="text-sm text-slate-400 mt-3 leading-relaxed">
-              Showcase your skills with deterministic 0-100 ProRank scores, boost visibility for $1/24h, and get hired directly with zero platform cuts.
+              Showcase your skills with deterministic 0-100 ProRank scores, boost visibility for $2/24h, and get hired directly with zero platform cuts.
             </p>
           </div>
 
@@ -142,7 +142,7 @@ export const AuthPage: React.FC = () => {
                 <Flame className="w-4 h-4" />
               </div>
               <div>
-                <div className="text-xs font-bold text-white uppercase font-mono">$1 / 24-Hour Sponsored Boost</div>
+                <div className="text-xs font-bold text-white uppercase font-mono">$2 / 24-Hour Sponsored Boost</div>
                 <div className="text-[11px] text-slate-400">Fair rotation algorithm prevents monopoly exposure</div>
               </div>
             </div>

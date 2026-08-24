@@ -299,9 +299,9 @@ export const Navbar: React.FC = () => {
                             >
                               <span className="flex items-center gap-1.5">
                                 <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
-                                <span>$1 Boost Placement</span>
+                                <span>$2 Boost Placement</span>
                               </span>
-                              <span className="font-mono text-[10px] text-[#e8622c]">$1/day</span>
+                              <span className="font-mono text-[10px] text-[#e8622c]">$2/day</span>
                             </button>
                           )}
 
@@ -616,8 +616,8 @@ export const Navbar: React.FC = () => {
                       </div>
                       <div>
                         <div className="font-bold text-xs text-black group-hover:text-[#e8622c] transition flex items-center justify-between">
-                          <span>$1 / 24h Sponsored Boost</span>
-                          <span className="px-1.5 py-0.5 bg-[#e8622c] text-white text-[9px] font-mono font-bold">$1/DAY</span>
+                          <span>$2 / 24h Sponsored Boost</span>
+                          <span className="px-1.5 py-0.5 bg-[#e8622c] text-white text-[9px] font-mono font-bold">$2/DAY</span>
                         </div>
                         <div className="text-[11px] text-slate-500 mt-1">Instant top search rank for 24 hours. Zero subscription lock-in.</div>
                       </div>
@@ -776,7 +776,7 @@ export const Navbar: React.FC = () => {
                   onClick={() => goToPage('/promote')}
                   className="block w-full text-left px-3 py-1.5 font-bold text-xs text-slate-800 hover:bg-slate-50"
                 >
-                  ⚡ $1 / 24h Sponsored Boost
+                  ⚡ $2 / 24h Sponsored Boost
                 </button>
               )}
             </div>
@@ -896,9 +896,9 @@ export const Navbar: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-black text-sm">3. $1 Daily Sponsored Placement</h4>
+                <h4 className="font-bold text-black text-sm">3. $2 Daily Sponsored Placement</h4>
                 <p>
-                  Developers and designers can sponsor their profile for exactly 24 hours ($1 USD). Sponsoring puts their profile directly at the top of category searches without requiring recurring subscriptions.
+                  Developers and designers can sponsor their profile for exactly 24 hours ($2 USD). Sponsoring puts their profile directly at the top of category searches without requiring recurring subscriptions.
                 </p>
               </div>
 
@@ -963,9 +963,9 @@ export const Navbar: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-bold text-black text-sm">3. Transparent $1 Boost Billing</h4>
+                <h4 className="font-bold text-black text-sm">3. Transparent $2 Boost Billing</h4>
                 <p>
-                  The 24-hour sponsored visibility ($1.00) is a single, non-recurring transaction. Instant activation is executed upon payment confirmation and expires automatically after 24 hours.
+                  The 24-hour sponsored visibility ($2.00) is a single, non-recurring transaction. Instant activation is executed upon payment confirmation and expires automatically after 24 hours.
                 </p>
               </div>
 

@@ -47,10 +47,14 @@ const PRO_NODE: Professional = {
   rating: 5.0,
   reviewCount: 140,
   skills: ['Node.js', 'NestJS', 'Express', 'TypeScript', 'PostgreSQL', 'Redis'],
-  experience: [],
-  portfolio: [{ id: 'p1', title: 'Payment Gateway', description: 'Node API', imageUrl: 'p.jpg', tags: ['Node.js'] }],
+  experience: [{ id: 'e1', title: 'Senior Backend Engineer', company: 'CloudSys', period: '2020-Present', description: 'Node' }],
+  portfolio: [
+    { id: 'p1', title: 'Payment Gateway', description: 'Node API', imageUrl: 'p1.jpg', tags: ['Node.js'] },
+    { id: 'p2', title: 'Redis Cache Layer', description: 'High throughput', imageUrl: 'p2.jpg', tags: ['Redis'] },
+    { id: 'p3', title: 'PostgreSQL Architecture', description: 'DB Tuning', imageUrl: 'p3.jpg', tags: ['PostgreSQL'] },
+  ],
   reviews: [],
-  externalLinks: { github: 'https://github.com' },
+  externalLinks: { github: 'https://github.com', linkedin: 'https://linkedin.com' },
   isVerified: true,
   isPromoted: true,
   promotionExpiresAt: new Date(Date.now() + 18 * 60 * 60 * 1000).toISOString(),
@@ -75,10 +79,14 @@ const PRO_REACT: Professional = {
   rating: 4.9,
   reviewCount: 95,
   skills: ['React', 'Next.js', 'Tailwind CSS', 'Redux', 'TypeScript'],
-  experience: [],
-  portfolio: [{ id: 'p2', title: 'Dashboard UI', description: 'Next.js app', imageUrl: 'p.jpg', tags: ['React'] }],
+  experience: [{ id: 'e2', title: 'Lead Frontend Engineer', company: 'WebStudio', period: '2021-Present', description: 'React' }],
+  portfolio: [
+    { id: 'p4', title: 'Dashboard UI', description: 'Next.js app', imageUrl: 'p4.jpg', tags: ['React'] },
+    { id: 'p5', title: 'SaaS Platform', description: 'Tailwind system', imageUrl: 'p5.jpg', tags: ['Next.js'] },
+    { id: 'p6', title: 'Component Library', description: 'Design system', imageUrl: 'p6.jpg', tags: ['TypeScript'] },
+  ],
   reviews: [],
-  externalLinks: { github: 'https://github.com' },
+  externalLinks: { github: 'https://github.com', linkedin: 'https://linkedin.com' },
   isVerified: true,
   isPromoted: true,
   promotionExpiresAt: new Date(Date.now() + 10 * 60 * 60 * 1000).toISOString(),
@@ -103,10 +111,14 @@ const PRO_PYTHON: Professional = {
   rating: 5.0,
   reviewCount: 110,
   skills: ['Python', 'FastAPI', 'Django', 'LangChain', 'OpenAI', 'PyTorch'],
-  experience: [],
-  portfolio: [{ id: 'p3', title: 'AI Assistant', description: 'Python API', imageUrl: 'p.jpg', tags: ['Python'] }],
+  experience: [{ id: 'e3', title: 'Senior AI Engineer', company: 'AI Labs', period: '2020-Present', description: 'Python' }],
+  portfolio: [
+    { id: 'p7', title: 'AI Assistant', description: 'Python API', imageUrl: 'p7.jpg', tags: ['Python'] },
+    { id: 'p8', title: 'FastAPI Microservice', description: 'High throughput', imageUrl: 'p8.jpg', tags: ['FastAPI'] },
+    { id: 'p9', title: 'LangChain Agent', description: 'LLM Workflow', imageUrl: 'p9.jpg', tags: ['LangChain'] },
+  ],
   reviews: [],
-  externalLinks: { github: 'https://github.com' },
+  externalLinks: { github: 'https://github.com', linkedin: 'https://linkedin.com' },
   isVerified: true,
   isPromoted: true,
   promotionExpiresAt: new Date(Date.now() + 14 * 60 * 60 * 1000).toISOString(),
@@ -131,10 +143,14 @@ const PRO_GRAPHIC: Professional = {
   rating: 4.9,
   reviewCount: 88,
   skills: ['Graphic Design', 'Logo Design', 'Illustrator', 'Photoshop', 'Brand Identity'],
-  experience: [],
-  portfolio: [{ id: 'p4', title: 'Luxury Logo', description: 'Branding', imageUrl: 'p.jpg', tags: ['Design'] }],
+  experience: [{ id: 'e4', title: 'Senior Brand Designer', company: 'DesignCo', period: '2021-Present', description: 'Design' }],
+  portfolio: [
+    { id: 'p10', title: 'Luxury Logo', description: 'Branding', imageUrl: 'p10.jpg', tags: ['Design'] },
+    { id: 'p11', title: 'Design System', description: 'Figma UI', imageUrl: 'p11.jpg', tags: ['Illustrator'] },
+    { id: 'p12', title: 'Brand Guidelines', description: 'Vector Identity', imageUrl: 'p12.jpg', tags: ['Photoshop'] },
+  ],
   reviews: [],
-  externalLinks: { behance: 'https://behance.net' },
+  externalLinks: { behance: 'https://behance.net', linkedin: 'https://linkedin.com' },
   isVerified: true,
   isPromoted: true,
   promotionExpiresAt: new Date(Date.now() + 20 * 60 * 60 * 1000).toISOString(),
@@ -159,10 +175,14 @@ const PRO_SEO: Professional = {
   rating: 5.0,
   reviewCount: 210,
   skills: ['SEO Expert', 'Technical SEO', 'Core Web Vitals', 'Google Search Console', 'Ahrefs'],
-  experience: [],
-  portfolio: [{ id: 'p5', title: 'SEO Growth', description: '100k traffic', imageUrl: 'p.jpg', tags: ['SEO'] }],
+  experience: [{ id: 'e5', title: 'Head of Organic Growth', company: 'RankFast', period: '2019-Present', description: 'SEO' }],
+  portfolio: [
+    { id: 'p13', title: 'SEO Growth', description: '100k traffic', imageUrl: 'p13.jpg', tags: ['SEO'] },
+    { id: 'p14', title: 'Technical Audit Engine', description: 'Core Web Vitals', imageUrl: 'p14.jpg', tags: ['Technical SEO'] },
+    { id: 'p15', title: 'Schema Framework', description: 'Programmatic SEO', imageUrl: 'p15.jpg', tags: ['Ahrefs'] },
+  ],
   reviews: [],
-  externalLinks: { linkedin: 'https://linkedin.com' },
+  externalLinks: { linkedin: 'https://linkedin.com', github: 'https://github.com' },
   isVerified: true,
   isPromoted: true,
   promotionExpiresAt: new Date(Date.now() + 16 * 60 * 60 * 1000).toISOString(),
@@ -204,15 +224,15 @@ export function executeProductionAudit() {
   // ==========================================
   // 2. PAYMENT & WEBHOOK IDEMPOTENCY
   // ==========================================
-  const invalidPaymentAmount = 50; // $0.50 instead of $1.00
-  const validPaymentAmount = 100; // $1.00 (100 cents)
-  const paymentValidationPassed = invalidPaymentAmount !== 100 && validPaymentAmount === 100;
+  const invalidPaymentAmount = 100; // $1.00 instead of $2.00
+  const validPaymentAmount = 200; // $2.00 (200 cents)
+  const paymentValidationPassed = invalidPaymentAmount !== 200 && validPaymentAmount === 200;
 
   recordAudit(
     'Payment Security',
-    'Server-side price enforcement ($1.00 USD / 100 cents)',
+    'Server-side price enforcement ($2.00 USD / 200 cents)',
     paymentValidationPassed,
-    'Server strictly rejects any checkout or webhook payload with amount_cents !== 100'
+    'Server strictly rejects any checkout or webhook payload with amount_cents !== 200'
   );
 
   // Webhook idempotency test

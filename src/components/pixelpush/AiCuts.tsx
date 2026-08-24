@@ -6,7 +6,7 @@ import directInquiryImg from '../../assets/features/direct-inquiry.jpeg';
 
 export const AiCuts: React.FC = () => {
   const navigate = useNavigate();
-  const [expandedIndex, setExpandedIndex] = useState(1); // $1 Sponsored visibility expanded by default
+  const [expandedIndex, setExpandedIndex] = useState(1); // $2 Sponsored visibility expanded by default
 
   const features = [
     {
@@ -16,7 +16,7 @@ export const AiCuts: React.FC = () => {
       tag: 'PRECISION TALENT & SKILL MATCHING'
     },
     {
-      title: '24-Hour Sponsored Visibility for $1',
+      title: '24-Hour Sponsored Visibility for $2',
       description: 'Boost your profile to the top of relevant search results for exactly 24 hours. Transparent pricing with instant activation and zero recurring lock-in.',
       image: sponsoredVisibilityImg,
       tag: '24-HOUR SPONSORED PRO-VISIBILITY'

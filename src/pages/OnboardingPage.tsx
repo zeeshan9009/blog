@@ -143,7 +143,7 @@ export const OnboardingPage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Optional $1 / 24-hour sponsored visibility boost</span>
+                  <span>Optional $2 / 24-hour sponsored visibility boost</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-[#e8622c] shrink-0" />

@@ -8,8 +8,8 @@ export const Faq: React.FC = () => {
 
   const faqItems = [
     {
-      q: 'What does the $1 promotion actually do?',
-      a: 'Paying $1 activates a full 24-hour Sponsored Placement on ProRank. Your profile card is prominently featured at the top of relevant talent searches with a prominent Promoted badge for exactly 24 hours.'
+      q: 'What does the $2 promotion actually do?',
+      a: 'Paying $2 activates a full 24-hour Sponsored Placement on ProRank. Your profile card is prominently featured at the top of relevant talent searches with a prominent Promoted badge for exactly 24 hours.'
     },
     {
       q: 'Does ProRank take any commission on freelance gigs?',
@@ -24,7 +24,7 @@ export const Faq: React.FC = () => {
       a: 'No. ProRank operates an independent talent discovery and scoring system. ProRank does not influence, alter, or claim control over third-party platforms.'
     },
     {
-      q: 'Can I extend or renew my $1 promotion anytime?',
+      q: 'Can I extend or renew my $2 promotion anytime?',
       a: 'Yes! From your Professional Dashboard, you can track the exact remaining time on your active 24-hour promotion and extend or renew it anytime with a single click.'
     },
     {
@@ -55,7 +55,7 @@ export const Faq: React.FC = () => {
             </h2>
 
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-              Everything you need to know about ProRank discovery, our $1 sponsored visibility, profile scoring, and direct inquiries.
+              Everything you need to know about ProRank discovery, our $2 sponsored visibility, profile scoring, and direct inquiries.
             </p>
 
             <div className="pt-2">

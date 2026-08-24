@@ -779,7 +779,7 @@ export const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     id: 'notif-2',
     userId: 'ali-raza',
     title: 'Sponsored Visibility Active',
-    message: 'Your $1 / 24-hour promotion is active with 21 hours remaining.',
+    message: 'Your $2 / 24-hour promotion is active with 21 hours remaining.',
     type: 'promotion',
     link: '/dashboard/promotion',
     read: true,

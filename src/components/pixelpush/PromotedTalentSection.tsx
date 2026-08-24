@@ -39,7 +39,7 @@ export const PromotedTalentSection: React.FC = () => {
               Featured Sponsored Talent
             </h2>
             <p className="text-slate-500 text-sm sm:text-base max-w-xl">
-              Verified professionals currently boosted with active $1 / 24-hour sponsored placement.
+              Verified professionals currently boosted with active $2 / 24-hour sponsored placement.
             </p>
           </div>
 
@@ -55,7 +55,7 @@ export const PromotedTalentSection: React.FC = () => {
               className="px-6 py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
             >
               <Zap className="w-4 h-4 text-[#e8622c]" />
-              <span>Boost Your Profile for $1</span>
+              <span>Boost Your Profile for $2</span>
             </button>
           </div>
         </div>
@@ -70,11 +70,11 @@ export const PromotedTalentSection: React.FC = () => {
               >
                 <div className="space-y-5">
                   
-                  {/* Card Top: Live $1 Sponsored Tag & Real Countdown */}
+                  {/* Card Top: Live $2 Sponsored Tag & Real Countdown */}
                   <div className="flex items-center justify-between pb-3 border-b border-slate-100">
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-orange-100 text-orange-900 font-black text-[10px] uppercase tracking-wider">
                       <Zap className="w-3 h-3 text-[#e8622c] fill-[#e8622c]" />
-                      <span>$1 Sponsored</span>
+                      <span>$2 Sponsored</span>
                     </span>
 
                     <span className="inline-flex items-center gap-1 text-[11px] font-mono font-bold text-slate-500">
@@ -170,7 +170,7 @@ export const PromotedTalentSection: React.FC = () => {
             <div className="space-y-1">
               <h3 className="text-xl font-black text-black">No Active Sponsored Specialists Right Now</h3>
               <p className="text-xs text-slate-600 max-w-md mx-auto">
-                Be the first verified professional to activate 24-hour top search placement for only $1 USD.
+                Be the first verified professional to activate 24-hour top search placement for only $2 USD.
               </p>
             </div>
             <div className="pt-2 flex justify-center gap-3">

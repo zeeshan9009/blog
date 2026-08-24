@@ -452,7 +452,7 @@ export const DevelopersPage: React.FC = () => {
                 <div>
                   <h2 className="text-sm font-black text-black tracking-wider uppercase font-mono flex items-center gap-2">
                     <span>SPONSORED PROFESSIONALS</span>
-                    <span className="text-[10px] px-1.5 py-0.2 bg-[#e8622c] text-white font-bold">$1/24H VISIBILITY</span>
+                    <span className="text-[10px] px-1.5 py-0.2 bg-[#e8622c] text-white font-bold">$2/24H VISIBILITY</span>
                   </h2>
                   <p className="text-[11px] text-slate-600 font-medium">
                     Verified relevant profiles with active 24-hour sponsored placement. Gated by minimum relevance threshold.

@@ -66,7 +66,7 @@ export const FinalCta: React.FC = () => {
             className="px-8 py-4 bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 rounded-none"
           >
             <Zap className="w-4 h-4 text-[#e8622c]" />
-            <span>Promote for $1</span>
+            <span>Promote for $2</span>
           </button>
         </div>
 

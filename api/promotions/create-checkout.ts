@@ -2,6 +2,12 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import Stripe from "stripe";
 import { verifyProfilePromotionEligibility } from "../../src/services/ranking/antiAbuse";
 import { INITIAL_PROFESSIONALS } from "../../src/data/mockTalentData";
+import {
+  SPONSORED_BOOST_PRICE_CENTS,
+  SPONSORED_BOOST_PRICE_USD,
+  SPONSORED_BOOST_DURATION_HOURS,
+  SPONSORED_BOOST_CURRENCY
+} from "../../src/config/pricing";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-02-24.acacia" as any }) : null;
@@ -75,7 +81,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return;
       }
 
-      // Server enforces fixed $1.00 USD (100 cents) and 24h duration
+      // Server enforces centralized $2.00 USD (200 cents) and 24h duration
       const host = req.headers.host || "localhost:5173";
       const protocol = host.includes("localhost") ? "http" : "https";
 
@@ -87,10 +93,10 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
             {
               price_data: {
                 currency: "usd",
-                unit_amount: 100, // Exactly $1.00 USD
+                unit_amount: SPONSORED_BOOST_PRICE_CENTS, // Exactly $2.00 USD (200 cents)
                 product_data: {
-                  name: "ProRank 24-Hour Sponsored Visibility",
-                  description: "24-hour sponsored placement across relevant searches on ProRank",
+                  name: `ProRank ${SPONSORED_BOOST_DURATION_HOURS}-Hour Sponsored Visibility`,
+                  description: `${SPONSORED_BOOST_DURATION_HOURS}-hour sponsored placement across relevant searches on ProRank`,
                 },
               },
               quantity: 1,
@@ -98,7 +104,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           ],
           metadata: {
             profile_id: profileId,
-            duration_hours: "24",
+            duration_hours: String(SPONSORED_BOOST_DURATION_HOURS),
             service: "prorank_promotion"
           },
           success_url: successUrl || `${protocol}://${host}/dashboard/promotion?session_id={CHECKOUT_SESSION_ID}&success=true`,
@@ -111,9 +117,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           session: {
             id: session.id,
             checkout_url: session.url,
-            amount_cents: 100,
-            currency: "USD",
-            duration_hours: 24,
+            amount_cents: SPONSORED_BOOST_PRICE_CENTS,
+            currency: SPONSORED_BOOST_CURRENCY,
+            duration_hours: SPONSORED_BOOST_DURATION_HOURS,
             profile_id: profileId,
             created_at: new Date().toISOString()
           },
@@ -126,9 +132,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       const checkoutSession = {
         id: "cs_" + Math.random().toString(36).substring(2, 15),
         payment_intent: intentId,
-        amount_cents: 100, // Exactly $1.00
-        currency: "USD",
-        duration_hours: 24,
+        amount_cents: SPONSORED_BOOST_PRICE_CENTS, // Exactly $2.00 (200 cents)
+        currency: SPONSORED_BOOST_CURRENCY,
+        duration_hours: SPONSORED_BOOST_DURATION_HOURS,
         profile_id: profileId,
         checkout_url: `${protocol}://${host}/dashboard/promotion?demo_payment=success&profile_id=${profileId}`,
         created_at: new Date().toISOString(),

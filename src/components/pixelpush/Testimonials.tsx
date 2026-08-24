@@ -24,7 +24,7 @@ export const Testimonials: React.FC = () => {
       company: 'Studio Nine',
       role: 'Creative Director',
       img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
-      quote: '“The $1 for 24-hour sponsored visibility paid for itself 500x over. Two enterprise clients reached out directly within our first promotional boost.”'
+      quote: '“The $2 for 24-hour sponsored visibility paid for itself 500x over. Two enterprise clients reached out directly within our first promotional boost.”'
     },
     {
       name: "Liam O'Connor",

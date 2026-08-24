@@ -124,6 +124,8 @@ export interface Professional {
   gigTitle?: string;
   levelBadge?: string;
   isOnline?: boolean;
+  activeDisputes?: number;
+  accountStanding?: 'active' | 'flagged' | 'suspended';
   deliveryTime?: string;
   offersConsultation?: boolean;
   services?: Service[];
@@ -147,7 +149,7 @@ export interface PromotionRecord {
   id: string;
   professionalId: string;
   professionalName: string;
-  amount: number; // $1
+  amount: number; // $2 USD
   durationHours: number; // 24
   startedAt: string;
   expiresAt: string;

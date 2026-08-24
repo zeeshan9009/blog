@@ -45,7 +45,7 @@ export const Footer: React.FC = () => {
               onClick={() => scrollTo('pricing')}
               className="px-6 py-3 bg-transparent hover:bg-white/10 text-white border border-slate-700 hover:border-white font-bold text-xs transition rounded-none cursor-pointer"
             >
-              Promote for $1
+              Promote for $2
             </button>
           </div>
         </div>
@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
             </div>
             <ul className="space-y-2.5 text-xs">
               <li><a href="#features" className="hover:text-white transition">How ProRank Works</a></li>
-              <li><a href="#pricing" className="hover:text-white transition">24h $1 Sponsored Boost</a></li>
+              <li><a href="#pricing" className="hover:text-white transition">24h $2 Sponsored Boost</a></li>
               <li><button onClick={() => scrollTo('cta')} className="hover:text-white transition cursor-pointer">Create Free Profile</button></li>
               <li><a href="#faq" className="hover:text-white transition">ProRank 0-100 Scoring</a></li>
               <li><a href="#faq" className="hover:text-white transition">Zero Commission Model</a></li>

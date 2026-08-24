@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Check, Zap } from 'lucide-react';
 import { PromoteModal } from '../modals/PromoteModal';
+import { SPONSORED_BOOST_PRICE_USD, SPONSORED_BOOST_DURATION_HOURS } from '../../config/pricing';
 
 export const Pricing: React.FC = () => {
   const navigate = useNavigate();
@@ -22,11 +23,11 @@ export const Pricing: React.FC = () => {
             Transparent plans for talent & clients
           </h2>
           <p className="text-slate-500 text-sm sm:text-base mt-3">
-            No hidden subscription fees. Free organic discovery or 24-hour sponsored visibility for $1.
+            No hidden subscription fees. Free organic discovery or {SPONSORED_BOOST_DURATION_HOURS}-hour sponsored visibility for ${SPONSORED_BOOST_PRICE_USD}.
           </p>
         </div>
 
-        {/* 2-Column Balanced Square Pricing Grid (Free vs $1 Boost) */}
+        {/* 2-Column Balanced Square Pricing Grid (Free vs $2 Boost) */}
         <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8 items-stretch">
           
           {/* 1. Starter (Free Discovery) */}
@@ -79,7 +80,7 @@ export const Pricing: React.FC = () => {
             </div>
           </div>
 
-          {/* 2. Pro (Dark Square Card - $1/24 hours - Featured Boost) */}
+          {/* 2. Pro (Dark Square Card - $2/24 hours - Featured Boost) */}
           <div className="relative p-8 sm:p-10 bg-black text-white flex flex-col justify-between space-y-8 shadow-2xl border-2 border-[#e8622c] rounded-none">
             {/* Top Badge */}
             <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-[#e8622c] text-white font-black text-[10px] uppercase tracking-wider shadow-md rounded-none">
@@ -92,11 +93,11 @@ export const Pricing: React.FC = () => {
                   24h Sponsored Boost
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">$1</span>
-                  <span className="text-xs text-slate-400 font-semibold">/ 24 hours</span>
+                  <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">${SPONSORED_BOOST_PRICE_USD}</span>
+                  <span className="text-xs text-slate-400 font-semibold">/ {SPONSORED_BOOST_DURATION_HOURS} hours</span>
                 </div>
                 <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                  24-Hour Sponsored Visibility at the top of ProRank relevant talent searches.
+                  {SPONSORED_BOOST_DURATION_HOURS}-Hour Sponsored Visibility at the top of ProRank relevant talent searches.
                 </p>
               </div>
 
@@ -129,7 +130,7 @@ export const Pricing: React.FC = () => {
               className="w-full py-3.5 bg-[#e8622c] hover:bg-orange-500 text-white font-black text-xs text-center transition-colors shadow-lg cursor-pointer flex items-center justify-center gap-2 rounded-none"
             >
               <Zap className="w-4 h-4" />
-              <span>Promote Profile for $1</span>
+              <span>Promote Profile for ${SPONSORED_BOOST_PRICE_USD}</span>
             </button>
           </div>
 

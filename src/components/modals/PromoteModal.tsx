@@ -2,6 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { X, Zap, Sparkles, CheckCircle2, Lock, ArrowRight, AlertCircle } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
 import { verifyProfilePromotionEligibility } from '../../services/ranking/antiAbuse';
+import {
+  SPONSORED_BOOST_PRICE_USD,
+  SPONSORED_BOOST_LABEL,
+  SPONSORED_BOOST_DURATION_HOURS,
+  SPONSORED_BOOST_CURRENCY
+} from '../../config/pricing';
 import type { Professional } from '../../types/talent';
 
 interface PromoteModalProps {
@@ -73,14 +79,14 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
 
           <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-orange-500/20 text-orange-400 border border-orange-500/30 text-[10px] font-mono font-bold uppercase tracking-wider mb-2">
             <Zap className="w-3 h-3 text-[#e8622c]" />
-            <span>PRORANK $1 / 24-HOUR PROMOTION</span>
+            <span>PRORANK {SPONSORED_BOOST_LABEL} PROMOTION</span>
           </div>
 
           <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
             Sponsored Profile Placement
           </h2>
           <p className="text-slate-400 text-xs mt-1 font-medium">
-            Activate top placement on relevant searches for 24 hours. Zero subscription lock-in.
+            Activate top placement on relevant searches for {SPONSORED_BOOST_DURATION_HOURS} hours. Zero subscription lock-in.
           </p>
         </div>
 
@@ -94,7 +100,7 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
               <div>
                 <h3 className="text-lg font-black text-black">Sponsored Visibility Activated!</h3>
                 <p className="text-xs text-slate-600 mt-1 max-w-sm mx-auto">
-                  Your profile for <strong>{targetPro?.name}</strong> is now boosted on relevant keyword searches for the next 24 hours.
+                  Your profile for <strong>{targetPro?.name}</strong> is now boosted on relevant keyword searches for the next {SPONSORED_BOOST_DURATION_HOURS} hours.
                 </p>
               </div>
               <button
@@ -132,7 +138,7 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
                   <div>
                     <span className="font-bold text-black block">Active Promotion in Progress</span>
                     <span className="text-slate-600 text-[11px]">
-                      Purchasing now will extend your existing 24-hour window by <strong>+24 hours</strong>.
+                      Purchasing now will extend your existing {SPONSORED_BOOST_DURATION_HOURS}-hour window by <strong>+{SPONSORED_BOOST_DURATION_HOURS} hours</strong>.
                     </span>
                   </div>
                 </div>
@@ -157,11 +163,11 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
               <div className="p-3.5 bg-slate-50 border border-slate-200 text-xs space-y-2">
                 <div className="flex justify-between text-slate-600">
                   <span>Sponsored Search Placement</span>
-                  <span className="font-mono text-black font-bold">$1.00 USD</span>
+                  <span className="font-mono text-black font-bold">${SPONSORED_BOOST_PRICE_USD}.00 {SPONSORED_BOOST_CURRENCY}</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Duration</span>
-                  <span className="font-mono text-black font-bold">24 Hours (Non-recurring)</span>
+                  <span className="font-mono text-black font-bold">{SPONSORED_BOOST_DURATION_HOURS} Hours (Non-recurring)</span>
                 </div>
                 <div className="flex justify-between text-slate-600">
                   <span>Marketplace Commission</span>
@@ -169,7 +175,7 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
                 </div>
                 <div className="pt-2 border-t border-slate-300 flex justify-between font-bold text-black text-sm">
                   <span>Total Amount Due</span>
-                  <span className="font-mono text-[#e8622c]">$1.00</span>
+                  <span className="font-mono text-[#e8622c]">${SPONSORED_BOOST_PRICE_USD}.00</span>
                 </div>
               </div>
 
@@ -220,10 +226,10 @@ export const PromoteModal: React.FC<PromoteModalProps> = ({ isOpen, onClose, pro
                 }`}
               >
                 {isProcessing ? (
-                  <span>AUTHORIZING $1.00 PAYMENT...</span>
+                  <span>AUTHORIZING ${SPONSORED_BOOST_PRICE_USD}.00 PAYMENT...</span>
                 ) : (
                   <>
-                    <span>PAY $1.00 & ACTIVATE 24H VISIBILITY</span>
+                    <span>PAY ${SPONSORED_BOOST_PRICE_USD}.00 & ACTIVATE {SPONSORED_BOOST_DURATION_HOURS}H VISIBILITY</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

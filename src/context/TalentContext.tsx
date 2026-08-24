@@ -373,7 +373,7 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     updateServiceRequestStatusInDb(id, status);
   };
 
-  // Promote Profile for $1 / 24 Hours
+  // Promote Profile for $2 / 24 Hours
   const promoteProfile = async (professionalId: string, paymentMethod: string = 'stripe'): Promise<boolean> => {
     const target = professionals.find(p => p.id === professionalId);
     if (!target) {
@@ -417,7 +417,7 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       id: `promo-${Date.now()}`,
       professionalId,
       professionalName: target.name,
-      amount: 1.0,
+      amount: 2.0,
       durationHours: 24,
       startedAt: startsAt,
       expiresAt: endsAt,

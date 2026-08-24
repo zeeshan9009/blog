@@ -96,7 +96,7 @@ export const Hero: React.FC = () => {
             {/* Promotion Disclaimer & Notice */}
             <div className="flex items-center gap-2 text-xs font-mono text-slate-500 pt-1">
               <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
-              <span>Want more visibility? Promote your profile for just <strong>$1/24 hours</strong>.</span>
+              <span>Want more visibility? Promote your profile for just <strong>$2/24 hours</strong>.</span>
             </div>
 
           </div>

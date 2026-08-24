@@ -1,5 +1,10 @@
 import { supabase } from '../../lib/supabase';
 import type { Professional, Service, ServiceRequest, UserRole } from '../../types/talent';
+import {
+  SPONSORED_BOOST_PRICE_CENTS,
+  SPONSORED_BOOST_CURRENCY,
+  SPONSORED_BOOST_DURATION_HOURS
+} from '../../config/pricing';
 
 // Map database row to Professional interface
 export function mapRowToProfessional(row: any): Professional {
@@ -15,9 +20,11 @@ export function mapRowToProfessional(row: any): Professional {
     bio: row.bio || '',
     hourlyRate: row.hourly_rate || 50,
     experienceYears: row.experience_years || 3,
-    score: row.professional_score || 80,
-    rating: 5.0,
-    reviewCount: 0,
+    score: row.cached_score || row.professional_score || 80,
+    rating: Number(row.rating || 5.0),
+    reviewCount: Number(row.review_count || 0),
+    activeDisputes: Number(row.active_disputes || 0),
+    accountStanding: row.account_standing || 'active',
     skills: Array.isArray(row.skills) ? row.skills : [],
     experience: Array.isArray(row.experience) ? row.experience : [],
     portfolio: Array.isArray(row.portfolio) ? row.portfolio : [],
@@ -46,13 +53,17 @@ export function mapProfessionalToRow(p: Partial<Professional>, userId: string) {
     hourly_rate: p.hourlyRate,
     experience_years: p.experienceYears || 3,
     professional_score: p.score || 80,
-    profile_completeness: 85,
+    profile_completeness: 90,
     status: 'published',
     skills: p.skills || [],
     experience: p.experience || [],
     portfolio: p.portfolio || [],
     external_links: p.externalLinks || {},
-    is_verified: p.isVerified ?? true
+    is_verified: p.isVerified ?? true,
+    rating: p.rating ?? 5.0,
+    review_count: p.reviewCount ?? 0,
+    active_disputes: p.activeDisputes ?? 0,
+    account_standing: p.accountStanding ?? 'active'
   };
 }
 
@@ -396,7 +407,8 @@ export async function updateServiceRequestStatusInDb(requestId: string, status: 
 export async function activatePromotionInDb(profileId: string, paymentId: string): Promise<boolean> {
   try {
     const now = new Date();
-    const endsAt = new Date(now.getTime() + 24 * 60 * 60 * 1000);
+    const durationMs = (SPONSORED_BOOST_DURATION_HOURS || 24) * 60 * 60 * 1000;
+    const endsAt = new Date(now.getTime() + durationMs);
 
     const { error } = await supabase
       .from('promotions')
@@ -404,8 +416,8 @@ export async function activatePromotionInDb(profileId: string, paymentId: string
         profile_id: profileId,
         payment_id: paymentId,
         status: 'active',
-        amount_cents: 100,
-        currency: 'USD',
+        amount_cents: SPONSORED_BOOST_PRICE_CENTS,
+        currency: SPONSORED_BOOST_CURRENCY,
         starts_at: now.toISOString(),
         ends_at: endsAt.toISOString()
       }]);

@@ -276,7 +276,7 @@ export const DashboardPage: React.FC = () => {
                   {myProfile.isPromoted ? (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono text-[9px] font-bold uppercase">
                       <Flame className="w-3 h-3 fill-emerald-400" />
-                      <span>$1 BOOST ACTIVE</span>
+                      <span>$2 BOOST ACTIVE</span>
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/10 text-slate-300 font-mono text-[9px] font-bold uppercase">
@@ -308,7 +308,7 @@ export const DashboardPage: React.FC = () => {
                     className="flex-1 sm:flex-initial px-4 py-2.5 bg-[#e8622c] hover:bg-orange-600 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-[3px_3px_0px_0px_#ffffff] cursor-pointer"
                   >
                     <Flame className="w-4 h-4 fill-white" />
-                    <span>[ 🔥 BOOST RANK ($1) ]</span>
+                    <span>[ 🔥 BOOST RANK ($2) ]</span>
                   </button>
 
                   <button
@@ -532,7 +532,7 @@ export const DashboardPage: React.FC = () => {
                   <span>{myProfile.isPromoted ? 'ACTIVE (24H)' : 'INACTIVE'}</span>
                 </div>
                 <div className="text-[10px] font-mono text-slate-500 mt-1">
-                  {promoTimeRemaining || '$1 for 24 hours boost'}
+                  {promoTimeRemaining || '$2 for 24 hours boost'}
                 </div>
               </div>
 
@@ -779,7 +779,7 @@ export const DashboardPage: React.FC = () => {
                 </div>
 
                 <div className="p-4 bg-white/5 border border-white/10 space-y-2">
-                  <div className="font-mono text-xs font-bold text-emerald-400 uppercase">2. Sponsored ($1 Boost) Formula</div>
+                  <div className="font-mono text-xs font-bold text-emerald-400 uppercase">2. Sponsored ($2 Boost) Formula</div>
                   <div className="font-mono text-xs text-white bg-black/50 p-2.5 border border-white/10">
                     S_boost = 0.40 · R + 0.35 · S_pro + 0.15 · F + 0.10 · W_rot
                   </div>
@@ -918,7 +918,7 @@ export const DashboardPage: React.FC = () => {
                 <div className="p-4 bg-orange-50 border-2 border-black">
                   <div className="text-[10px] font-mono text-slate-500 uppercase font-bold">Simulated Boosted Rank Score</div>
                   <div className="text-2xl font-black text-[#e8622c] mt-1">{simulatedSponsoredScore} / 100</div>
-                  <div className="text-[10px] font-mono text-[#e8622c] mt-0.5">Includes $1 Sponsored Multiplier</div>
+                  <div className="text-[10px] font-mono text-[#e8622c] mt-0.5">Includes $2 Sponsored Multiplier</div>
                 </div>
               </div>
             </div>
@@ -1119,7 +1119,7 @@ export const DashboardPage: React.FC = () => {
                   <h3 className="font-black text-lg text-black">24-Hour Sponsored Placement Engine</h3>
                 </div>
                 <p className="text-xs text-slate-600 mt-1 max-w-xl">
-                  $1 activates instant top placement in all relevant search queries. Fair rotation prevents monopoly and ensures balanced impression distribution.
+                  $2 activates instant top placement in all relevant search queries. Fair rotation prevents monopoly and ensures balanced impression distribution.
                 </p>
               </div>
 
@@ -1127,7 +1127,7 @@ export const DashboardPage: React.FC = () => {
                 onClick={() => setPromoteModalOpen(true)}
                 className="px-5 py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition shrink-0 shadow-xs cursor-pointer"
               >
-                [ 🔥 BOOST FOR $1 / 24H ]
+                [ 🔥 BOOST FOR $2 / 24H ]
               </button>
             </div>
 
