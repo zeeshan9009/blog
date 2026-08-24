@@ -397,8 +397,9 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     return;
   }
 
-  // 4. POST /api/spotlight/cron-decay (15-min scheduled cleanup)
-  if (req.method === "POST" && pathname.endsWith("/cron-decay")) {
+  // 4. GET / POST /api/spotlight/cron-decay (15-min scheduled cleanup)
+  const isCronDecayRoute = pathname.endsWith("/cron-decay") || parsedUrl.searchParams.get("route") === "cron-decay";
+  if ((req.method === "POST" || req.method === "GET") && isCronDecayRoute) {
     try {
       const nowIso = new Date().toISOString();
       const { data: expiredSlots } = await supabase

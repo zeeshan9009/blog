@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
 export const Footer: React.FC = () => {
@@ -133,10 +134,10 @@ export const Footer: React.FC = () => {
             <span>© 2026 RankLancr.com Platform Inc. All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-6">
-            <a href="#faq" className="hover:text-white transition">Privacy Policy</a>
-            <a href="#faq" className="hover:text-white transition">Terms of Service</a>
-            <a href="#faq" className="hover:text-white transition">Commission Disclaimer</a>
+          <div className="flex items-center gap-6 font-mono">
+            <Link to="/terms" className="hover:text-white transition">Terms of Service</Link>
+            <Link to="/rules" className="hover:text-white transition">Auction & Outbid Rules</Link>
+            <Link to="/terms" className="hover:text-white transition">No-Refund Policy</Link>
           </div>
 
           {/* Social Icons */}
