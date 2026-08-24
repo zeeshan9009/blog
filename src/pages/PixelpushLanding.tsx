@@ -22,17 +22,12 @@ export const PixelpushLanding: React.FC = () => {
       {/* Main Content Landmark with Accessibility Anchor */}
       <main id="main-content">
         
-        {/* 1. Hero Section */}
+        {/* 1. Live Promoted Ranking & Boost Auction Hero */}
         <div id="hero">
           <Hero />
         </div>
 
-        {/* 2. Promoted Ranking Live Auction Showcase */}
-        <div id="promoted-auction">
-          <PromotedRankingShowcase />
-        </div>
-
-        {/* 3. Featured $2 Sponsored Talent Section in Square UI */}
+        {/* 2. Featured $2 Sponsored Talent Section in Square UI */}
         <div id="talent">
           <PromotedTalentSection />
         </div>
