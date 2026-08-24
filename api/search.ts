@@ -36,16 +36,34 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   }
 
   try {
-    const host = req.headers.host || "localhost";
-    const parsedUrl = new URL(req.url || "/", `http://${host}`);
-    const query = parsedUrl.searchParams.get("q") || "";
-    const category = parsedUrl.searchParams.get("category") || "All";
-    const location = parsedUrl.searchParams.get("location") || "";
-    const maxRate = parsedUrl.searchParams.get("maxRate") ? Number(parsedUrl.searchParams.get("maxRate")) : undefined;
-    const page = parsedUrl.searchParams.get("page") ? Number(parsedUrl.searchParams.get("page")) : 1;
-    const limit = parsedUrl.searchParams.get("limit") ? Number(parsedUrl.searchParams.get("limit")) : 20;
+    const reqQuery = (req as any).query;
+    let query = "";
+    let category = "All";
+    let location = "";
+    let maxRate: number | undefined;
+    let page = 1;
+    let limit = 20;
 
-    const visitorIp = (req.headers["x-forwarded-for"] as string) || req.socket.remoteAddress || "anon";
+    if (reqQuery && typeof reqQuery === "object") {
+      query = reqQuery.q || reqQuery.query || "";
+      category = reqQuery.category || "All";
+      location = reqQuery.location || "";
+      maxRate = reqQuery.maxRate ? Number(reqQuery.maxRate) : undefined;
+      page = reqQuery.page ? Number(reqQuery.page) : 1;
+      limit = reqQuery.limit ? Number(reqQuery.limit) : 20;
+    } else {
+      const host = req.headers?.host || "localhost";
+      const rawUrl = req.url || "/";
+      const parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `http://${host}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`);
+      query = parsedUrl.searchParams.get("q") || parsedUrl.searchParams.get("query") || "";
+      category = parsedUrl.searchParams.get("category") || "All";
+      location = parsedUrl.searchParams.get("location") || "";
+      maxRate = parsedUrl.searchParams.get("maxRate") ? Number(parsedUrl.searchParams.get("maxRate")) : undefined;
+      page = parsedUrl.searchParams.get("page") ? Number(parsedUrl.searchParams.get("page")) : 1;
+      limit = parsedUrl.searchParams.get("limit") ? Number(parsedUrl.searchParams.get("limit")) : 20;
+    }
+
+    const visitorIp = (req.headers?.["x-forwarded-for"] as string) || req.socket?.remoteAddress || "anon";
     const isRateLimitAllowed = validateSearchRateLimit(visitorIp);
 
     if (!isRateLimitAllowed) {
