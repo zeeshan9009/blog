@@ -19,13 +19,14 @@ import toast from 'react-hot-toast';
 
 const CATEGORY_TABS = [
   { id: 'All', label: 'All', icon: '⊞' },
-  { id: 'Developer', label: 'Developer', icon: '</>' },
-  { id: 'SEO', label: 'SEO', icon: '🔍' },
-  { id: 'Agents', label: 'AI Agents', icon: '🤖' },
-  { id: 'Design', label: 'Design & UI', icon: '🎨' },
-  { id: 'Marketing', label: 'Marketing', icon: '📢' },
-  { id: 'Productivity', label: 'Productivity', icon: '🗂' },
-  { id: 'People', label: 'People', icon: '👤' }
+  { id: 'Web Development', label: 'Web Dev', icon: '</>' },
+  { id: 'UI/UX Design', label: 'UI/UX', icon: '🎨' },
+  { id: 'SEO & Marketing', label: 'SEO', icon: '🔍' },
+  { id: 'AI Engineering', label: 'AI Agents', icon: '🤖' },
+  { id: 'Mobile Development', label: 'Mobile', icon: '📱' },
+  { id: 'Graphic Design', label: 'Design', icon: '✨' },
+  { id: 'Video Editing', label: 'Video', icon: '🎬' },
+  { id: 'Content Writing', label: 'Writing', icon: '✍️' }
 ];
 
 export const Hero: React.FC = () => {
@@ -38,6 +39,7 @@ export const Hero: React.FC = () => {
   const [selectedOutbidCampaign, setSelectedOutbidCampaign] = useState<PromotedCampaign | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [customBid, setCustomBid] = useState<number>(2);
 
   // Fetch campaigns
   const fetchCampaigns = async () => {
@@ -47,6 +49,10 @@ export const Hero: React.FC = () => {
         const data = await res.json();
         if (data.campaigns) {
           setCampaigns(data.campaigns);
+          const topBid = data.campaigns.length > 0
+            ? Math.max(...data.campaigns.map((c: PromotedCampaign) => c.currentBid || 2))
+            : 0;
+          setCustomBid(topBid > 0 ? topBid + 1 : 2);
           setIsLoading(false);
           return;
         }
@@ -107,6 +113,52 @@ export const Hero: React.FC = () => {
     <section className="pt-8 sm:pt-12 pb-16 bg-[#faf8f5] text-slate-900 font-sans border-b-2 border-black">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
         
+        {/* Live Traffic Pill Badge */}
+        <div className="flex items-center justify-center">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border-2 border-black text-[11px] font-mono font-bold text-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span><strong className="text-black">672</strong> online</span>
+            <span className="text-slate-300">•</span>
+            <span><strong className="text-black">1,269,828</strong> visitors since launch</span>
+            <span className="text-slate-300">•</span>
+            <span className="text-[#e8622c] uppercase font-mono">see stats →</span>
+          </div>
+        </div>
+
+        {/* Dynamic Claim #1 for - $Amount + Headline */}
+        <div className="text-center space-y-2.5">
+          <h1 className="text-3xl sm:text-5xl font-black text-black tracking-tight font-mono flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
+            <span>Claim #1 for</span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2">
+              <button
+                type="button"
+                onClick={() => setCustomBid(prev => Math.max(2, prev - 1))}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-black bg-orange-100 hover:bg-[#e8622c] hover:text-white text-black flex items-center justify-center font-mono font-black text-sm sm:text-base cursor-pointer transition shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                title="Decrease bid"
+              >
+                -
+              </button>
+
+              <span className="text-[#e8622c] font-black underline decoration-4 decoration-black underline-offset-4">
+                ${customBid}
+              </span>
+
+              <button
+                type="button"
+                onClick={() => setCustomBid(prev => prev + 1)}
+                className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border-2 border-black bg-orange-100 hover:bg-[#e8622c] hover:text-white text-black flex items-center justify-center font-mono font-black text-sm sm:text-base cursor-pointer transition shadow-[1px_1px_0px_0px_rgba(0,0,0,1)]"
+                title="Increase bid"
+              >
+                +
+              </button>
+            </div>
+          </h1>
+
+          <p className="text-xs sm:text-sm font-mono text-slate-600 max-w-xl mx-auto leading-relaxed">
+            New spots start at <strong className="text-black">$2</strong>. Paying less than the #1 price still puts you on the board at whatever place that bid can take.
+          </p>
+        </div>
+
         {/* Top Square Action & Search Bar */}
         <div className="space-y-2">
           <form
@@ -120,12 +172,12 @@ export const Hero: React.FC = () => {
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Your product URL, LinkedIn, Upwork, or @handle"
+                placeholder="Your product URL or @handle (LinkedIn, Fiverr, Upwork, Portfolio)"
                 className="w-full text-xs sm:text-sm font-mono font-bold text-black placeholder:text-slate-400 bg-transparent focus:outline-hidden"
               />
             </div>
 
-            {/* Category Dropdown */}
+            {/* Real Category Dropdown */}
             <div className="relative border-t-2 sm:border-t-0 sm:border-l-2 border-black px-3 py-2 flex items-center shrink-0 bg-slate-50">
               <select
                 value={selectedCategory}
@@ -133,13 +185,14 @@ export const Hero: React.FC = () => {
                 className="text-xs font-mono font-bold uppercase text-black bg-transparent focus:outline-hidden pr-6 cursor-pointer appearance-none"
               >
                 <option value="All">Choose a category</option>
-                <option value="Developer">Developer</option>
-                <option value="SEO">SEO</option>
-                <option value="Agents">AI Agents</option>
-                <option value="Design">Design & UI</option>
-                <option value="Marketing">Marketing</option>
-                <option value="Productivity">Productivity</option>
-                <option value="People">People</option>
+                <option value="Web Development">Web Development</option>
+                <option value="UI/UX Design">UI/UX Design</option>
+                <option value="SEO & Marketing">SEO & Marketing</option>
+                <option value="AI Engineering">AI Engineering</option>
+                <option value="Mobile Development">Mobile Development</option>
+                <option value="Graphic Design">Graphic Design</option>
+                <option value="Video Editing">Video Editing</option>
+                <option value="Content Writing">Content Writing</option>
               </select>
               <ChevronDown className="w-3.5 h-3.5 text-black absolute right-3 pointer-events-none" />
             </div>
@@ -147,7 +200,7 @@ export const Hero: React.FC = () => {
             {/* Outbid Action Button */}
             <button
               type="submit"
-              className="px-8 py-3 bg-[#e8622c] hover:bg-black text-white font-mono font-black text-xs uppercase tracking-wider transition cursor-pointer shrink-0 text-center border-t-2 sm:border-t-0 sm:border-l-2 border-black"
+              className="px-8 py-3 bg-[#e8622c] hover:bg-black text-white font-mono font-black text-xs uppercase tracking-wider transition cursor-pointer shrink-0 text-center border-t-2 sm:border-t-0 sm:border-l-2 border-black shadow-xs"
             >
               [ OUTBID ⚡ ]
             </button>
@@ -312,6 +365,9 @@ export const Hero: React.FC = () => {
         onClose={() => setIsCreateModalOpen(false)}
         onSuccess={fetchCampaigns}
         currentHighestBid={campaigns.length > 0 ? Math.max(...campaigns.map(c => c.currentBid)) : 10}
+        initialBid={customBid}
+        initialUrl={urlInput}
+        initialCategory={selectedCategory !== 'All' ? selectedCategory : undefined}
       />
     </section>
   );

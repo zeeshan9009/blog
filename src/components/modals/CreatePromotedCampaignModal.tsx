@@ -12,6 +12,9 @@ interface CreatePromotedCampaignModalProps {
   onClose: () => void;
   onSuccess?: () => void;
   currentHighestBid?: number;
+  initialBid?: number;
+  initialUrl?: string;
+  initialCategory?: string;
 }
 
 const DESTINATION_OPTIONS: Array<{ type: DestinationType; label: string; placeholder: string; icon: string }> = [
@@ -28,7 +31,10 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
   isOpen,
   onClose,
   onSuccess,
-  currentHighestBid = 10
+  currentHighestBid = 10,
+  initialBid,
+  initialUrl = '',
+  initialCategory
 }) => {
   const { user } = useAuth();
   const { professionals } = useTalent();
@@ -40,11 +46,15 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
 
   const [title, setTitle] = useState(userProfile?.title || '');
   const [destinationType, setDestinationType] = useState<DestinationType>('linkedin');
-  const [destinationUrl, setDestinationUrl] = useState('');
+  const [destinationUrl, setDestinationUrl] = useState(initialUrl);
   const [description, setDescription] = useState(userProfile?.bio ? userProfile.bio.substring(0, 120) : '');
   const [skillsInput, setSkillsInput] = useState((userProfile?.skills || ['React', 'Node.js']).join(', '));
-  const [category, setCategory] = useState(userProfile?.category || 'Full Stack');
-  const [bidAmount, setBidAmount] = useState<number>(Math.max(2, currentHighestBid > 0 ? currentHighestBid + 1 : 2));
+  const [category, setCategory] = useState(initialCategory || userProfile?.category || 'Web Development');
+  const [bidAmount, setBidAmount] = useState<number>(
+    initialBid !== undefined && initialBid >= 2
+      ? initialBid
+      : Math.max(2, currentHighestBid > 0 ? currentHighestBid + 1 : 2)
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
