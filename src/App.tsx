@@ -14,6 +14,7 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import PromotedRankingPage from "./pages/PromotedRankingPage";
+import { ManagePromotionPage } from "./pages/ManagePromotionPage";
 
 export default function App() {
   return (
@@ -54,6 +55,9 @@ export default function App() {
           {/* Dedicated Promoted Ranking & Boost Auction */}
           <Route path="/promoted-ranking" element={<PromotedRankingPage />} />
           <Route path="/boost" element={<PromotedRankingPage />} />
+
+          {/* Guest Magic Link Promotion Management */}
+          <Route path="/manage-promotion/:token" element={<ManagePromotionPage />} />
 
           {/* Dedicated Developers & Ranking Directory */}
           <Route path="/developers" element={<DevelopersPage />} />

@@ -1,4 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
+import crypto from "node:crypto";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
 import { sanitizeDestinationUrl, resolveMicroRotationPlacements, calculateExposureWeights } from "../src/services/ranking/auctionExposureEngine.js";
@@ -34,6 +35,164 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   const parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `http://${host}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`);
   const pathname = parsedUrl.pathname.replace(/\/$/, "");
   const routeParam = parsedUrl.searchParams.get("route") || "";
+
+  // 0. ROUTE: /api/promotions/auction/manage (Token-based Magic Link Management)
+  if (pathname.endsWith("/auction/manage") || routeParam === "auction/manage") {
+    res.setHeader("Content-Type", "application/json");
+    const token = parsedUrl.searchParams.get("token") || "";
+
+    if (req.method === "GET") {
+      if (!token) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: "Management token is required" }));
+        return;
+      }
+
+      try {
+        const { data: campaign, error } = await supabase
+          .from("promoted_campaigns")
+          .select("*")
+          .eq("management_token", token)
+          .single();
+
+        if (error || !campaign) {
+          res.statusCode = 404;
+          res.end(JSON.stringify({ error: "Invalid or expired management token" }));
+          return;
+        }
+
+        // Fetch all active campaigns in category to calculate real-time position
+        const { data: allActive } = await supabase
+          .from("promoted_campaigns")
+          .select("id, current_bid, category")
+          .in("status", ["active", "outbid"])
+          .gt("expires_at", new Date().toISOString())
+          .order("current_bid", { ascending: false });
+
+        const activeList = allActive || [];
+        const higherBids = activeList.filter((c: any) => c.id !== campaign.id && Number(c.current_bid) >= Number(campaign.current_bid));
+        const currentPosition = higherBids.length + 1;
+        const highestBidOverall = activeList.length > 0 ? Math.max(...activeList.map((c: any) => Number(c.current_bid))) : Number(campaign.current_bid);
+        const minToTakeNumberOne = highestBidOverall >= Number(campaign.current_bid) ? highestBidOverall + 1 : Number(campaign.current_bid);
+
+        const impressions = campaign.impressions || 0;
+        const clicks = campaign.clicks || 0;
+        const externalVisits = campaign.external_visits || 0;
+        const ctr = impressions > 0 ? Number(((clicks / impressions) * 100).toFixed(2)) : 0;
+
+        res.statusCode = 200;
+        res.end(JSON.stringify({
+          success: true,
+          campaign: {
+            id: campaign.id,
+            title: campaign.title,
+            description: campaign.description,
+            authorName: campaign.author_name,
+            avatarUrl: campaign.avatar_url,
+            destinationType: campaign.destination_type,
+            destinationUrl: campaign.destination_url,
+            category: campaign.category,
+            skills: campaign.skills,
+            startingBid: Number(campaign.starting_bid),
+            currentBid: Number(campaign.current_bid),
+            status: campaign.status,
+            userEmail: campaign.user_email,
+            managementToken: campaign.management_token,
+            expiresAt: campaign.expires_at,
+            createdAt: campaign.created_at,
+            currentPosition,
+            highestBidOverall,
+            minToTakeNumberOne,
+            impressions,
+            clicks,
+            externalVisits,
+            ctr
+          }
+        }));
+      } catch (err: any) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ error: err.message }));
+      }
+      return;
+    }
+
+    if (req.method === "POST") {
+      let body = "";
+      req.on("data", chunk => (body += chunk));
+      req.on("end", async () => {
+        try {
+          const payload = JSON.parse(body || "{}");
+          const { action, amount, managementToken } = payload;
+          const targetToken = managementToken || token;
+
+          if (!targetToken) {
+            res.statusCode = 400;
+            res.end(JSON.stringify({ error: "Management token is required" }));
+            return;
+          }
+
+          const { data: campaign, error: findErr } = await supabase
+            .from("promoted_campaigns")
+            .select("*")
+            .eq("management_token", targetToken)
+            .single();
+
+          if (findErr || !campaign) {
+            res.statusCode = 404;
+            res.end(JSON.stringify({ error: "Campaign not found" }));
+            return;
+          }
+
+          if (action === "increase_bid" || action === "outbid") {
+            const newBid = Number(amount);
+            if (isNaN(newBid) || newBid <= Number(campaign.current_bid)) {
+              res.statusCode = 400;
+              res.end(JSON.stringify({ error: `New bid must be greater than current bid ($${campaign.current_bid})` }));
+              return;
+            }
+
+            await supabase
+              .from("promoted_campaigns")
+              .update({
+                current_bid: newBid,
+                status: "active",
+                updated_at: new Date().toISOString()
+              })
+              .eq("id", campaign.id);
+
+            await supabase.from("promotion_bids").insert([{
+              campaign_id: campaign.id,
+              user_id: campaign.user_id,
+              bidder_name: campaign.author_name || "Guest Advertiser",
+              amount: newBid,
+              payment_status: "completed",
+              is_winning: true,
+              previous_highest_bid: campaign.current_bid
+            }]);
+
+            res.statusCode = 200;
+            res.end(JSON.stringify({ success: true, newBid, message: `Successfully boosted bid to $${newBid}` }));
+            return;
+          }
+
+          if (action === "toggle_pause") {
+            const newStatus = campaign.status === "paused" ? "active" : "paused";
+            await supabase.from("promoted_campaigns").update({ status: newStatus }).eq("id", campaign.id);
+            res.statusCode = 200;
+            res.end(JSON.stringify({ success: true, status: newStatus }));
+            return;
+          }
+
+          res.statusCode = 400;
+          res.end(JSON.stringify({ error: "Unsupported management action" }));
+        } catch (err: any) {
+          res.statusCode = 500;
+          res.end(JSON.stringify({ error: err.message }));
+        }
+      });
+      return;
+    }
+  }
 
   // 1. ROUTE: /api/promotions/auction/bid
   if (pathname.endsWith("/auction/bid") || routeParam === "auction/bid") {
@@ -264,7 +423,22 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       req.on("end", async () => {
         try {
           const payload = JSON.parse(body || "{}");
-          const { userId, profileId, authorName, avatarUrl, title, description, destinationType, destinationUrl, category, skills, startingBid } = payload;
+          const {
+            userId,
+            profileId,
+            userEmail,
+            email,
+            authorName,
+            avatarUrl,
+            title,
+            description,
+            destinationType,
+            destinationUrl,
+            category,
+            skills,
+            startingBid
+          } = payload;
+
           const bidAmount = Math.max(2.0, Number(startingBid) || 2.0);
           const urlValidation = sanitizeDestinationUrl(destinationUrl);
           if (!urlValidation.isValid || !urlValidation.sanitizedUrl) {
@@ -273,17 +447,23 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
             return;
           }
 
+          const guestId = userId || `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+          const contactEmail = userEmail || email || null;
+          const managementToken = crypto.randomBytes(24).toString("hex");
           const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+
           const { data: created, error } = await supabase.from("promoted_campaigns").insert([{
-            user_id: userId,
-            profile_id: profileId || userId,
-            author_name: authorName,
+            user_id: guestId,
+            profile_id: profileId || guestId,
+            user_email: contactEmail,
+            management_token: managementToken,
+            author_name: authorName || "Professional",
             avatar_url: avatarUrl || null,
-            title: title.trim(),
+            title: (title || "Professional Profile").trim(),
             description: (description || "").trim(),
             destination_type: destinationType || "website",
             destination_url: urlValidation.sanitizedUrl,
-            category: category || "Full Stack",
+            category: category || "Web Development",
             skills: Array.isArray(skills) ? skills : [],
             starting_bid: bidAmount,
             current_bid: bidAmount,
@@ -292,8 +472,25 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           }]).select().single();
 
           if (error) throw error;
+
+          // Initial winning bid log
+          await supabase.from("promotion_bids").insert([{
+            campaign_id: created.id,
+            user_id: guestId,
+            bidder_name: authorName || "Professional",
+            amount: bidAmount,
+            payment_status: "completed",
+            is_winning: true,
+            previous_highest_bid: 0
+          }]);
+
           res.statusCode = 201;
-          res.end(JSON.stringify({ success: true, campaign: created }));
+          res.end(JSON.stringify({
+            success: true,
+            campaign: created,
+            managementToken,
+            managementUrl: `/manage-promotion/${managementToken}`
+          }));
         } catch (err: any) {
           res.statusCode = 500;
           res.end(JSON.stringify({ error: err.message }));

@@ -40,10 +40,11 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
   const { professionals } = useTalent();
   const navigate = useNavigate();
 
-  // Find user's profile to verify >= 90% completeness gate
+  // Find user's profile if logged in
   const userProfile = professionals.find(p => p.userId === user?.id || p.id === user?.id);
-  const isQualityGated = (userProfile?.viewsCount !== undefined) ? true : Boolean(user);
 
+  const [authorName, setAuthorName] = useState(user?.name || userProfile?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [title, setTitle] = useState(userProfile?.title || '');
   const [destinationType, setDestinationType] = useState<DestinationType>('linkedin');
   const [destinationUrl, setDestinationUrl] = useState(initialUrl);
@@ -56,6 +57,8 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
       : Math.max(2, currentHighestBid > 0 ? currentHighestBid + 1 : 2)
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [createdResult, setCreatedResult] = useState<{ managementUrl: string; managementToken: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   if (!isOpen) return null;
 
@@ -64,14 +67,13 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      toast.error('Please sign in to launch a promoted ranking');
-      navigate('/login');
+    if (!title.trim()) {
+      toast.error('Professional title is required');
       return;
     }
 
-    if (!title.trim()) {
-      toast.error('Professional title is required');
+    if (!email.trim() || !email.includes('@')) {
+      toast.error('Valid email is required for outbid notifications and management link');
       return;
     }
 
@@ -97,10 +99,11 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          userId: user.id,
-          profileId: userProfile?.id || user.id,
-          authorName: user.name || userProfile?.name || 'Professional Specialist',
-          avatarUrl: user.avatar_url || userProfile?.avatar,
+          userId: user?.id,
+          profileId: userProfile?.id || user?.id,
+          userEmail: email.trim(),
+          authorName: authorName.trim() || 'Professional Specialist',
+          avatarUrl: user?.avatar_url || userProfile?.avatar,
           title: title.trim(),
           description: description.trim(),
           destinationType,
@@ -118,7 +121,10 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
 
       toast.success('🔥 Promoted Campaign successfully launched!');
       if (onSuccess) onSuccess();
-      onClose();
+      setCreatedResult({
+        managementUrl: data.managementUrl,
+        managementToken: data.managementToken
+      });
     } catch (err: any) {
       toast.error(err.message || 'Error launching campaign');
     } finally {
@@ -134,7 +140,9 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
         <div className="bg-black text-white p-5 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Flame className="w-5 h-5 fill-[#e8622c] text-[#e8622c]" />
-            <h3 className="font-black text-base uppercase font-mono tracking-tight">Create Promoted Ranking</h3>
+            <h3 className="font-black text-base uppercase font-mono tracking-tight">
+              {createdResult ? 'Promotion Live!' : 'Create Promoted Ranking'}
+            </h3>
           </div>
           <button
             onClick={onClose}
@@ -144,31 +152,121 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
           </button>
         </div>
 
-        {/* Quality Gate Check Notice */}
-        <div className="bg-orange-50 border-b-2 border-black p-3.5 flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Profile Quality Gate: <strong className="text-emerald-700">QUALIFIED (≥90%)</strong></span>
-          </div>
-          <span className="px-1.5 py-0.5 bg-black text-white text-[9px] font-bold">24H AUCTION</span>
-        </div>
+        {createdResult ? (
+          /* Success Magic Link Confirmation View */
+          <div className="p-6 space-y-5 font-mono text-center">
+            <div className="w-14 h-14 bg-orange-100 border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+              <Flame className="w-8 h-8 fill-[#e8622c] text-[#e8622c]" />
+            </div>
 
-        {/* Form Body */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
-          
-          <div>
-            <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-              Professional Title <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Senior React & Node.js Developer"
-              className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold font-mono focus:outline-hidden focus:border-[#e8622c]"
-              required
-            />
+            <div>
+              <h4 className="text-lg font-black uppercase text-black">
+                🎉 Your Promotion Is Now Active!
+              </h4>
+              <p className="text-xs text-slate-600 mt-1 max-w-md mx-auto leading-relaxed">
+                Your profile has been placed on the live auction board. No password needed — save your secure magic management link to track your position, clicks, and outbid competitors anytime.
+              </p>
+            </div>
+
+            {/* Magic Link Box */}
+            <div className="p-3 bg-slate-50 border-2 border-black flex items-center justify-between gap-2 text-left">
+              <span className="text-xs font-bold text-black truncate">
+                {window.location.origin}{createdResult.managementUrl}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}${createdResult.managementUrl}`);
+                  setCopied(true);
+                  toast.success('Magic link copied!');
+                  setTimeout(() => setCopied(false), 2500);
+                }}
+                className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold shrink-0 transition cursor-pointer"
+              >
+                {copied ? '[ COPIED ✓ ]' : '[ COPY LINK ]'}
+              </button>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={() => {
+                  navigate(createdResult.managementUrl);
+                  onClose();
+                }}
+                className="w-full py-3.5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-black uppercase transition cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+              >
+                [ GO TO MANAGEMENT DASHBOARD ⚡ ]
+              </button>
+
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-full py-2 bg-white hover:bg-slate-100 border border-black font-mono text-xs font-bold uppercase transition cursor-pointer"
+              >
+                Close & Return to Auction Board
+              </button>
+            </div>
           </div>
+        ) : (
+          /* Creation Form */
+          <>
+            {/* Quality Gate Check Notice */}
+            <div className="bg-orange-50 border-b-2 border-black p-3.5 flex items-center justify-between text-xs font-mono">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+                <span>Zero-Login Required • <strong className="text-emerald-700">Instant Activation</strong></span>
+              </div>
+              <span className="px-1.5 py-0.5 bg-black text-white text-[9px] font-bold">24H AUCTION</span>
+            </div>
+
+            {/* Form Body */}
+            <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[75vh] overflow-y-auto">
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                    Your Name / Brand <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={authorName}
+                    onChange={(e) => setAuthorName(e.target.value)}
+                    placeholder="e.g. Ahmed Khan"
+                    className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold font-mono focus:outline-hidden focus:border-[#e8622c]"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                    Email for Magic Link & Alerts <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold font-mono focus:outline-hidden focus:border-[#e8622c]"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                  Professional Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Senior React & Node.js Developer"
+                  className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold font-mono focus:outline-hidden focus:border-[#e8622c]"
+                  required
+                />
+              </div>
 
           {/* Auto-fill from saved profile links if available */}
           {(() => {
@@ -335,6 +433,8 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
             )}
           </button>
         </form>
+        </>
+        )}
 
       </div>
     </div>
