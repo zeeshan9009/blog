@@ -141,6 +141,17 @@ export const CreateProfilePage: React.FC = () => {
   const [newServiceDelivery, setNewServiceDelivery] = useState('3 days');
   const [newServiceDesc, setNewServiceDesc] = useState('');
 
+  // New Experience draft state
+  const [newExpRole, setNewExpRole] = useState('');
+  const [newExpCompany, setNewExpCompany] = useState('');
+  const [newExpPeriod, setNewExpPeriod] = useState('');
+  const [newExpDesc, setNewExpDesc] = useState('');
+
+  // New Project draft state
+  const [newProjectTitle, setNewProjectTitle] = useState('');
+  const [newProjectDesc, setNewProjectDesc] = useState('');
+  const [newProjectUrl, setNewProjectUrl] = useState('');
+
   // Helper to clear error on field change
   const clearFieldError = (fieldName: string) => {
     if (errors[fieldName]) {
@@ -342,6 +353,65 @@ export const CreateProfilePage: React.FC = () => {
     setNewServiceDesc('');
     clearFieldError('services');
     toast.success('Service added to profile!');
+  };
+
+  const handleAddExperience = () => {
+    const expErrors: Record<string, string> = {};
+    if (!newExpRole.trim()) {
+      expErrors.newExpRole = 'Job role / title is required';
+    }
+    if (!newExpCompany.trim()) {
+      expErrors.newExpCompany = 'Company / client name is required';
+    }
+
+    if (Object.keys(expErrors).length > 0) {
+      setErrors(expErrors);
+      toast.error(Object.values(expErrors)[0]);
+      return;
+    }
+
+    const newExp: ExperienceItem = {
+      id: `exp-${Date.now()}`,
+      role: newExpRole.trim(),
+      title: newExpRole.trim(),
+      company: newExpCompany.trim(),
+      period: newExpPeriod.trim() || 'Present',
+      description: newExpDesc.trim() || 'Key accomplishments, project deliveries, and tech stack.'
+    };
+
+    setExperienceList(prev => [...prev, newExp]);
+    setNewExpRole('');
+    setNewExpCompany('');
+    setNewExpPeriod('');
+    setNewExpDesc('');
+    clearFieldError('experience');
+    clearFieldError('newExpRole');
+    clearFieldError('newExpCompany');
+    toast.success('Work experience added to profile!');
+  };
+
+  const handleAddProject = () => {
+    if (!newProjectTitle.trim()) {
+      setErrors(prev => ({ ...prev, newProjectTitle: 'Project title is required' }));
+      toast.error('Project title is required');
+      return;
+    }
+
+    const newPort: PortfolioItem = {
+      id: `port-${Date.now()}`,
+      title: newProjectTitle.trim(),
+      description: newProjectDesc.trim() || 'Production client deliverable and technical project.',
+      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
+      liveUrl: newProjectUrl.trim() || undefined,
+      tags: selectedSkills.slice(0, 2)
+    };
+
+    setPortfolioList(prev => [...prev, newPort]);
+    setNewProjectTitle('');
+    setNewProjectDesc('');
+    setNewProjectUrl('');
+    clearFieldError('newProjectTitle');
+    toast.success('Project added to portfolio!');
   };
 
   const handlePublishProfile = () => {
@@ -920,44 +990,115 @@ export const CreateProfilePage: React.FC = () => {
                 </div>
               )}
 
-              <div className="space-y-3">
-                {experienceList.map(exp => (
-                  <div key={exp.id} className="p-4 bg-slate-50 border-2 border-black flex items-start justify-between">
-                    <div>
-                      <h4 className="font-bold text-sm text-black">{exp.role}</h4>
-                      <div className="text-xs font-mono text-[#e8622c]">{exp.company} • {exp.period}</div>
-                      <p className="text-xs text-slate-600 mt-1">{exp.description}</p>
+              {/* Added Experiences List */}
+              {experienceList.length > 0 && (
+                <div className="space-y-3">
+                  {experienceList.map((exp, idx) => (
+                    <div key={exp.id || idx} className="p-4 bg-slate-50 border-2 border-black flex items-start justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-1.5 py-0.5 bg-black text-white font-mono text-[9px] font-bold">
+                            ROLE #{idx + 1}
+                          </span>
+                          <h4 className="font-black text-sm text-black">{exp.role || exp.title}</h4>
+                        </div>
+                        <div className="text-xs font-mono text-[#e8622c] mt-1 font-bold">
+                          {exp.company} <span className="text-slate-400">•</span> {exp.period}
+                        </div>
+                        <p className="text-xs text-slate-600 mt-1">{exp.description}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setExperienceList(prev => prev.filter((_, i) => i !== idx))}
+                        className="p-1.5 text-slate-400 hover:text-red-600 transition cursor-pointer"
+                        title="Remove experience"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
                     </div>
-                    <button
-                      onClick={() => setExperienceList(prev => prev.filter(e => e.id !== exp.id))}
-                      className="text-slate-400 hover:text-red-600 cursor-pointer"
-                      title="Remove experience"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
 
-              <button
-                type="button"
-                onClick={() => {
-                  setExperienceList(prev => [
-                    ...prev,
-                    {
-                      id: `exp-${Date.now()}`,
-                      role: 'Software Engineer',
-                      company: 'Client / Enterprise Project',
-                      period: '2023 - 2024',
-                      description: 'Delivered production software architecture and backend systems.'
-                    }
-                  ]);
-                  clearFieldError('experience');
-                }}
-                className="px-4 py-2 border-2 border-black bg-white hover:bg-slate-100 font-mono text-xs font-bold transition cursor-pointer"
-              >
-                [ + ADD WORK EXPERIENCE ]
-              </button>
+              {/* Add New Experience Form Box */}
+              <div className="p-4 border-2 border-dashed border-black bg-orange-50/40 space-y-3">
+                <div className="font-mono text-xs font-bold text-black uppercase flex items-center gap-1.5">
+                  <Plus className="w-4 h-4 text-[#e8622c]" />
+                  <span>Add Work Experience / Past Role</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                      Job Title / Role <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newExpRole}
+                      onChange={(e) => { setNewExpRole(e.target.value); clearFieldError('newExpRole'); }}
+                      placeholder="e.g. Senior Backend Engineer"
+                      className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
+                        errors.newExpRole ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
+                      }`}
+                    />
+                    {errors.newExpRole && (
+                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newExpRole}</span>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                      Company / Client / Project <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={newExpCompany}
+                      onChange={(e) => { setNewExpCompany(e.target.value); clearFieldError('newExpCompany'); }}
+                      placeholder="e.g. TechCorp Solutions / Freelance"
+                      className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
+                        errors.newExpCompany ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
+                      }`}
+                    />
+                    {errors.newExpCompany && (
+                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newExpCompany}</span>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                    Time Period / Duration
+                  </label>
+                  <input
+                    type="text"
+                    value={newExpPeriod}
+                    onChange={(e) => setNewExpPeriod(e.target.value)}
+                    placeholder="e.g. 2022 - Present or Jan 2021 - Dec 2023"
+                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                    Key Deliverables & Responsibilities
+                  </label>
+                  <textarea
+                    value={newExpDesc}
+                    onChange={(e) => setNewExpDesc(e.target.value)}
+                    placeholder="Briefly describe what you built, technologies used, and key accomplishments..."
+                    rows={2}
+                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
+                  />
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleAddExperience}
+                  className="px-4 py-2 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition cursor-pointer shadow-xs"
+                >
+                  [ + SAVE EXPERIENCE TO PROFILE ]
+                </button>
+              </div>
             </div>
           )}
 
@@ -989,24 +1130,54 @@ export const CreateProfilePage: React.FC = () => {
                   </div>
                 ))}
 
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPortfolioList(prev => [
-                      ...prev,
-                      {
-                        id: `port-${Date.now()}`,
-                        title: 'Production API Microservice',
-                        description: 'Scalable backend service built for client.',
-                        imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
-                        tags: ['FullStack']
-                      }
-                    ]);
-                  }}
-                  className="px-3 py-1.5 border border-black bg-white hover:bg-slate-100 font-mono text-xs font-bold transition cursor-pointer"
-                >
-                  [ + ADD PROJECT ]
-                </button>
+                {/* Add New Project Form */}
+                <div className="p-3 border-2 border-dashed border-black bg-orange-50/40 space-y-2.5">
+                  <div className="font-mono text-[11px] font-bold text-black uppercase flex items-center gap-1.5">
+                    <Plus className="w-3.5 h-3.5 text-[#e8622c]" />
+                    <span>Add Project To Showcase</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <div>
+                      <input
+                        type="text"
+                        value={newProjectTitle}
+                        onChange={(e) => { setNewProjectTitle(e.target.value); clearFieldError('newProjectTitle'); }}
+                        placeholder="Project Title (e.g. Real-time Payment Gateway)"
+                        className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
+                          errors.newProjectTitle ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
+                        }`}
+                      />
+                    </div>
+                    <div>
+                      <input
+                        type="url"
+                        value={newProjectUrl}
+                        onChange={(e) => setNewProjectUrl(e.target.value)}
+                        placeholder="Live URL / GitHub Repo (Optional)"
+                        className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <input
+                      type="text"
+                      value={newProjectDesc}
+                      onChange={(e) => setNewProjectDesc(e.target.value)}
+                      placeholder="Brief project description & technical highlights..."
+                      className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
+                    />
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleAddProject}
+                    className="px-3.5 py-1.5 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition cursor-pointer shadow-xs"
+                  >
+                    [ + SAVE PROJECT TO SHOWCASE ]
+                  </button>
+                </div>
               </div>
 
               {/* External Links */}
