@@ -5,7 +5,6 @@ import PromotedTalentSection from '../components/pixelpush/PromotedTalentSection
 import { PromotedRankingShowcase } from '../components/pixelpush/PromotedRankingShowcase';
 import FeatureGrid from '../components/pixelpush/FeatureGrid';
 import BenchmarkChart from '../components/pixelpush/BenchmarkChart';
-import UseCases from '../components/pixelpush/UseCases';
 import Pricing from '../components/pixelpush/Pricing';
 import Faq from '../components/pixelpush/Faq';
 import FinalCta from '../components/pixelpush/FinalCta';
@@ -40,12 +39,7 @@ export const PixelpushLanding: React.FC = () => {
           <BenchmarkChart />
         </div>
 
-        {/* 5. Use Cases Section */}
-        <div id="usecases">
-          <UseCases />
-        </div>
-
-        {/* 8. Pricing Section */}
+        {/* 5. Pricing Section */}
         <div id="pricing">
           <Pricing />
         </div>
