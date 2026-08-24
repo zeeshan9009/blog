@@ -3,10 +3,8 @@ import Navbar from '../components/pixelpush/Navbar';
 import Hero from '../components/pixelpush/Hero';
 import PromotedTalentSection from '../components/pixelpush/PromotedTalentSection';
 import { PromotedRankingShowcase } from '../components/pixelpush/PromotedRankingShowcase';
-import AiCuts from '../components/pixelpush/AiCuts';
 import FeatureGrid from '../components/pixelpush/FeatureGrid';
 import BenchmarkChart from '../components/pixelpush/BenchmarkChart';
-import Testimonials from '../components/pixelpush/Testimonials';
 import UseCases from '../components/pixelpush/UseCases';
 import Pricing from '../components/pixelpush/Pricing';
 import Faq from '../components/pixelpush/Faq';
@@ -32,27 +30,17 @@ export const PixelpushLanding: React.FC = () => {
           <PromotedTalentSection />
         </div>
 
-        {/* 4. Discovery that cuts the noise */}
-        <div id="discovery">
-          <AiCuts />
-        </div>
-
-        {/* 4. Feature Grid */}
+        {/* 3. Feature Grid */}
         <div id="features">
           <FeatureGrid />
         </div>
 
-        {/* 5. Benchmark / Chart Section */}
+        {/* 4. Benchmark / Chart Section */}
         <div id="benchmark">
           <BenchmarkChart />
         </div>
 
-        {/* 6. Testimonial Section */}
-        <div id="testimonials">
-          <Testimonials />
-        </div>
-
-        {/* 7. Use Cases Section */}
+        {/* 5. Use Cases Section */}
         <div id="usecases">
           <UseCases />
         </div>
