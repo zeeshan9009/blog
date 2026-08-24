@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Send, Mail, User, DollarSign, CheckCircle2 } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
+import { trackProfileInquiry } from '../../services/telemetry.js';
 import type { Professional } from '../../types/talent';
 
 interface ContactModalProps {
@@ -31,6 +32,13 @@ export const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onClose, pro
       clientEmail,
       subject,
       message,
+      budget
+    });
+
+    trackProfileInquiry(professional.id, {
+      inquiryType: 'contact_form',
+      senderName: clientName,
+      senderEmail: clientEmail,
       budget
     });
 

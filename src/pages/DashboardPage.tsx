@@ -26,6 +26,7 @@ import { calculateRotationFactor } from '../services/ranking/rotation';
 import { calculateRelevanceScore } from '../services/ranking/relevanceScore';
 import { PromoteModal } from '../components/modals/PromoteModal';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
+import { useBoostAnalytics } from '../hooks/useBoostAnalytics.js';
 import type { Professional, ServiceRequest } from '../types/talent';
 import toast from 'react-hot-toast';
 
@@ -127,8 +128,10 @@ export const DashboardPage: React.FC = () => {
   }, [serviceRequests]);
 
   // ==========================================
-  // LIVE ALGORITHMIC METRICS COMPUTATION
+  // LIVE ALGORITHMIC METRICS & TELEMETRY
   // ==========================================
+  const { analytics: boostAnalytics, isRealTimeActive } = useBoostAnalytics(myProfile?.id);
+
   const qualityScoreNorm = useMemo(() => calculateProfileQualityScore(myProfile), [myProfile]);
   const completenessPercent = Math.round(qualityScoreNorm * 100);
   const isProfilePubliclyVisible = completenessPercent >= 90;
@@ -510,15 +513,15 @@ export const DashboardPage: React.FC = () => {
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 font-bold uppercase">
-                  <span>Search Impressions & Clicks</span>
+                  <span>Search Impressions & Clicks (24H)</span>
                   <Eye className="w-4 h-4 text-slate-700" />
                 </div>
                 <div className="text-3xl font-black text-black mt-2">
-                  {myProfile.viewsCount || 0}
-                  <span className="text-xs font-mono font-normal text-slate-500 ml-1">/ {myProfile.clicksCount || 0} clicks</span>
+                  {boostAnalytics.impressions}
+                  <span className="text-xs font-mono font-normal text-slate-500 ml-1">/ {boostAnalytics.clicks} clicks</span>
                 </div>
                 <div className="text-[11px] font-mono text-[#e8622c] mt-1 font-bold">
-                  CTR: {myProfile.viewsCount > 0 ? (((myProfile.clicksCount || 0) / myProfile.viewsCount) * 100).toFixed(1) : '0.0'}%
+                  CTR: {boostAnalytics.ctrPercent}%
                 </div>
               </div>
 
@@ -1131,30 +1134,49 @@ export const DashboardPage: React.FC = () => {
               </button>
             </div>
 
-            {/* Performance Metrics */}
+            {/* Live Telemetry Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className={`w-2.5 h-2.5 rounded-full ${isRealTimeActive ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]' : 'bg-blue-500'}`} />
+                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-700">
+                  {isRealTimeActive ? 'LIVE REAL-TIME TELEMETRY (24H ACTIVE)' : '24H TELEMETRY (15S HEARTBEAT)'}
+                </span>
+              </div>
+              <span className="font-mono text-[10px] text-slate-400">
+                Last updated: {new Date(boostAnalytics.lastUpdated).toLocaleTimeString()}
+              </span>
+            </div>
+
+            {/* Performance Metrics (Live Telemetry) */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Total Impressions</div>
-                <div className="text-3xl font-black text-black mt-1">{myProfile.viewsCount || 1420}</div>
-                <div className="text-[10px] font-mono text-emerald-600">Search placements</div>
+                <div className="text-3xl font-black text-black mt-1">{boostAnalytics.impressions}</div>
+                <div className="text-[10px] font-mono text-emerald-600">
+                  {boostAnalytics.sponsoredImpressions > 0 ? `${boostAnalytics.sponsoredImpressions} sponsored search placements` : 'Search placements'}
+                </div>
               </div>
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Profile Clicks</div>
-                <div className="text-3xl font-black text-black mt-1">{myProfile.clicksCount || 98}</div>
-                <div className="text-[10px] font-mono text-[#e8622c] font-bold">CTR: 6.9%</div>
+                <div className="text-3xl font-black text-black mt-1">{boostAnalytics.clicks}</div>
+                <div className="text-[10px] font-mono text-[#e8622c] font-bold">CTR: {boostAnalytics.ctrPercent}%</div>
               </div>
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Direct Inquiries</div>
-                <div className="text-3xl font-black text-black mt-1">{myProfile.inquiriesCount || 14}</div>
-                <div className="text-[10px] font-mono text-emerald-600 font-bold">Conversion: 14.2%</div>
+                <div className="text-3xl font-black text-black mt-1">{boostAnalytics.inquiries}</div>
+                <div className="text-[10px] font-mono text-emerald-600 font-bold">Conversion: {boostAnalytics.conversionPercent}%</div>
               </div>
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Fair Rotation Status</div>
-                <div className="text-xl font-black text-emerald-600 mt-2">ACTIVE</div>
-                <div className="text-[10px] font-mono text-slate-400">Anti-monopoly damping on</div>
+                <div className={`text-xl font-black mt-2 ${boostAnalytics.fairRotation.isDamped ? 'text-amber-600' : 'text-emerald-600'}`}>
+                  {boostAnalytics.fairRotation.status}
+                </div>
+                <div className="text-[10px] font-mono text-slate-500">
+                  {boostAnalytics.fairRotation.description}
+                </div>
               </div>
             </div>
 

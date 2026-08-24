@@ -19,7 +19,8 @@ import {
 import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
 import { ContactModal } from '../components/modals/ContactModal';
-import { executeProRankSearch } from '../services/ranking/searchEngine';
+import { executeProRankSearch } from '../services/ranking/searchEngine.js';
+import { trackProfileClick } from '../services/telemetry.js';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import type { Professional } from '../types/talent';
 
@@ -78,6 +79,7 @@ export const DevelopersPage: React.FC = () => {
 
   const handleCardClick = (dev: Professional) => {
     recordClick(dev.id, user?.id || 'visitor_client');
+    trackProfileClick(dev.id, 'developers_search_card');
     setQuickViewDev(dev);
   };
 

@@ -179,6 +179,44 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       limit,
     });
 
+    // 3. Asynchronous Non-Blocking Impression Telemetry Logging
+    try {
+      const ipHash = visitorIp ? String(Buffer.from(visitorIp).toString("base64").substring(0, 16)) : "anon";
+      const impressionBatch: any[] = [];
+      
+      for (const item of searchResults.sponsored) {
+        if (item.profile?.id) {
+          impressionBatch.push({
+            profile_id: item.profile.id,
+            search_query: query || null,
+            was_sponsored: true,
+            visitor_ip_hash: ipHash,
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+
+      for (const item of searchResults.organic) {
+        if (item.profile?.id) {
+          impressionBatch.push({
+            profile_id: item.profile.id,
+            search_query: query || null,
+            was_sponsored: false,
+            visitor_ip_hash: ipHash,
+            created_at: new Date().toISOString()
+          });
+        }
+      }
+
+      if (impressionBatch.length > 0) {
+        supabase.from("profile_impressions").insert(impressionBatch).then(({ error }) => {
+          if (error) console.warn("[TELEMETRY] Background impression logging failed:", error.message);
+        });
+      }
+    } catch {
+      // Non-blocking fire-and-forget
+    }
+
     res.statusCode = 200;
     res.end(JSON.stringify(searchResults));
   } catch (error: any) {
