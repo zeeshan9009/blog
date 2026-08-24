@@ -53,6 +53,8 @@ export default function App() {
           <Route path="/settings" element={<SettingsPage />} />
 
           {/* Dedicated Promoted Ranking & Boost Auction */}
+          <Route path="/promote" element={<PromotedRankingPage />} />
+          <Route path="/promoted" element={<PromotedRankingPage />} />
           <Route path="/promoted-ranking" element={<PromotedRankingPage />} />
           <Route path="/boost" element={<PromotedRankingPage />} />
 

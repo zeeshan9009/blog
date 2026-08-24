@@ -447,6 +447,29 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
             return;
           }
 
+          // Duplicate Active URL Protection
+          const { data: existingActive } = await supabase
+            .from("promoted_campaigns")
+            .select("*")
+            .eq("destination_url", urlValidation.sanitizedUrl)
+            .in("status", ["active", "outbid"])
+            .gt("expires_at", new Date().toISOString())
+            .maybeSingle();
+
+          if (existingActive) {
+            // Profile is already active - return existing campaign info with outbid management link
+            res.statusCode = 200;
+            res.end(JSON.stringify({
+              success: true,
+              isExisting: true,
+              message: "Profile already has an active promotion. Redirecting to management dashboard.",
+              campaign: existingActive,
+              managementToken: existingActive.management_token,
+              managementUrl: `/manage-promotion/${existingActive.management_token}`
+            }));
+            return;
+          }
+
           const guestId = userId || `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
           const contactEmail = userEmail || email || null;
           const managementToken = crypto.randomBytes(24).toString("hex");
