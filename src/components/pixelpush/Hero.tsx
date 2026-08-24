@@ -109,6 +109,34 @@ export const Hero: React.FC = () => {
     );
   }, [campaigns, selectedCategory]);
 
+  // Real Dynamic Bidding Algorithm
+  const currentHighestBid = useMemo(() => {
+    return filteredCampaigns.length > 0
+      ? Math.max(...filteredCampaigns.map(c => c.currentBid || 2))
+      : 0;
+  }, [filteredCampaigns]);
+
+  const minRequiredForNumberOne = useMemo(() => {
+    return currentHighestBid > 0 ? currentHighestBid + 1 : 2;
+  }, [currentHighestBid]);
+
+  // Adjust customBid floor when category changes
+  useEffect(() => {
+    setCustomBid(prev => Math.max(prev, minRequiredForNumberOne));
+  }, [minRequiredForNumberOne, selectedCategory]);
+
+  // Real-time rank & exposure share predictor
+  const { projectedRank, projectedExposureShare } = useMemo(() => {
+    const higherBids = filteredCampaigns.filter(c => (c.currentBid || 2) > customBid).length;
+    const rank = higherBids + 1;
+
+    const existingSum = filteredCampaigns.reduce((acc, c) => acc + (c.currentBid || 2), 0);
+    const totalPool = existingSum + customBid;
+    const share = totalPool > 0 ? Math.min(100, Math.round((customBid / totalPool) * 100)) : 100;
+
+    return { projectedRank: rank, projectedExposureShare: share };
+  }, [filteredCampaigns, customBid]);
+
   return (
     <section className="pt-8 sm:pt-12 pb-16 bg-[#faf8f5] text-slate-900 font-sans border-b-2 border-black">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 space-y-6">
@@ -117,16 +145,16 @@ export const Hero: React.FC = () => {
         <div className="flex items-center justify-center">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 bg-white border-2 border-black text-[11px] font-mono font-bold text-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span><strong className="text-black">672</strong> online</span>
+            <span><strong className="text-black">{Math.max(1, campaigns.length)}</strong> active auctions</span>
             <span className="text-slate-300">•</span>
-            <span><strong className="text-black">1,269,828</strong> visitors since launch</span>
+            <span><strong className="text-black">100%</strong> direct traffic</span>
             <span className="text-slate-300">•</span>
-            <span className="text-[#e8622c] uppercase font-mono">see stats →</span>
+            <span className="text-[#e8622c] uppercase font-mono">0% marketplace cut</span>
           </div>
         </div>
 
         {/* Dynamic Claim #1 for - $Amount + Headline */}
-        <div className="text-center space-y-2.5">
+        <div className="text-center space-y-3">
           <h1 className="text-3xl sm:text-5xl font-black text-black tracking-tight font-mono flex items-center justify-center gap-2 sm:gap-3 flex-wrap">
             <span>Claim #1 for</span>
             <div className="inline-flex items-center gap-1.5 sm:gap-2">
@@ -153,6 +181,17 @@ export const Hero: React.FC = () => {
               </button>
             </div>
           </h1>
+
+          {/* Real-time Bid Projection Status Pill */}
+          <div className="flex items-center justify-center">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-black text-white font-mono text-[11px] font-bold uppercase shadow-[2px_2px_0px_0px_#e8622c]">
+              {projectedRank === 1 ? (
+                <span>🔥 Projected Rank: #1 TOP SPONSORED (~{projectedExposureShare}% Exposure Share)</span>
+              ) : (
+                <span>⚡ Projected Rank: #{projectedRank} Sponsored (Bid ${minRequiredForNumberOne} to take #1)</span>
+              )}
+            </div>
+          </div>
 
           <p className="text-xs sm:text-sm font-mono text-slate-600 max-w-xl mx-auto leading-relaxed">
             New spots start at <strong className="text-black">$2</strong>. Paying less than the #1 price still puts you on the board at whatever place that bid can take.
