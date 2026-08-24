@@ -7,7 +7,10 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "generate:sitemap": "tsx scripts/generate-sitemap.ts",
+    "test:load": "tsx tests/load-test-search.ts",
+    "test:audit": "tsx tests/production-audit.ts"
   },
   "dependencies": {
     "@icons-pack/react-simple-icons": "^13.13.0",

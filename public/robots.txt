@@ -8,11 +8,11 @@ Allow: /search
 Allow: /find-services
 Allow: /service/
 Allow: /pricing
+Disallow: /api/
 Disallow: /dashboard
 Disallow: /settings
+Disallow: /admin
 Disallow: /onboarding
-Disallow: /api/promotions/
-Disallow: /api/contact
 
 # AI & LLM Search Crawlers (OpenAI, Anthropic, Perplexity, Google AI, Apple)
 User-agent: GPTBot
