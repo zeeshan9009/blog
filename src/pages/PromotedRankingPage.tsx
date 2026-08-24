@@ -23,6 +23,7 @@ import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { PlatformBrandIcon } from '../components/brand/PlatformBrandIcon';
 import { CreatePromotedCampaignModal } from '../components/modals/CreatePromotedCampaignModal';
 import { OutbidModal } from '../components/modals/OutbidModal';
+import { SpotlightSection } from '../components/pixelpush/SpotlightSection';
 import { autoDetectPlatformAndValidate } from '../services/validation/externalProfileValidator';
 import { supabase } from '../lib/supabase';
 import type { PromotedCampaign } from '../types/promotedAuction';
@@ -226,6 +227,9 @@ export const PromotedRankingPage: React.FC = () => {
             </span>
           </div>
         </div>
+
+        {/* 2.5 Outbid Spotlight Leaderboard Section */}
+        <SpotlightSection />
 
         {/* 3. Filter & Sort Bar */}
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-y-2 border-black py-4">

@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../components/pixelpush/Navbar';
 import Hero from '../components/pixelpush/Hero';
+import { SpotlightSection } from '../components/pixelpush/SpotlightSection';
 import PromotedTalentSection from '../components/pixelpush/PromotedTalentSection';
 import { PromotedRankingShowcase } from '../components/pixelpush/PromotedRankingShowcase';
 import FeatureGrid from '../components/pixelpush/FeatureGrid';
@@ -24,7 +25,12 @@ export const PixelpushLanding: React.FC = () => {
           <Hero />
         </div>
 
-        {/* 2. Featured $2 Sponsored Talent Section in Square UI */}
+        {/* 2. Outbid Spotlight Ascending Auction Top 3 Slots */}
+        <div id="spotlight">
+          <SpotlightSection />
+        </div>
+
+        {/* 3. Featured $2 Sponsored Talent Section in Square UI */}
         <div id="talent">
           <PromotedTalentSection />
         </div>

@@ -15,6 +15,7 @@ import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import PromotedRankingPage from "./pages/PromotedRankingPage";
 import { ManagePromotionPage } from "./pages/ManagePromotionPage";
+import TermsPage from "./pages/TermsPage";
 
 export default function App() {
   return (
@@ -67,6 +68,10 @@ export default function App() {
           <Route path="/ranking" element={<DevelopersPage />} />
           <Route path="/search" element={<FindServicesPage />} />
           <Route path="/profile/:id" element={<DevelopersPage />} />
+
+          {/* Legal & Auction Rules */}
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/rules" element={<TermsPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<PixelpushLanding />} />
