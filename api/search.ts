@@ -11,11 +11,17 @@ const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1N
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  // CORS & Content Type
+  // CORS & Content Type & CDN Edge Caching
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.setHeader("Content-Type", "application/json");
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Vary", "Accept-Encoding, Origin");
+  
+  // Edge/CDN Caching: 30s shared edge cache, 60s stale-while-revalidate, 10s browser cache
+  res.setHeader("Cache-Control", "public, s-maxage=30, stale-while-revalidate=60, max-age=10");
+  res.setHeader("CDN-Cache-Control", "public, s-maxage=60");
 
   if (req.method === "OPTIONS") {
     res.statusCode = 200;

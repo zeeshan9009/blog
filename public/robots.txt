@@ -1,0 +1,63 @@
+# RankLancr (https://ranklancr.com) robots.txt
+# Permitted for search engines, web crawlers, and AI discovery agents
+
+User-agent: *
+Allow: /
+Allow: /developers
+Allow: /search
+Allow: /find-services
+Allow: /service/
+Allow: /pricing
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /api/promotions/
+Disallow: /api/contact
+
+# AI & LLM Search Crawlers (OpenAI, Anthropic, Perplexity, Google AI, Apple)
+User-agent: GPTBot
+Allow: /
+Allow: /developers
+Allow: /search
+Allow: /find-services
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /api/
+
+User-agent: ClaudeBot
+Allow: /
+Allow: /developers
+Allow: /search
+Allow: /find-services
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /api/
+
+User-agent: PerplexityBot
+Allow: /
+Allow: /developers
+Allow: /search
+Allow: /find-services
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /api/
+
+User-agent: Google-Extended
+Allow: /
+Allow: /developers
+Allow: /search
+Allow: /find-services
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /api/
+
+User-agent: Applebot-Extended
+Allow: /
+Allow: /developers
+Allow: /search
+Allow: /find-services
+Disallow: /dashboard
+Disallow: /settings
+Disallow: /api/
+
+Sitemap: https://ranklancr.com/sitemap.xml

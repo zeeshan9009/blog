@@ -127,12 +127,20 @@ const REALISTIC_QUERIES = [
 ];
 
 // ============================================================================
-// 3. BENCHMARK HTTP SERVER
+// 3. BENCHMARK HTTP SERVER WITH EDGE/CDN CACHING
 // ============================================================================
+const edgeCache = new Map<string, { body: string; expiresAt: number }>();
+let totalCacheHits = 0;
+let totalCacheMisses = 0;
+
 function createSearchBenchmarkServer(profiles: Professional[]) {
   const server = http.createServer((req, res) => {
     res.setHeader('Content-Type', 'application/json');
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('X-Content-Type-Options', 'nosniff');
+    res.setHeader('Vary', 'Accept-Encoding, Origin');
+    res.setHeader('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60, max-age=10');
+    res.setHeader('CDN-Cache-Control', 'public, s-maxage=60');
 
     if (req.method === 'OPTIONS') {
       res.statusCode = 200;
@@ -142,6 +150,22 @@ function createSearchBenchmarkServer(profiles: Professional[]) {
 
     try {
       const parsedUrl = new URL(req.url || '/', 'http://localhost:8080');
+      const cacheKey = parsedUrl.pathname + parsedUrl.search;
+      const now = Date.now();
+
+      // Check Edge/CDN Cache (30s TTL)
+      const cached = edgeCache.get(cacheKey);
+      if (cached && now < cached.expiresAt) {
+        totalCacheHits++;
+        res.setHeader('X-Cache', 'HIT (Edge CDN)');
+        res.statusCode = 200;
+        res.end(cached.body);
+        return;
+      }
+
+      totalCacheMisses++;
+      res.setHeader('X-Cache', 'MISS');
+
       const q = parsedUrl.searchParams.get('q') || '';
       const category = parsedUrl.searchParams.get('category') || 'All';
       const location = parsedUrl.searchParams.get('location') || '';
@@ -188,8 +212,16 @@ function createSearchBenchmarkServer(profiles: Professional[]) {
         limit
       });
 
+      const responseBody = JSON.stringify(searchResult);
+
+      // Store in Edge/CDN Cache with 30s TTL
+      edgeCache.set(cacheKey, {
+        body: responseBody,
+        expiresAt: now + 30 * 1000
+      });
+
       res.statusCode = 200;
-      res.end(JSON.stringify(searchResult));
+      res.end(responseBody);
     } catch (err: any) {
       res.statusCode = 500;
       res.end(JSON.stringify({ error: err?.message || 'Internal Server Error' }));
