@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useTalent } from '../../context/TalentContext';
 import { sanitizeDestinationUrl } from '../../services/ranking/auctionExposureEngine.js';
+import { autoDetectPlatformAndValidate } from '../../services/validation/externalProfileValidator.js';
 import type { DestinationType } from '../../types/promotedAuction';
 import toast from 'react-hot-toast';
 
@@ -348,15 +349,22 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
               Destination URL (External Profile) <span className="text-red-500">*</span>
             </label>
             <input
-              type="url"
+              type="text"
               value={destinationUrl}
-              onChange={(e) => setDestinationUrl(e.target.value)}
-              placeholder={DESTINATION_OPTIONS.find(o => o.type === destinationType)?.placeholder || 'https://...'}
+              onChange={(e) => {
+                const val = e.target.value;
+                setDestinationUrl(val);
+                const detected = autoDetectPlatformAndValidate(val);
+                if (detected.isValid && detected.platform) {
+                  setDestinationType(detected.platform as DestinationType);
+                }
+              }}
+              placeholder="Paste LinkedIn, Upwork, Fiverr, GitHub or portfolio URL..."
               className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
               required
             />
             <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">
-              Clients clicking your card will be redirected directly to this verified link.
+              Auto-detected as <strong>{destinationType.toUpperCase()}</strong> • 100% direct verified link.
             </span>
           </div>
 

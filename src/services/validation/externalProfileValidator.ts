@@ -170,3 +170,95 @@ export function validateExternalProfileUrl(
     platform
   };
 }
+
+export interface SmartDetectionResult {
+  isValid: boolean;
+  platform: ExternalPlatform;
+  platformName: string;
+  sanitizedUrl?: string;
+  shortDisplayUrl?: string;
+  error?: string;
+}
+
+/**
+ * Smart automatic platform detector and validator from a raw URL.
+ * Detects domain and returns platform info + sanitized HTTPS URL.
+ */
+export function autoDetectPlatformAndValidate(urlInput: string): SmartDetectionResult {
+  if (!urlInput || typeof urlInput !== 'string') {
+    return { isValid: false, platform: 'website', platformName: 'Website', error: 'Please enter a valid profile URL' };
+  }
+
+  const trimmed = urlInput.trim();
+  const lower = trimmed.toLowerCase();
+
+  // Reject dangerous schemes
+  if (
+    lower.startsWith('javascript:') ||
+    lower.startsWith('data:') ||
+    lower.startsWith('file:') ||
+    lower.startsWith('vbscript:')
+  ) {
+    return { isValid: false, platform: 'website', platformName: 'Website', error: 'Disallowed protocol scheme. Only HTTPS is permitted.' };
+  }
+
+  let parsed: URL;
+  try {
+    const withProtocol = trimmed.startsWith('http://') || trimmed.startsWith('https://')
+      ? trimmed
+      : `https://${trimmed}`;
+
+    parsed = new URL(withProtocol);
+  } catch {
+    return { isValid: false, platform: 'website', platformName: 'Website', error: 'Invalid URL format' };
+  }
+
+  // Enforce HTTPS
+  parsed.protocol = 'https:';
+  const host = parsed.hostname.toLowerCase();
+
+  // Block localhost, loopbacks, and private/internal IP ranges
+  if (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host === '0.0.0.0' ||
+    host.startsWith('192.168.') ||
+    host.startsWith('10.') ||
+    host.startsWith('172.16.') ||
+    host.endsWith('.local') ||
+    host.endsWith('.internal')
+  ) {
+    return { isValid: false, platform: 'website', platformName: 'Website', error: 'Localhost and private IP addresses are not permitted' };
+  }
+
+  if (!host.includes('.')) {
+    return { isValid: false, platform: 'website', platformName: 'Website', error: 'Please enter a valid domain name' };
+  }
+
+  // Platform auto-detection based on normalized hostname
+  let detectedPlatform: ExternalPlatform = 'portfolio';
+
+  if (host === 'linkedin.com' || host === 'www.linkedin.com' || host.endsWith('.linkedin.com')) {
+    detectedPlatform = 'linkedin';
+  } else if (host === 'upwork.com' || host === 'www.upwork.com' || host.endsWith('.upwork.com')) {
+    detectedPlatform = 'upwork';
+  } else if (host === 'fiverr.com' || host === 'www.fiverr.com' || host.endsWith('.fiverr.com')) {
+    detectedPlatform = 'fiverr';
+  } else if (host === 'github.com' || host === 'www.github.com' || host.endsWith('.github.com')) {
+    detectedPlatform = 'github';
+  } else {
+    detectedPlatform = 'portfolio';
+  }
+
+  const config = PLATFORM_CONFIG[detectedPlatform];
+  const shortDisplay = `${parsed.hostname}${parsed.pathname === '/' ? '' : parsed.pathname}`;
+
+  return {
+    isValid: true,
+    platform: detectedPlatform,
+    platformName: config.name,
+    sanitizedUrl: parsed.toString(),
+    shortDisplayUrl: shortDisplay
+  };
+}
+

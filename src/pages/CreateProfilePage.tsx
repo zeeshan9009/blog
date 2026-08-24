@@ -17,6 +17,7 @@ import { calculateProfileQualityScore } from '../services/ranking/profileQuality
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { PromoteModal } from '../components/modals/PromoteModal';
+import { SmartExternalProfilesManager } from '../components/profile/SmartExternalProfilesManager';
 import { validateExternalProfileUrl, type ExternalPlatform } from '../services/validation/externalProfileValidator';
 import type { Professional, ExperienceItem, PortfolioItem, ExternalLinks, ExternalProfileLink } from '../types/talent';
 import toast from 'react-hot-toast';
@@ -158,9 +159,20 @@ export const CreateProfilePage: React.FC = () => {
     id: string;
     platform: ExternalPlatform;
     url: string;
+    displayOrder?: number;
   }>>([
-    { id: 'ext-1', platform: 'linkedin', url: 'https://www.linkedin.com/in/username' },
-    { id: 'ext-2', platform: 'github', url: 'https://github.com/username' }
+    {
+      id: 'ext-init-1',
+      platform: 'linkedin',
+      url: 'https://linkedin.com/in/specialist',
+      displayOrder: 0
+    },
+    {
+      id: 'ext-init-2',
+      platform: 'github',
+      url: 'https://github.com/developer',
+      displayOrder: 1
+    }
   ]);
   const [selectedPlatform, setSelectedPlatform] = useState<ExternalPlatform>('linkedin');
   const [urlInput, setUrlInput] = useState<string>('');
@@ -1230,145 +1242,32 @@ export const CreateProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* External Professional Profiles Manager */}
-              <div className="space-y-4 pt-3 border-t-2 border-black/20">
-                <div>
-                  <h3 className="text-base font-black text-black font-mono uppercase flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 bg-[#e8622c]" />
-                    <span>External Professional Profiles</span>
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Connect your existing professional profiles so clients can view your work and experience across the web.
-                  </p>
-                </div>
+              {/* Smart External Professional Profiles Manager */}
+              <div className="pt-3 border-t-2 border-black/20">
+                <SmartExternalProfilesManager
+                  links={profileLinksList.map(l => ({
+                    id: l.id,
+                    platform: l.platform,
+                    url: l.url,
+                    displayOrder: l.displayOrder
+                  }))}
+                  onChange={(updated) => {
+                    const mapped = updated.map((u, i) => ({
+                      id: u.id || `ext-${Date.now()}-${i}`,
+                      platform: u.platform as ExternalPlatform,
+                      url: u.url,
+                      displayOrder: i
+                    }));
+                    setProfileLinksList(mapped);
 
-                {/* List of Added External Profiles */}
-                {profileLinksList.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {profileLinksList.map((linkItem, idx) => (
-                      <div
-                        key={linkItem.id}
-                        className="p-3 bg-white border-2 border-black flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-                      >
-                        <div className="flex items-center gap-3 min-w-0">
-                          <span className="text-lg shrink-0">
-                            {linkItem.platform === 'linkedin' ? '🔵' :
-                             linkItem.platform === 'upwork' ? '🟠' :
-                             linkItem.platform === 'fiverr' ? '🟣' :
-                             linkItem.platform === 'github' ? '⚫' :
-                             linkItem.platform === 'portfolio' ? '🌐' : '💻'}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="font-mono font-bold text-xs uppercase text-black">
-                              {linkItem.platform.toUpperCase()}
-                            </div>
-                            <div className="text-[11px] font-mono text-slate-600 truncate max-w-xs sm:max-w-md">
-                              {linkItem.url}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
-                          <a
-                            href={linkItem.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-black font-mono text-[10px] font-bold text-black flex items-center gap-1 transition"
-                          >
-                            <span>View Profile</span>
-                            <span>↗</span>
-                          </a>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedPlatform(linkItem.platform);
-                              setUrlInput(linkItem.url);
-                              setProfileLinksList(prev => prev.filter(p => p.id !== linkItem.id));
-                            }}
-                            className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-black font-mono text-[10px] font-bold text-black transition"
-                          >
-                            Edit
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setProfileLinksList(prev => prev.filter(p => p.id !== linkItem.id))}
-                            className="px-2.5 py-1 bg-red-50 hover:bg-red-100 border border-red-300 font-mono text-[10px] font-bold text-red-600 transition"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="p-4 bg-slate-50 border-2 border-dashed border-black text-center text-xs font-mono text-slate-500">
-                    No external profiles added yet. Add your LinkedIn, Upwork, Fiverr, GitHub or Portfolio below.
-                  </div>
-                )}
-
-                {/* Add Profile Form Box */}
-                <div className="p-4 border-2 border-black bg-orange-50/50 space-y-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                  <div className="font-mono text-xs font-bold text-black uppercase flex items-center gap-1.5">
-                    <Plus className="w-4 h-4 text-[#e8622c]" />
-                    <span>Add New External Profile</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-                        Platform <span className="text-red-500">*</span>
-                      </label>
-                      <select
-                        value={selectedPlatform}
-                        onChange={(e) => setSelectedPlatform(e.target.value as ExternalPlatform)}
-                        className="w-full p-2 bg-white border-2 border-black font-mono text-xs font-bold focus:outline-hidden focus:border-[#e8622c]"
-                      >
-                        <option value="linkedin">🔵 LinkedIn</option>
-                        <option value="upwork">🟠 Upwork</option>
-                        <option value="fiverr">🟣 Fiverr</option>
-                        <option value="github">⚫ GitHub</option>
-                        <option value="portfolio">🌐 Portfolio</option>
-                        <option value="website">💻 Personal Website</option>
-                      </select>
-                    </div>
-
-                    <div className="sm:col-span-2">
-                      <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-                        Profile URL <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="url"
-                        value={urlInput}
-                        onChange={(e) => setUrlInput(e.target.value)}
-                        placeholder={
-                          selectedPlatform === 'linkedin' ? 'https://www.linkedin.com/in/username' :
-                          selectedPlatform === 'upwork' ? 'https://www.upwork.com/freelancers/~...' :
-                          selectedPlatform === 'fiverr' ? 'https://www.fiverr.com/username' :
-                          selectedPlatform === 'github' ? 'https://github.com/username' :
-                          selectedPlatform === 'portfolio' ? 'https://myportfolio.dev' : 'https://mywebsite.com'
-                        }
-                        className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-[10px] font-mono text-slate-500">
-                      💡 RankLancr stores only verified direct links. No scraping or crawling.
-                    </span>
-
-                    <button
-                      type="button"
-                      onClick={handleAddProfileLink}
-                      className="px-5 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase transition cursor-pointer shadow-xs"
-                    >
-                      [ + ADD PROFILE ]
-                    </button>
-                  </div>
-                </div>
-
+                    // Sync legacy externalLinks object
+                    const legacyObj: any = {};
+                    mapped.forEach(m => {
+                      legacyObj[m.platform] = m.url;
+                    });
+                    setExternalLinks(legacyObj);
+                  }}
+                />
               </div>
             </div>
           )}
