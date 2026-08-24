@@ -57,7 +57,7 @@ export const DashboardPage: React.FC = () => {
     hasProvider ? 'provider' : 'buyer'
   );
   
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'algorithm' | 'requests' | 'my-requests' | 'services' | 'promotion'>(
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'requests' | 'my-requests' | 'services' | 'promotion'>(
     isRequestsRoute ? 'requests' : isMyRequestsRoute ? 'my-requests' : isPromoRoute ? 'promotion' : 'overview'
   );
 
@@ -358,18 +358,6 @@ export const DashboardPage: React.FC = () => {
               </button>
 
               <button
-                onClick={() => setActiveSubTab('algorithm')}
-                className={`px-3.5 py-2 border-2 transition cursor-pointer flex items-center gap-1.5 ${
-                  activeSubTab === 'algorithm'
-                    ? 'bg-[#e8622c] text-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                    : 'bg-white text-slate-700 border-black hover:bg-orange-50'
-                }`}
-              >
-                <Cpu className="w-3.5 h-3.5 text-[#e8622c] group-hover:text-black" />
-                <span>[ 2. ALGORITHM INSPECTOR ({proScore}/100) ]</span>
-              </button>
-
-              <button
                 onClick={() => setActiveSubTab('requests')}
                 className={`px-3.5 py-2 border-2 transition flex items-center gap-2 cursor-pointer ${
                   activeSubTab === 'requests'
@@ -378,7 +366,7 @@ export const DashboardPage: React.FC = () => {
                 }`}
               >
                 <Briefcase className="w-3.5 h-3.5" />
-                <span>[ 3. INCOMING REQUESTS ({incomingRequests.length}) ]</span>
+                <span>[ 2. INCOMING REQUESTS ({incomingRequests.length}) ]</span>
                 {incomingRequests.filter(r => r.status === 'pending').length > 0 && (
                   <span className="w-2 h-2 rounded-full bg-[#e8622c] animate-pulse" />
                 )}
@@ -393,7 +381,7 @@ export const DashboardPage: React.FC = () => {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>[ 4. MY SERVICES ({myServices.length}) ]</span>
+                <span>[ 3. MY SERVICES ({myServices.length}) ]</span>
               </button>
 
               <button
@@ -405,7 +393,7 @@ export const DashboardPage: React.FC = () => {
                 }`}
               >
                 <Flame className="w-3.5 h-3.5 text-[#e8622c]" />
-                <span>[ 5. 24H BOOST ANALYTICS ]</span>
+                <span>[ 4. 24H BOOST ANALYTICS ]</span>
               </button>
             </>
           )}
@@ -745,192 +733,7 @@ export const DashboardPage: React.FC = () => {
         )}
 
         {/* ========================================================= */}
-        {/* TAB 2: MATHEMATICAL ALGORITHM INSPECTOR */}
-        {/* ========================================================= */}
-        {activeRoleView === 'provider' && activeSubTab === 'algorithm' && (
-          <div className="space-y-8 animate-fadeIn">
-            
-            {/* Algorithm Overview Card */}
-            <div className="bg-black text-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/20 pb-4">
-                <div>
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase mb-1">
-                    <Cpu className="w-3.5 h-3.5" />
-                    <span>PRORANK DETERMINISTIC ENGINE V2.0</span>
-                  </div>
-                  <h2 className="text-2xl font-black text-white tracking-tight">
-                    Live Mathematical Formula & Score Diagnostic
-                  </h2>
-                </div>
-
-                <div className="text-right font-mono">
-                  <div className="text-xs text-slate-400">Total Diagnostic Rating</div>
-                  <div className="text-3xl font-black text-[#e8622c]">{proScore} / 100</div>
-                </div>
-              </div>
-
-              {/* Mathematical Formulas */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 bg-white/5 border border-white/10 space-y-2">
-                  <div className="font-mono text-xs font-bold text-orange-400 uppercase">1. Organic Rank Formula</div>
-                  <div className="font-mono text-xs text-white bg-black/50 p-2.5 border border-white/10">
-                    S_rank = 0.50 · R + 0.35 · S_pro + 0.15 · S_quality
-                  </div>
-                  <p className="text-[11px] text-slate-300">
-                    Calculated deterministically using token overlap, verified credentials, review ratings, and complete profile structure.
-                  </p>
-                </div>
-
-                <div className="p-4 bg-white/5 border border-white/10 space-y-2">
-                  <div className="font-mono text-xs font-bold text-emerald-400 uppercase">2. Sponsored ($2 Boost) Formula</div>
-                  <div className="font-mono text-xs text-white bg-black/50 p-2.5 border border-white/10">
-                    S_boost = 0.40 · R + 0.35 · S_pro + 0.15 · F + 0.10 · W_rot
-                  </div>
-                  <p className="text-[11px] text-slate-300">
-                    Guarantees top placement within relevant categories while Fair Exposure (F) and 5-min Micro-Rotation (W_rot) prevent monopoly.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* 6 Live Factor Gauges */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase text-slate-500">Quality Score (S_quality)</span>
-                  <span className="font-mono text-xs font-bold text-black">{completenessPercent}%</span>
-                </div>
-                <div className="w-full bg-slate-100 h-3 border border-black overflow-hidden">
-                  <div className="bg-[#e8622c] h-full" style={{ width: `${completenessPercent}%` }} />
-                </div>
-                <p className="text-[11px] text-slate-600 pt-1">
-                  Evaluates bio depth, portfolio density, skills taxonomy, and price sanity.
-                </p>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase text-slate-500">Professional Score (S_pro)</span>
-                  <span className="font-mono text-xs font-bold text-black">{proScore} / 100</span>
-                </div>
-                <div className="w-full bg-slate-100 h-3 border border-black overflow-hidden">
-                  <div className="bg-emerald-600 h-full" style={{ width: `${proScore}%` }} />
-                </div>
-                <p className="text-[11px] text-slate-600 pt-1">
-                  Evaluates rating ({myProfile.rating}★), review count ({myProfile.reviewCount}), and verified status.
-                </p>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase text-slate-500">Fairness Factor (F)</span>
-                  <span className="font-mono text-xs font-bold text-black">{fairnessFactor.toFixed(3)}</span>
-                </div>
-                <div className="w-full bg-slate-100 h-3 border border-black overflow-hidden">
-                  <div className="bg-blue-600 h-full" style={{ width: `${fairnessFactor * 100}%` }} />
-                </div>
-                <p className="text-[11px] text-slate-600 pt-1">
-                  Prevents impression hoarding (Formula: 1 / √(1 + exposure_ratio)).
-                </p>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase text-slate-500">5-Min Micro-Rotation</span>
-                  <span className="font-mono text-xs font-bold text-emerald-600">+{currentMicroRotation} factor</span>
-                </div>
-                <div className="w-full bg-slate-100 h-3 border border-black overflow-hidden">
-                  <div className="bg-purple-600 h-full" style={{ width: `${(currentMicroRotation / 0.03) * 100}%` }} />
-                </div>
-                <p className="text-[11px] text-slate-600 pt-1">
-                  Seed: deterministic hash refreshed automatically every 5 minutes.
-                </p>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase text-slate-500">Freshness Score</span>
-                  <span className="font-mono text-xs font-bold text-black">{freshnessFactor.toFixed(2)}</span>
-                </div>
-                <div className="w-full bg-slate-100 h-3 border border-black overflow-hidden">
-                  <div className="bg-amber-500 h-full" style={{ width: `${freshnessFactor * 100}%` }} />
-                </div>
-                <p className="text-[11px] text-slate-600 pt-1">
-                  Formula: exp(-age_hours / 24) giving boost to active 24h placements.
-                </p>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="font-mono text-xs font-bold uppercase text-slate-500">Marketplace Commission</span>
-                  <span className="font-mono text-xs font-bold text-[#e8622c]">0% (FREE)</span>
-                </div>
-                <div className="w-full bg-slate-100 h-3 border border-black overflow-hidden">
-                  <div className="bg-black h-full" style={{ width: '100%' }} />
-                </div>
-                <p className="text-[11px] text-slate-600 pt-1">
-                  100% direct deal model between client and talent.
-                </p>
-              </div>
-
-            </div>
-
-            {/* Live Interactive Query Rank Simulator */}
-            <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
-              <div className="flex items-center justify-between border-b-2 border-black pb-3">
-                <div>
-                  <h3 className="text-base font-black text-black uppercase font-mono flex items-center gap-2">
-                    <Sliders className="w-4 h-4 text-[#e8622c]" />
-                    <span>Live Search Query Rank Simulator</span>
-                  </h3>
-                  <p className="text-xs text-slate-600 mt-0.5">
-                    Test any search query to see how the ProRank formula computes your ranking in real time.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-center gap-3 pt-2">
-                <div className="relative flex-1 w-full">
-                  <input
-                    type="text"
-                    value={testQuery}
-                    onChange={(e) => setTestQuery(e.target.value)}
-                    placeholder="Enter search term (e.g. React, Node.js, Design, SEO)..."
-                    className="w-full p-3 bg-slate-50 border-2 border-black text-xs font-bold font-mono focus:outline-hidden focus:border-[#e8622c]"
-                  />
-                </div>
-              </div>
-
-              {/* Simulation Result Output */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-3">
-                <div className="p-4 bg-slate-50 border-2 border-black">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase font-bold">Query Relevance Match (R)</div>
-                  <div className="text-2xl font-black text-black mt-1">{(testRelevance.score * 100).toFixed(0)}%</div>
-                  <div className="text-[10px] font-mono text-slate-500 mt-0.5">
-                    {testRelevance.score >= 0.35 ? '✓ Meets Relevance Threshold (≥0.35)' : '⚠️ Low keyword match'}
-                  </div>
-                </div>
-
-                <div className="p-4 bg-slate-50 border-2 border-black">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase font-bold">Simulated Organic Rank Score</div>
-                  <div className="text-2xl font-black text-black mt-1">{simulatedOrganicScore} / 100</div>
-                  <div className="text-[10px] font-mono text-emerald-600 mt-0.5">Based on formula weights</div>
-                </div>
-
-                <div className="p-4 bg-orange-50 border-2 border-black">
-                  <div className="text-[10px] font-mono text-slate-500 uppercase font-bold">Simulated Boosted Rank Score</div>
-                  <div className="text-2xl font-black text-[#e8622c] mt-1">{simulatedSponsoredScore} / 100</div>
-                  <div className="text-[10px] font-mono text-[#e8622c] mt-0.5">Includes $2 Sponsored Multiplier</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ========================================================= */}
-        {/* TAB 3: INCOMING SERVICE REQUESTS PIPELINE */}
+        {/* TAB 2: INCOMING SERVICE REQUESTS PIPELINE */}
         {/* ========================================================= */}
         {activeRoleView === 'provider' && activeSubTab === 'requests' && (
           <div className="space-y-6 animate-fadeIn">
