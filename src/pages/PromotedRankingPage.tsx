@@ -53,110 +53,12 @@ export const PromotedRankingPage: React.FC = () => {
           return;
         }
       }
+      setCampaigns([]);
     } catch {
-      // Fallback
+      setCampaigns([]);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Default seeded preview if database empty
-    setCampaigns([
-      {
-        id: 'promo-1',
-        userId: 'u1',
-        authorName: 'Ahmed Khan',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed',
-        title: 'Senior React & Node.js Architect',
-        description: 'Building microservices and low-latency SaaS platforms with Redis and PostgreSQL.',
-        destinationType: 'linkedin',
-        destinationUrl: 'https://linkedin.com',
-        category: 'Full Stack',
-        skills: ['React', 'Node.js', 'PostgreSQL', 'AWS'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 15,
-        currentPosition: 1,
-        peakPosition: 1,
-        impressions: 4821,
-        clicks: 317,
-        externalVisits: 284,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 18 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'promo-2',
-        userId: 'u2',
-        authorName: 'Ali Raza',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ali',
-        title: 'Lead Full Stack & Next.js Engineer',
-        description: 'Specializing in high-performance web applications and enterprise cloud infrastructure.',
-        destinationType: 'upwork',
-        destinationUrl: 'https://upwork.com',
-        category: 'Frontend',
-        skills: ['Next.js', 'TypeScript', 'TailwindCSS'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 10,
-        currentPosition: 2,
-        peakPosition: 1,
-        impressions: 3410,
-        clicks: 210,
-        externalVisits: 195,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 14 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'promo-3',
-        userId: 'u3',
-        authorName: 'Usman Tariq',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Usman',
-        title: 'AI & Python Backend Specialist',
-        description: 'FastAPI microservices, vector search pipelines, and automated scraping systems.',
-        destinationType: 'fiverr',
-        destinationUrl: 'https://fiverr.com',
-        category: 'AI & Machine Learning',
-        skills: ['Python', 'FastAPI', 'PyTorch', 'Docker'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 7,
-        currentPosition: 3,
-        peakPosition: 2,
-        impressions: 2190,
-        clicks: 142,
-        externalVisits: 130,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 9 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'promo-4',
-        userId: 'u4',
-        authorName: 'Hamza Siddiqui',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Hamza',
-        title: 'Backend Go & Distributed Systems Engineer',
-        description: 'Ultra high-concurrency gRPC microservices and Kubernetes cluster design.',
-        destinationType: 'portfolio',
-        destinationUrl: 'https://github.com',
-        category: 'Backend',
-        skills: ['Go', 'gRPC', 'Docker', 'PostgreSQL'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 5,
-        currentPosition: 4,
-        peakPosition: 3,
-        impressions: 1650,
-        clicks: 98,
-        externalVisits: 88,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 6 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]);
-    setIsLoading(false);
   };
 
   useEffect(() => {

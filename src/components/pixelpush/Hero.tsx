@@ -45,116 +45,18 @@ export const Hero: React.FC = () => {
       const res = await fetch('/api/promotions/auction/campaigns');
       if (res.ok) {
         const data = await res.json();
-        if (data.campaigns && data.campaigns.length > 0) {
+        if (data.campaigns) {
           setCampaigns(data.campaigns);
           setIsLoading(false);
           return;
         }
       }
+      setCampaigns([]);
     } catch {
-      // Fallback
+      setCampaigns([]);
+    } finally {
+      setIsLoading(false);
     }
-
-    // Default seeded showcase data
-    setCampaigns([
-      {
-        id: 'promo-1',
-        userId: 'u1',
-        authorName: 'see.io',
-        avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&auto=format&fit=crop&q=80',
-        title: 'see.io · see your idea live',
-        description: 'Just describe your idea. AI turns it into a fully built, live website in minutes. Get your own domain whenever you want one. No coding required.',
-        destinationType: 'website',
-        destinationUrl: 'https://see.io',
-        category: 'Agents',
-        skills: ['AI Agents & Infrastructure', 'Website Builder'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 15000,
-        currentPosition: 1,
-        peakPosition: 1,
-        impressions: 24890,
-        clicks: 17751,
-        externalVisits: 15200,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 20 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'promo-2',
-        userId: 'u2',
-        authorName: 'JONI',
-        avatarUrl: 'https://images.unsplash.com/photo-1633409381658-a0c36b447471?w=120&auto=format&fit=crop&q=80',
-        title: 'JONI | Your Personal AI Computer',
-        description: 'JONI is your personal AI computer. Chat once and a team of AI agents and skills gets to work, with the right model picked for every job. None of the complexity.',
-        destinationType: 'website',
-        destinationUrl: 'https://joni.ai',
-        category: 'Agents',
-        skills: ['AI Agents & Infrastructure', 'Personal Assistant'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 14028,
-        currentPosition: 2,
-        peakPosition: 1,
-        impressions: 21300,
-        clicks: 16617,
-        externalVisits: 14100,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 16 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'promo-3',
-        userId: 'u3',
-        authorName: 'Requesty',
-        avatarUrl: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=120&auto=format&fit=crop&q=80',
-        title: 'Requesty: AI Gateway & LLM Router for 600+ Models',
-        description: 'Route every LLM call through one OpenAI-compatible API. 600+ models from OpenAI, Anthropic, Google and more. Smart routing, caching, failover, observability...',
-        destinationType: 'website',
-        destinationUrl: 'https://requesty.ai',
-        category: 'Developer',
-        skills: ['AI Gateway', 'LLM Router', 'Observability'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 14023,
-        currentPosition: 3,
-        peakPosition: 2,
-        impressions: 8900,
-        clicks: 2786,
-        externalVisits: 2400,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 11 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      },
-      {
-        id: 'promo-4',
-        userId: 'u4',
-        authorName: 'Ahmed Khan',
-        avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Ahmed',
-        title: 'Ahmed Khan · Senior Full Stack & AI Architect',
-        description: 'Specializing in Next.js, Node.js microservices, and AI integrations. Over 7+ years of production engineering experience with top startups.',
-        destinationType: 'linkedin',
-        destinationUrl: 'https://linkedin.com',
-        category: 'Developer',
-        skills: ['React', 'Node.js', 'PostgreSQL', 'AWS'],
-        status: 'active',
-        startingBid: 2,
-        currentBid: 8500,
-        currentPosition: 4,
-        peakPosition: 3,
-        impressions: 6100,
-        clicks: 1940,
-        externalVisits: 1650,
-        startAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 8 * 3600000).toISOString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString()
-      }
-    ]);
-    setIsLoading(false);
   };
 
   useEffect(() => {
@@ -281,21 +183,43 @@ export const Hero: React.FC = () => {
 
         {/* Ranked Auction Cards List (Square UI) */}
         <div className="space-y-4">
-          {filteredCampaigns.map((camp, idx) => (
-            <div
-              key={camp.id}
-              onClick={() => setSelectedOutbidCampaign(camp)}
-              className="group bg-white border-2 border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_#e8622c] transition-all duration-150 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
-            >
-              {/* Left Rank & Info */}
-              <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
-                
-                {/* # Rank Tag */}
-                <div className={`px-3 py-1.5 border-2 border-black font-mono font-black text-xs shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
-                  idx === 0 ? 'bg-[#e8622c] text-white' : idx === 1 ? 'bg-amber-400 text-black' : 'bg-black text-white'
-                }`}>
-                  #{idx + 1} {idx === 0 && '🔥'}
-                </div>
+          {filteredCampaigns.length === 0 ? (
+            <div className="bg-white border-2 border-dashed border-black p-10 text-center space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+              <div className="w-12 h-12 bg-orange-50 border-2 border-black flex items-center justify-center mx-auto">
+                <Flame className="w-6 h-6 text-[#e8622c] fill-[#e8622c]" />
+              </div>
+              <div>
+                <h3 className="font-mono font-black text-base uppercase text-black">
+                  No Active Promoted Campaigns Yet
+                </h3>
+                <p className="text-xs font-mono text-slate-600 mt-1 max-w-md mx-auto">
+                  Be the first professional to claim the #1 Sponsored spot for your LinkedIn, Fiverr, Upwork, or Portfolio from just $2.00 / 24 hours.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsCreateModalOpen(true)}
+                className="px-6 py-3 bg-[#e8622c] hover:bg-black text-white font-mono font-black text-xs uppercase transition cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] inline-flex items-center gap-2"
+              >
+                <span>[ 🔥 LAUNCH FIRST PROMOTION — $2.00 ]</span>
+              </button>
+            </div>
+          ) : (
+            filteredCampaigns.map((camp, idx) => (
+              <div
+                key={camp.id}
+                onClick={() => setSelectedOutbidCampaign(camp)}
+                className="group bg-white border-2 border-black p-5 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[6px_6px_0px_0px_#e8622c] transition-all duration-150 cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5"
+              >
+                {/* Left Rank & Info */}
+                <div className="flex items-start sm:items-center gap-4 flex-1 min-w-0">
+                  
+                  {/* # Rank Tag */}
+                  <div className={`px-3 py-1.5 border-2 border-black font-mono font-black text-xs shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] ${
+                    idx === 0 ? 'bg-[#e8622c] text-white' : idx === 1 ? 'bg-amber-400 text-black' : 'bg-black text-white'
+                  }`}>
+                    #{idx + 1} {idx === 0 && '🔥'}
+                  </div>
 
                 {/* Avatar Icon (Square) */}
                 <div className="w-13 h-13 border-2 border-black bg-black overflow-hidden flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -369,7 +293,7 @@ export const Hero: React.FC = () => {
               </div>
 
             </div>
-          ))}
+          )))}
         </div>
 
       </div>
