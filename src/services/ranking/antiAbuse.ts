@@ -1,4 +1,4 @@
-import type { Professional } from '../../types/talent';
+import type { Professional } from '../../types/talent.js';
 
 export interface EligibilityResult {
   isEligible: boolean;

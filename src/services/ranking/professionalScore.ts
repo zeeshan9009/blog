@@ -1,4 +1,4 @@
-import type { Professional } from '../../types/talent';
+import type { Professional } from '../../types/talent.js';
 
 /**
  * Professional Score = 40% Skills + 25% Experience + 20% Portfolio + 10% Reviews + 5% Profile Completeness

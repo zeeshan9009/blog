@@ -1,13 +1,13 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import Stripe from "stripe";
-import { verifyProfilePromotionEligibility } from "../../src/services/ranking/antiAbuse";
-import { INITIAL_PROFESSIONALS } from "../../src/data/mockTalentData";
+import { verifyProfilePromotionEligibility } from "../../src/services/ranking/antiAbuse.js";
+import { INITIAL_PROFESSIONALS } from "../../src/data/mockTalentData.js";
 import {
   SPONSORED_BOOST_PRICE_CENTS,
   SPONSORED_BOOST_PRICE_USD,
   SPONSORED_BOOST_DURATION_HOURS,
   SPONSORED_BOOST_CURRENCY
-} from "../../src/config/pricing";
+} from "../../src/config/pricing.js";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecret ? new Stripe(stripeSecret, { apiVersion: "2025-02-24.acacia" as any }) : null;

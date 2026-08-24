@@ -1,11 +1,11 @@
-import type { Professional } from '../../types/talent';
-import { calculateRelevanceScore, MINIMUM_SPONSORED_RELEVANCE_THRESHOLD, type RelevanceResult } from './relevanceScore';
-import { calculateProfileQualityScore } from './profileQualityScore';
-import { calculateProfessionalScore } from './professionalScore';
-import { calculateFreshnessScore } from './freshnessScore';
-import { calculateFairnessScore } from './fairnessScore';
-import { calculateRotationFactor } from './rotation';
-import { isSponsoredEligible } from './antiAbuse';
+import type { Professional } from '../../types/talent.js';
+import { calculateRelevanceScore, MINIMUM_SPONSORED_RELEVANCE_THRESHOLD, type RelevanceResult } from './relevanceScore.js';
+import { calculateProfileQualityScore } from './profileQualityScore.js';
+import { calculateProfessionalScore } from './professionalScore.js';
+import { calculateFreshnessScore } from './freshnessScore.js';
+import { calculateFairnessScore } from './fairnessScore.js';
+import { calculateRotationFactor } from './rotation.js';
+import { isSponsoredEligible } from './antiAbuse.js';
 
 export interface RankedSponsoredProfile {
   profile: Professional;

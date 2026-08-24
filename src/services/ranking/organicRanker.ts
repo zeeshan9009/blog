@@ -1,7 +1,7 @@
-import type { Professional } from '../../types/talent';
-import { calculateRelevanceScore, type RelevanceResult } from './relevanceScore';
-import { calculateProfileQualityScore } from './profileQualityScore';
-import { calculateProfessionalScore } from './professionalScore';
+import type { Professional } from '../../types/talent.js';
+import { calculateRelevanceScore, type RelevanceResult } from './relevanceScore.js';
+import { calculateProfileQualityScore } from './profileQualityScore.js';
+import { calculateProfessionalScore } from './professionalScore.js';
 
 export interface RankedOrganicProfile {
   profile: Professional;

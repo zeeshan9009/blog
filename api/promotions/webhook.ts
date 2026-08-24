@@ -5,7 +5,7 @@ import {
   SPONSORED_BOOST_PRICE_CENTS,
   SPONSORED_BOOST_CURRENCY,
   SPONSORED_BOOST_DURATION_HOURS
-} from "../../src/config/pricing";
+} from "../../src/config/pricing.js";
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;

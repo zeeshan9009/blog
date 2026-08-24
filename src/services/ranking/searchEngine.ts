@@ -1,7 +1,7 @@
-import type { Professional } from '../../types/talent';
-import { rankSponsoredProfiles, type RankedSponsoredProfile } from './promotionRanker';
-import { rankOrganicProfiles, type RankedOrganicProfile } from './organicRanker';
-import { calculateProfileQualityScore } from './profileQualityScore';
+import type { Professional } from '../../types/talent.js';
+import { rankSponsoredProfiles, type RankedSponsoredProfile } from './promotionRanker.js';
+import { rankOrganicProfiles, type RankedOrganicProfile } from './organicRanker.js';
+import { calculateProfileQualityScore } from './profileQualityScore.js';
 
 export interface SearchOptions {
   query: string;
