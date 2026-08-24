@@ -17,7 +17,8 @@ import { calculateProfileQualityScore } from '../services/ranking/profileQuality
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { PromoteModal } from '../components/modals/PromoteModal';
-import type { Professional, ExperienceItem, PortfolioItem, ExternalLinks } from '../types/talent';
+import { validateExternalProfileUrl, type ExternalPlatform } from '../services/validation/externalProfileValidator';
+import type { Professional, ExperienceItem, PortfolioItem, ExternalLinks, ExternalProfileLink } from '../types/talent';
 import toast from 'react-hot-toast';
 
 const PRESET_CATEGORIES = [
@@ -151,6 +152,54 @@ export const CreateProfilePage: React.FC = () => {
   const [newProjectTitle, setNewProjectTitle] = useState('');
   const [newProjectDesc, setNewProjectDesc] = useState('');
   const [newProjectUrl, setNewProjectUrl] = useState('');
+
+  // External Professional Profiles list
+  const [profileLinksList, setProfileLinksList] = useState<Array<{
+    id: string;
+    platform: ExternalPlatform;
+    url: string;
+  }>>([
+    { id: 'ext-1', platform: 'linkedin', url: 'https://www.linkedin.com/in/username' },
+    { id: 'ext-2', platform: 'github', url: 'https://github.com/username' }
+  ]);
+  const [selectedPlatform, setSelectedPlatform] = useState<ExternalPlatform>('linkedin');
+  const [urlInput, setUrlInput] = useState<string>('');
+
+  const handleAddProfileLink = () => {
+    if (!urlInput.trim()) {
+      toast.error('Please enter a profile URL');
+      return;
+    }
+
+    const val = validateExternalProfileUrl(urlInput, selectedPlatform);
+    if (!val.isValid || !val.sanitizedUrl) {
+      toast.error(val.error || 'Invalid profile URL');
+      return;
+    }
+
+    // Check duplicate platform
+    if (profileLinksList.some(p => p.platform === selectedPlatform)) {
+      toast.error(`A link for ${selectedPlatform.toUpperCase()} is already added`);
+      return;
+    }
+
+    const newLink = {
+      id: `ext-${Date.now()}`,
+      platform: selectedPlatform,
+      url: val.sanitizedUrl
+    };
+
+    setProfileLinksList(prev => [...prev, newLink]);
+    
+    // Synchronize backwards-compatible externalLinks object
+    setExternalLinks(prev => ({
+      ...prev,
+      [selectedPlatform]: val.sanitizedUrl
+    }));
+
+    setUrlInput('');
+    toast.success(`Connected ${selectedPlatform.toUpperCase()} profile!`);
+  };
 
   // Helper to clear error on field change
   const clearFieldError = (fieldName: string) => {
@@ -452,6 +501,7 @@ export const CreateProfilePage: React.FC = () => {
       portfolio: portfolioList,
       reviews: [],
       externalLinks,
+      externalProfileLinks: profileLinksList.map((p, i) => ({ ...p, profileId: user?.id || 'pro-user', displayOrder: i })),
       isVerified: true
     });
 
@@ -1180,66 +1230,145 @@ export const CreateProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* External Links */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+              {/* External Professional Profiles Manager */}
+              <div className="space-y-4 pt-3 border-t-2 border-black/20">
                 <div>
-                  <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">GitHub URL</label>
-                  <input
-                    type="url"
-                    value={externalLinks.github || ''}
-                    onChange={(e) => { setExternalLinks({ ...externalLinks, github: e.target.value }); clearFieldError('github'); }}
-                    placeholder="https://github.com/username"
-                    className={`w-full p-2 bg-slate-50 border-2 text-xs focus:outline-hidden ${
-                      errors.github ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
-                    }`}
-                  />
-                  {errors.github && (
-                    <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.github}</span>
-                  )}
+                  <h3 className="text-base font-black text-black font-mono uppercase flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 bg-[#e8622c]" />
+                    <span>External Professional Profiles</span>
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-0.5">
+                    Connect your existing professional profiles so clients can view your work and experience across the web.
+                  </p>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">LinkedIn URL</label>
-                  <input
-                    type="url"
-                    value={externalLinks.linkedin || ''}
-                    onChange={(e) => { setExternalLinks({ ...externalLinks, linkedin: e.target.value }); clearFieldError('linkedin'); }}
-                    placeholder="https://linkedin.com/in/username"
-                    className={`w-full p-2 bg-slate-50 border-2 text-xs focus:outline-hidden ${
-                      errors.linkedin ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
-                    }`}
-                  />
-                  {errors.linkedin && (
-                    <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.linkedin}</span>
-                  )}
+                {/* List of Added External Profiles */}
+                {profileLinksList.length > 0 ? (
+                  <div className="space-y-2.5">
+                    {profileLinksList.map((linkItem, idx) => (
+                      <div
+                        key={linkItem.id}
+                        className="p-3 bg-white border-2 border-black flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                      >
+                        <div className="flex items-center gap-3 min-w-0">
+                          <span className="text-lg shrink-0">
+                            {linkItem.platform === 'linkedin' ? '🔵' :
+                             linkItem.platform === 'upwork' ? '🟠' :
+                             linkItem.platform === 'fiverr' ? '🟣' :
+                             linkItem.platform === 'github' ? '⚫' :
+                             linkItem.platform === 'portfolio' ? '🌐' : '💻'}
+                          </span>
+                          <div className="min-w-0">
+                            <div className="font-mono font-bold text-xs uppercase text-black">
+                              {linkItem.platform.toUpperCase()}
+                            </div>
+                            <div className="text-[11px] font-mono text-slate-600 truncate max-w-xs sm:max-w-md">
+                              {linkItem.url}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                          <a
+                            href={linkItem.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 border border-black font-mono text-[10px] font-bold text-black flex items-center gap-1 transition"
+                          >
+                            <span>View Profile</span>
+                            <span>↗</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedPlatform(linkItem.platform);
+                              setUrlInput(linkItem.url);
+                              setProfileLinksList(prev => prev.filter(p => p.id !== linkItem.id));
+                            }}
+                            className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-black font-mono text-[10px] font-bold text-black transition"
+                          >
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => setProfileLinksList(prev => prev.filter(p => p.id !== linkItem.id))}
+                            className="px-2.5 py-1 bg-red-50 hover:bg-red-100 border border-red-300 font-mono text-[10px] font-bold text-red-600 transition"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 bg-slate-50 border-2 border-dashed border-black text-center text-xs font-mono text-slate-500">
+                    No external profiles added yet. Add your LinkedIn, Upwork, Fiverr, GitHub or Portfolio below.
+                  </div>
+                )}
+
+                {/* Add Profile Form Box */}
+                <div className="p-4 border-2 border-black bg-orange-50/50 space-y-3 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                  <div className="font-mono text-xs font-bold text-black uppercase flex items-center gap-1.5">
+                    <Plus className="w-4 h-4 text-[#e8622c]" />
+                    <span>Add New External Profile</span>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                      <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                        Platform <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        value={selectedPlatform}
+                        onChange={(e) => setSelectedPlatform(e.target.value as ExternalPlatform)}
+                        className="w-full p-2 bg-white border-2 border-black font-mono text-xs font-bold focus:outline-hidden focus:border-[#e8622c]"
+                      >
+                        <option value="linkedin">🔵 LinkedIn</option>
+                        <option value="upwork">🟠 Upwork</option>
+                        <option value="fiverr">🟣 Fiverr</option>
+                        <option value="github">⚫ GitHub</option>
+                        <option value="portfolio">🌐 Portfolio</option>
+                        <option value="website">💻 Personal Website</option>
+                      </select>
+                    </div>
+
+                    <div className="sm:col-span-2">
+                      <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
+                        Profile URL <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="url"
+                        value={urlInput}
+                        onChange={(e) => setUrlInput(e.target.value)}
+                        placeholder={
+                          selectedPlatform === 'linkedin' ? 'https://www.linkedin.com/in/username' :
+                          selectedPlatform === 'upwork' ? 'https://www.upwork.com/freelancers/~...' :
+                          selectedPlatform === 'fiverr' ? 'https://www.fiverr.com/username' :
+                          selectedPlatform === 'github' ? 'https://github.com/username' :
+                          selectedPlatform === 'portfolio' ? 'https://myportfolio.dev' : 'https://mywebsite.com'
+                        }
+                        className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1">
+                    <span className="text-[10px] font-mono text-slate-500">
+                      💡 RankLancr stores only verified direct links. No scraping or crawling.
+                    </span>
+
+                    <button
+                      type="button"
+                      onClick={handleAddProfileLink}
+                      className="px-5 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase transition cursor-pointer shadow-xs"
+                    >
+                      [ + ADD PROFILE ]
+                    </button>
+                  </div>
                 </div>
 
-                <div>
-                  <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">Upwork / Fiverr Profile</label>
-                  <input
-                    type="url"
-                    value={externalLinks.upwork || ''}
-                    onChange={(e) => setExternalLinks({ ...externalLinks, upwork: e.target.value })}
-                    placeholder="https://upwork.com/freelancers/..."
-                    className="w-full p-2 bg-slate-50 border-2 border-black text-xs focus:outline-hidden focus:border-[#e8622c]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[11px] font-mono text-black font-bold uppercase mb-1">Personal Portfolio / Website</label>
-                  <input
-                    type="url"
-                    value={externalLinks.website || ''}
-                    onChange={(e) => { setExternalLinks({ ...externalLinks, website: e.target.value }); clearFieldError('website'); }}
-                    placeholder="https://mywebsite.com"
-                    className={`w-full p-2 bg-slate-50 border-2 text-xs focus:outline-hidden ${
-                      errors.website ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
-                    }`}
-                  />
-                  {errors.website && (
-                    <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.website}</span>
-                  )}
-                </div>
               </div>
             </div>
           )}

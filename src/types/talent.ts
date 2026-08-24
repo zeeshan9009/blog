@@ -34,12 +34,24 @@ export interface Review {
   project: string;
 }
 
+export interface ExternalProfileLink {
+  id: string;
+  profileId: string;
+  userId?: string;
+  platform: 'linkedin' | 'upwork' | 'fiverr' | 'github' | 'portfolio' | 'website';
+  url: string;
+  isPrimary?: boolean;
+  displayOrder?: number;
+  clicks?: number;
+}
+
 export interface ExternalLinks {
   linkedin?: string;
   github?: string;
   upwork?: string;
   fiverr?: string;
   website?: string;
+  portfolio?: string;
   behance?: string;
 }
 
@@ -113,6 +125,7 @@ export interface Professional {
   portfolio: PortfolioItem[];
   reviews: Review[];
   externalLinks: ExternalLinks;
+  externalProfileLinks?: ExternalProfileLink[];
   isVerified: boolean;
   isPromoted: boolean;
   promotionExpiresAt?: string; // ISO String

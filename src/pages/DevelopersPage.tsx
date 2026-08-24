@@ -832,6 +832,89 @@ export const DevelopersPage: React.FC = () => {
                 </div>
               </div>
 
+              {/* External Professional Profiles */}
+              <div>
+                <h4 className="font-bold text-black text-xs uppercase font-mono mb-2 flex items-center justify-between">
+                  <span>External Profiles</span>
+                  <span className="text-[10px] text-slate-400 font-normal">DIRECT PUBLIC LINKS</span>
+                </h4>
+
+                {(() => {
+                  const links = quickViewDev.externalLinks || {};
+                  const customLinks = quickViewDev.externalProfileLinks || [];
+                  const combined = [
+                    ...(customLinks.length > 0
+                      ? customLinks.map(c => ({ platform: c.platform, url: c.url }))
+                      : [
+                          links.linkedin ? { platform: 'linkedin', url: links.linkedin } : null,
+                          links.upwork ? { platform: 'upwork', url: links.upwork } : null,
+                          links.fiverr ? { platform: 'fiverr', url: links.fiverr } : null,
+                          links.github ? { platform: 'github', url: links.github } : null,
+                          links.portfolio ? { platform: 'portfolio', url: links.portfolio } : null,
+                          links.website ? { platform: 'website', url: links.website } : null,
+                        ].filter(Boolean) as Array<{ platform: string; url: string }>
+                    )
+                  ];
+
+                  if (combined.length === 0) {
+                    return (
+                      <div className="p-3 bg-slate-50 border border-slate-200 text-[11px] font-mono text-slate-500">
+                        No external profiles added yet.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {combined.map((item, idx) => {
+                        const isLinkedIn = item.platform === 'linkedin';
+                        const isUpwork = item.platform === 'upwork';
+                        const isFiverr = item.platform === 'fiverr';
+                        const isGitHub = item.platform === 'github';
+                        const isPortfolio = item.platform === 'portfolio';
+
+                        return (
+                          <a
+                            key={idx}
+                            href={item.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => {
+                              fetch('/api/analytics/track', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                  profileId: quickViewDev.id,
+                                  eventType: 'external_profile_click',
+                                  meta: { platform: item.platform, url: item.url }
+                                })
+                              }).catch(() => {});
+                            }}
+                            className="p-2.5 bg-white hover:bg-slate-50 border-2 border-black flex items-center justify-between gap-2 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_#e8622c] transition group"
+                          >
+                            <div className="flex items-center gap-2 min-w-0">
+                              <span className="text-base shrink-0">
+                                {isLinkedIn ? '🔵' : isUpwork ? '🟠' : isFiverr ? '🟣' : isGitHub ? '⚫' : isPortfolio ? '🌐' : '💻'}
+                              </span>
+                              <span className="font-mono font-bold text-xs uppercase text-black truncate group-hover:text-[#e8622c] transition">
+                                {item.platform === 'linkedin' ? 'LinkedIn Profile' :
+                                 item.platform === 'upwork' ? 'Upwork Profile' :
+                                 item.platform === 'fiverr' ? 'Fiverr Profile' :
+                                 item.platform === 'github' ? 'GitHub Profile' :
+                                 item.platform === 'portfolio' ? 'Portfolio Site' : 'Personal Website'}
+                              </span>
+                            </div>
+                            <span className="text-xs font-mono font-bold text-slate-400 group-hover:text-black transition">
+                              ↗
+                            </span>
+                          </a>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+
               {/* ProRank Score Metrics */}
               <div className="p-4 bg-slate-50 border border-slate-200 grid grid-cols-3 gap-3 text-center">
                 <div>

@@ -160,6 +160,43 @@ export const CreatePromotedCampaignModal: React.FC<CreatePromotedCampaignModalPr
             />
           </div>
 
+          {/* Auto-fill from saved profile links if available */}
+          {(() => {
+            const savedLinks = [
+              ...(userProfile?.externalProfileLinks || []),
+              ...(userProfile?.externalLinks?.linkedin ? [{ platform: 'linkedin', url: userProfile.externalLinks.linkedin }] : []),
+              ...(userProfile?.externalLinks?.upwork ? [{ platform: 'upwork', url: userProfile.externalLinks.upwork }] : []),
+              ...(userProfile?.externalLinks?.fiverr ? [{ platform: 'fiverr', url: userProfile.externalLinks.fiverr }] : []),
+              ...(userProfile?.externalLinks?.github ? [{ platform: 'github', url: userProfile.externalLinks.github }] : []),
+              ...(userProfile?.externalLinks?.portfolio ? [{ platform: 'portfolio', url: userProfile.externalLinks.portfolio }] : []),
+            ];
+
+            if (savedLinks.length === 0) return null;
+
+            return (
+              <div className="p-2.5 bg-orange-50 border border-[#e8622c]/40 flex items-center justify-between gap-2">
+                <span className="text-[10px] font-mono font-bold text-black uppercase">
+                  ⚡ Autofill from your saved profile:
+                </span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {savedLinks.slice(0, 4).map((s, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => {
+                        setDestinationType(s.platform as DestinationType);
+                        setDestinationUrl(s.url);
+                      }}
+                      className="px-2 py-0.5 bg-white hover:bg-black hover:text-white border border-black font-mono text-[9px] font-bold uppercase transition"
+                    >
+                      {s.platform}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
