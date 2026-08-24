@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { X, Flame, ArrowUpRight, ShieldCheck, Zap } from 'lucide-react';
+import { X, Flame, Zap, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { PlatformBrandIcon } from '../brand/PlatformBrandIcon';
 import type { PromotedCampaign } from '../../types/promotedAuction';
 import toast from 'react-hot-toast';
 
@@ -22,6 +23,7 @@ export const OutbidModal: React.FC<OutbidModalProps> = ({
   const suggestedMin = currentBid + 1;
 
   const [bidAmount, setBidAmount] = useState<number>(suggestedMin);
+  const [email, setEmail] = useState(user?.email || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen || !campaign) return null;
@@ -29,13 +31,13 @@ export const OutbidModal: React.FC<OutbidModalProps> = ({
   const handleOutbidSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      toast.error('Please sign in to place an auction bid');
+    if (bidAmount <= currentBid) {
+      toast.error(`Bid amount must be greater than current bid ($${currentBid})`);
       return;
     }
 
-    if (bidAmount <= currentBid) {
-      toast.error(`Bid amount must be greater than current bid ($${currentBid})`);
+    if (!user && (!email.trim() || !email.includes('@'))) {
+      toast.error('Please provide a valid email for outbid alerts & receipt');
       return;
     }
 
@@ -46,8 +48,9 @@ export const OutbidModal: React.FC<OutbidModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           campaignId: campaign.id,
-          userId: user.id,
-          bidderName: user.name || 'Advertiser',
+          userId: user?.id,
+          bidderName: user?.name || email.trim() || 'Advertiser',
+          email: email.trim(),
           amount: bidAmount
         })
       });
@@ -57,7 +60,7 @@ export const OutbidModal: React.FC<OutbidModalProps> = ({
         throw new Error(data.error || 'Failed to place outbid');
       }
 
-      toast.success(`⚡ Outbid successful! Current bid updated to $${bidAmount}`);
+      toast.success(`⚡ Outbid successful! Bid raised to $${bidAmount}`);
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: any) {
@@ -86,113 +89,88 @@ export const OutbidModal: React.FC<OutbidModalProps> = ({
         </div>
 
         {/* Campaign Info */}
-        <div className="p-4 bg-slate-50 border-b-2 border-black space-y-1">
-          <div className="text-[10px] font-mono font-bold uppercase text-slate-500">Target Promoted Placement</div>
-          <div className="font-black text-sm text-black">{campaign.title}</div>
-          <div className="text-xs font-mono text-[#e8622c] font-bold">
-            {campaign.authorName} • Current Position #{campaign.currentPosition}
+        <div className="p-4 bg-slate-50 border-b-2 border-black flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <div className="w-8 h-8 border border-black bg-white flex items-center justify-center shrink-0">
+              <PlatformBrandIcon platform={campaign.destinationType} className="w-4 h-4 text-black" />
+            </div>
+            <div className="min-w-0">
+              <div className="font-black text-xs text-black truncate">{campaign.authorName}</div>
+              <div className="text-[10px] font-mono text-slate-500 truncate">{campaign.title}</div>
+            </div>
+          </div>
+
+          <div className="text-right shrink-0">
+            <div className="text-[10px] font-mono text-slate-400 font-bold uppercase">Current Bid</div>
+            <div className="font-mono font-black text-sm text-[#e8622c]">${currentBid}</div>
           </div>
         </div>
 
         {/* Form */}
-        <form onSubmit={handleOutbidSubmit} className="p-5 space-y-4">
+        <form onSubmit={handleOutbidSubmit} className="p-5 space-y-4 font-mono">
           
-          {/* Bid Comparison Card */}
-          <div className="grid grid-cols-2 gap-3 p-3 bg-orange-50/60 border-2 border-black">
-            <div>
-              <div className="text-[10px] font-mono text-slate-500 uppercase font-bold">Current Bid</div>
-              <div className="text-2xl font-black text-black">${currentBid}</div>
+          {/* Outbid Calculator */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs font-bold uppercase text-black">
+              <span>Your New Bid Amount</span>
+              <span className="text-slate-500 font-normal">Min to Outbid: ${suggestedMin}</span>
             </div>
-            <div className="text-right">
-              <div className="text-[10px] font-mono text-slate-500 uppercase font-bold">Min Next Bid</div>
-              <div className="text-2xl font-black text-[#e8622c]">${suggestedMin}</div>
-            </div>
-          </div>
 
-          {/* Quick Increment Buttons */}
-          <div>
-            <label className="block text-[10px] font-mono text-slate-600 font-bold uppercase mb-1.5">
-              Quick Increment Options
-            </label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setBidAmount(suggestedMin)}
-                className={`py-1.5 font-mono text-xs font-bold border-2 transition cursor-pointer ${
-                  bidAmount === suggestedMin ? 'bg-black text-white border-black' : 'bg-white border-slate-300 hover:border-black'
-                }`}
-              >
-                + $1 (${suggestedMin})
-              </button>
-              <button
-                type="button"
-                onClick={() => setBidAmount(currentBid + 5)}
-                className={`py-1.5 font-mono text-xs font-bold border-2 transition cursor-pointer ${
-                  bidAmount === currentBid + 5 ? 'bg-black text-white border-black' : 'bg-white border-slate-300 hover:border-black'
-                }`}
-              >
-                + $5 (${currentBid + 5})
-              </button>
-              <button
-                type="button"
-                onClick={() => setBidAmount(currentBid + 10)}
-                className={`py-1.5 font-mono text-xs font-bold border-2 transition cursor-pointer ${
-                  bidAmount === currentBid + 10 ? 'bg-black text-white border-black' : 'bg-white border-slate-300 hover:border-black'
-                }`}
-              >
-                + $10 (${currentBid + 10})
-              </button>
-            </div>
-          </div>
-
-          {/* Custom Bid Input */}
-          <div>
-            <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-              Custom Bid Amount (USD)
-            </label>
             <div className="relative">
-              <span className="absolute left-3 top-2.5 font-black text-sm text-black">$</span>
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-black text-base text-black">$</span>
               <input
                 type="number"
                 min={suggestedMin}
                 step="1"
                 value={bidAmount}
-                onChange={(e) => setBidAmount(Math.max(suggestedMin, Number(e.target.value) || suggestedMin))}
-                className="w-full pl-7 pr-3 py-2 bg-white border-2 border-black text-base font-black font-mono focus:outline-hidden focus:border-[#e8622c]"
+                onChange={(e) => setBidAmount(Number(e.target.value))}
+                className="w-full pl-8 pr-4 py-2.5 bg-slate-50 border-2 border-black font-black text-base text-black focus:outline-hidden focus:border-[#e8622c]"
                 required
               />
             </div>
           </div>
 
-          {/* ProRank Safety Notice */}
-          <div className="text-[10px] font-mono text-slate-600 bg-slate-100 p-2.5 border border-black/20 space-y-1">
-            <div className="font-bold text-black flex items-center gap-1">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-              <span>ProRank Independence Guarantee</span>
+          {/* Email input for guest outbidding */}
+          {!user && (
+            <div className="space-y-1.5">
+              <label className="block text-[11px] font-bold uppercase text-black">
+                Your Email (for receipt & management link) <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="your@email.com"
+                className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold text-black focus:outline-hidden focus:border-[#e8622c]"
+                required
+              />
             </div>
-            <p>
-              Your organic ProRank position and talent score remain 100% untouched. This auction only sets your sponsored visibility tier.
-            </p>
-          </div>
+          )}
 
-          {/* Submit Action */}
+          {/* Action button */}
           <button
             type="submit"
-            disabled={isSubmitting || bidAmount <= currentBid}
-            className="w-full py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-black uppercase transition cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 flex items-center justify-center gap-2"
+            disabled={isSubmitting}
+            className="w-full py-3.5 bg-[#e8622c] hover:bg-black text-white text-xs font-black uppercase transition cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {isSubmitting ? (
               <span>PROCESSING OUTBID...</span>
             ) : (
               <>
-                <span>[ ⚡ SUBMIT OUTBID — ${bidAmount} ]</span>
-                <ArrowUpRight className="w-4 h-4" />
+                <span>[ ⚡ CONFIRM OUTBID FOR ${bidAmount} ]</span>
+                <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
+
+          <div className="text-[10px] text-slate-500 text-center">
+            Zero login required • Instant real-time leaderboard update
+          </div>
         </form>
 
       </div>
     </div>
   );
 };
+
+export default OutbidModal;

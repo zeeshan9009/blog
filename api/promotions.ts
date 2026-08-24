@@ -208,12 +208,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     req.on("end", async () => {
       try {
         const payload = JSON.parse(body || "{}");
-        const { campaignId, userId, bidderName, amount } = payload;
-        if (!campaignId || !userId || !amount) {
+        const { campaignId, userId, bidderName, amount, email, userEmail } = payload;
+        if (!campaignId || !amount) {
           res.statusCode = 400;
-          res.end(JSON.stringify({ error: "Missing required fields" }));
+          res.end(JSON.stringify({ error: "Missing campaignId or amount" }));
           return;
         }
+
+        const effectiveUserId = userId || `guest_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+        const effectiveBidder = bidderName || email || userEmail || "Guest Bidder";
 
         const bidAmount = Number(amount);
         if (isNaN(bidAmount) || bidAmount < 2.0) {
@@ -248,8 +251,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         await supabase.from("promotion_bids").insert([
           {
             campaign_id: campaignId,
-            user_id: userId,
-            bidder_name: bidderName || "Advertiser",
+            user_id: effectiveUserId,
+            bidder_name: effectiveBidder,
             amount: bidAmount,
             payment_status: "completed",
             is_winning: true,
