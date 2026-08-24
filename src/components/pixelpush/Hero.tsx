@@ -13,6 +13,8 @@ import {
 import { useAuth } from '../../context/AuthContext';
 import { OutbidModal } from '../modals/OutbidModal';
 import { CreatePromotedCampaignModal } from '../modals/CreatePromotedCampaignModal';
+import { PlatformBrandIcon } from '../brand/PlatformBrandIcon';
+import { autoDetectPlatformAndValidate } from '../../services/validation/externalProfileValidator';
 import { supabase } from '../../lib/supabase';
 import type { PromotedCampaign } from '../../types/promotedAuction';
 import toast from 'react-hot-toast';
@@ -313,13 +315,12 @@ export const Hero: React.FC = () => {
                     #{idx + 1} {idx === 0 && '🔥'}
                   </div>
 
-                {/* Avatar Icon (Square) */}
-                <div className="w-13 h-13 border-2 border-black bg-black overflow-hidden flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                  {camp.avatarUrl ? (
-                    <img src={camp.avatarUrl} alt={camp.authorName} className="w-full h-full object-cover" />
-                  ) : (
-                    <span className="text-white font-mono font-black text-lg">{camp.authorName.charAt(0)}</span>
-                  )}
+                {/* Platform Brand Icon (Square) */}
+                <div className="w-13 h-13 border-2 border-black bg-slate-50 flex items-center justify-center shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] p-2.5">
+                  <PlatformBrandIcon
+                    platform={camp.destinationType || autoDetectPlatformAndValidate(camp.destinationUrl).platform || 'website'}
+                    className="w-7 h-7 text-black"
+                  />
                 </div>
 
                 {/* Content */}
@@ -330,13 +331,19 @@ export const Hero: React.FC = () => {
                     </h3>
                   </div>
 
-                  <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium">
-                    {camp.description}
-                  </p>
+                  {camp.description && (
+                    <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed font-medium">
+                      {camp.description}
+                    </p>
+                  )}
 
                   {/* Metadata Row */}
-                  <div className="flex items-center gap-2.5 text-[11px] font-mono text-slate-500 font-bold flex-wrap pt-1">
-                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-300 px-1 py-0.2">ACTIVE</span>
+                  <div className="flex items-center gap-2 text-[11px] font-mono text-slate-600 font-bold flex-wrap pt-1">
+                    <span className="text-emerald-700 bg-emerald-50 border border-emerald-300 px-1.5 py-0.2">ACTIVE</span>
+                    <span className="inline-flex items-center gap-1 text-black bg-slate-100 border border-slate-300 px-1.5 py-0.5 uppercase text-[10px]">
+                      <PlatformBrandIcon platform={camp.destinationType || 'website'} className="w-3.5 h-3.5 text-black" />
+                      <span>{camp.destinationType || 'LINK'}</span>
+                    </span>
                     <a
                       href={camp.destinationUrl}
                       target="_blank"
