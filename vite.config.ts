@@ -8,16 +8,25 @@ function localApiPlugin(): Plugin {
         configureServer(server) {
             server.middlewares.use(async (req, res, next) => {
                 const url = req.url || "";
-                if (url.startsWith("/api/http-headers")) {
-                    const { default: handler } = await import("./api/http-headers");
+                if (url.startsWith("/api/promotions")) {
+                    const { default: handler } = await import("./api/promotions.js");
                     return handler(req, res);
                 }
-                if (url.startsWith("/api/ip-lookup")) {
-                    const { default: handler } = await import("./api/ip-lookup");
+                if (url.startsWith("/api/analytics")) {
+                    const { default: handler } = await import("./api/analytics.js");
                     return handler(req, res);
                 }
-                if (url.startsWith("/api/dns-lookup")) {
-                    const { default: handler } = await import("./api/dns-lookup");
+                if (url.startsWith("/api/search")) {
+                    const { default: handler } = await import("./api/search.js");
+                    return handler(req, res);
+                }
+                if (
+                    url.startsWith("/api/http-headers") ||
+                    url.startsWith("/api/ip-lookup") ||
+                    url.startsWith("/api/dns-lookup") ||
+                    url.startsWith("/api/diagnostics")
+                ) {
+                    const { default: handler } = await import("./api/diagnostics.js");
                     return handler(req, res);
                 }
                 next();

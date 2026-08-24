@@ -1,6 +1,26 @@
 {
   "rewrites": [
     {
+      "source": "/api/promotions/:path*",
+      "destination": "/api/promotions?route=:path*"
+    },
+    {
+      "source": "/api/analytics/:path*",
+      "destination": "/api/analytics?route=:path*"
+    },
+    {
+      "source": "/api/dns-lookup",
+      "destination": "/api/diagnostics?tool=dns"
+    },
+    {
+      "source": "/api/ip-lookup",
+      "destination": "/api/diagnostics?tool=ip"
+    },
+    {
+      "source": "/api/http-headers",
+      "destination": "/api/diagnostics?tool=headers"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

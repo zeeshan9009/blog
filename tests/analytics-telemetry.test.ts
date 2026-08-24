@@ -2,7 +2,7 @@
  * 24H Boost Analytics & Telemetry Engine Test Suite
  */
 
-import { computeProfileAnalytics } from '../api/analytics/index.js';
+import { computeProfileAnalytics } from '../api/analytics.js';
 import { calculateFairnessScoreFromCounts } from '../src/services/ranking/fairnessScore.js';
 
 function assert(condition: boolean, message: string) {
@@ -26,7 +26,7 @@ async function runAnalyticsTests() {
   assert(zeroAnalytics.inquiries === 0, 'Zero profile inquiries is 0');
   assert(zeroAnalytics.ctrPercent === 0, 'CTR is 0.0% without division by zero');
   assert(zeroAnalytics.conversionPercent === 0, 'Conversion is 0.0% without division by zero');
-  assert(zeroAnalytics.fairRotation.status === 'OPTIMAL' || zeroAnalytics.fairRotation.status === 'ACTIVE', 'Fair rotation status active for new user');
+  assert(zeroAnalytics.fairRotation.isActive === true || zeroAnalytics.fairRotation.status === 'active', 'Fair rotation status active for new user');
 
   // TEST 2: CTR and Conversion Mathematical Accuracy
   console.log(`\n[TEST 2] CTR & Conversion Computation Formula`);
