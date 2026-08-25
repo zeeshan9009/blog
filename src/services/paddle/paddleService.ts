@@ -5,7 +5,7 @@ let paddleInstance: Paddle | null = null;
 
 // Read Paddle Environment & Client Token safely from environment
 export const PADDLE_ENV = (import.meta as any).env?.VITE_PADDLE_ENV || 'sandbox';
-export const PADDLE_CLIENT_TOKEN = (import.meta as any).env?.VITE_PADDLE_CLIENT_TOKEN || 'test_c77a942b083818e6e8e89547d04';
+export const PADDLE_CLIENT_TOKEN = (import.meta as any).env?.VITE_PADDLE_CLIENT_TOKEN || 'test_52827333b4ae539266f310cdd8d';
 
 /**
  * Initialize or return singleton instance of Paddle.js
