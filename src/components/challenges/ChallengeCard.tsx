@@ -1,18 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Users, Flame, Clock, Sparkles, ArrowRight, DollarSign, Award, ShieldCheck } from 'lucide-react';
+import { Trophy, Clock, Sparkles, ArrowRight, ShieldCheck, Building2, Vote, Lock, Flame } from 'lucide-react';
 import type { Challenge } from '../../types/challenge';
 
 interface ChallengeCardProps {
   challenge: Challenge;
-  onOpenSubmitModal: (challenge: Challenge) => void;
-  onOpenBidModal: (challenge: Challenge) => void;
-  onViewDetails?: (challenge: Challenge) => void;
+  onEnterChallenge: (challenge: Challenge) => void;
+  onSubmitWork: (challenge: Challenge) => void;
+  onSponsorChallenge: (challenge: Challenge) => void;
+  onViewDetails: (challenge: Challenge) => void;
 }
 
 export const ChallengeCard: React.FC<ChallengeCardProps> = ({
   challenge,
-  onOpenSubmitModal,
-  onOpenBidModal,
+  onEnterChallenge,
+  onSubmitWork,
+  onSponsorChallenge,
   onViewDetails
 }) => {
   const [timeLeft, setTimeLeft] = useState<{ days: number; hours: number; minutes: number; seconds: number }>({
@@ -22,8 +24,14 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
     seconds: 0
   });
 
+  const targetDate = challenge.status === 'open_entry'
+    ? challenge.entryDeadline
+    : challenge.status === 'submission_window'
+    ? challenge.submissionDeadline
+    : challenge.votingDeadline;
+
   useEffect(() => {
-    const target = new Date(challenge.votingDeadline).getTime();
+    const target = new Date(targetDate || Date.now()).getTime();
 
     const updateTimer = () => {
       const diff = Math.max(0, target - Date.now());
@@ -37,14 +45,25 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
     updateTimer();
     const interval = setInterval(updateTimer, 1000);
     return () => clearInterval(interval);
-  }, [challenge.votingDeadline]);
+  }, [targetDate]);
 
-  const prizeDollars = (challenge.prizePoolCents / 100).toLocaleString('en-US', {
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0
-  });
+  const statusLabel = 
+    challenge.status === 'open_entry'
+      ? 'ENTRIES OPEN ($5 ENTRY)'
+      : challenge.status === 'submission_window'
+      ? 'SUBMISSIONS OPEN (3 DAYS)'
+      : challenge.status === 'voting_window'
+      ? 'PUBLIC VOTING (72H)'
+      : 'CHALLENGE COMPLETED';
 
-  const isClosed = challenge.status === 'closed';
+  const statusBg =
+    challenge.status === 'open_entry'
+      ? 'bg-[#e8622c] text-white'
+      : challenge.status === 'submission_window'
+      ? 'bg-blue-600 text-white'
+      : challenge.status === 'voting_window'
+      ? 'bg-emerald-600 text-white'
+      : 'bg-slate-900 text-slate-300';
 
   return (
     <div className="bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[9px_9px_0px_0px_#e8622c] hover:-translate-y-0.5 transition-all flex flex-col justify-between overflow-hidden rounded-none">
@@ -57,24 +76,11 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
           className="w-full h-full object-cover opacity-80 hover:scale-105 transition-transform duration-500"
         />
 
-        {/* Live Status Tag */}
+        {/* Status Badge */}
         <div className="absolute top-3 left-3 flex items-center gap-2">
-          <span className={`px-2.5 py-1 text-[11px] font-mono font-bold uppercase tracking-wider shadow-xs flex items-center gap-1.5 ${
-            isClosed
-              ? 'bg-slate-900 text-slate-300 border border-slate-700'
-              : 'bg-[#e8622c] text-white border border-black'
-          }`}>
-            {isClosed ? (
-              <>
-                <Award className="w-3.5 h-3.5" />
-                <span>CHALLENGE COMPLETED</span>
-              </>
-            ) : (
-              <>
-                <Flame className="w-3.5 h-3.5 fill-white animate-pulse" />
-                <span>WEEKLY CHALLENGE ARENA</span>
-              </>
-            )}
+          <span className={`px-2.5 py-1 text-[10px] font-mono font-bold uppercase tracking-wider border border-black shadow-xs flex items-center gap-1.5 ${statusBg}`}>
+            {challenge.status === 'closed' ? <ShieldCheck className="w-3.5 h-3.5" /> : <Trophy className="w-3.5 h-3.5" />}
+            <span>{statusLabel}</span>
           </span>
 
           <span className="px-2 py-1 bg-black/90 text-white font-mono text-[10px] uppercase font-bold border border-white/20">
@@ -82,15 +88,15 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
           </span>
         </div>
 
-        {/* Prize Pool Display (Top Right) */}
+        {/* Reward Badge (Top Right) */}
         <div className="absolute bottom-3 right-3 bg-black text-white border-2 border-[#e8622c] p-2 sm:px-3 sm:py-1.5 shadow-[3px_3px_0px_0px_#e8622c] flex items-center gap-2">
           <Trophy className="w-5 h-5 text-amber-400 shrink-0" />
           <div>
             <span className="text-[9px] font-mono text-slate-300 uppercase tracking-widest block font-bold leading-tight">
-              SHARED PRIZE POOL
+              WINNER REWARD
             </span>
-            <span className="text-xl sm:text-2xl font-black font-mono text-amber-400 leading-none">
-              ${prizeDollars}
+            <span className="text-sm sm:text-base font-black font-mono text-amber-400 leading-none">
+              72h Top Developer Rail
             </span>
           </div>
         </div>
@@ -99,7 +105,10 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
       {/* Card Content */}
       <div className="p-5 sm:p-6 space-y-4 flex-1 flex flex-col justify-between">
         <div className="space-y-2.5">
-          <h3 className="text-lg sm:text-xl font-black text-black leading-tight tracking-tight hover:text-[#e8622c] transition">
+          <h3 
+            onClick={() => onViewDetails(challenge)}
+            className="text-lg sm:text-xl font-black text-black leading-tight tracking-tight hover:text-[#e8622c] transition cursor-pointer"
+          >
             {challenge.title}
           </h3>
 
@@ -112,12 +121,12 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         <div className="pt-3 border-t border-slate-200 grid grid-cols-2 gap-3 bg-orange-50/50 p-3 border border-orange-200/60">
           <div>
             <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
-              {isClosed ? 'STATUS' : 'TIME REMAINING'}
+              {challenge.status === 'closed' ? 'STATUS' : 'WINDOW CLOSES IN'}
             </span>
-            {isClosed ? (
+            {challenge.status === 'closed' ? (
               <span className="text-xs font-mono font-bold text-slate-900 flex items-center gap-1 mt-0.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                Winner Declared
+                Winners Declared
               </span>
             ) : (
               <span className="text-xs font-mono font-black text-black flex items-center gap-1 mt-0.5">
@@ -129,48 +138,81 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
 
           <div>
             <span className="text-[10px] font-mono text-slate-500 uppercase tracking-wider block font-bold">
-              PRIZE MECHANIC
+              ENTRY & SELECTION
             </span>
             <span className="text-xs font-mono font-bold text-slate-900 mt-0.5 block">
-              100% Merit Winner (60/40)
+              $5 Entry • 100% Public Votes
             </span>
           </div>
         </div>
 
-        {/* Action Buttons */}
+        {/* Action Buttons Based on Lifecycle */}
         <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
-          {!isClosed ? (
+          {challenge.status === 'open_entry' && (
             <>
               <button
-                onClick={() => onOpenSubmitModal(challenge)}
-                className="flex-1 py-2.5 px-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer shadow-xs"
+                onClick={() => onEnterChallenge(challenge)}
+                className="flex-1 py-2.5 px-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer shadow-xs"
               >
-                <span>[ SUBMIT WORK ]</span>
+                <span>[ ENTER CHALLENGE ($5) ]</span>
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
               </button>
 
               <button
-                onClick={() => onOpenBidModal(challenge)}
-                className="flex-1 py-2.5 px-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer shadow-xs"
+                onClick={() => onSponsorChallenge(challenge)}
+                className="py-2.5 px-3 bg-white hover:bg-orange-50 text-black font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer"
               >
-                <DollarSign className="w-3.5 h-3.5" />
-                <span>[ BOOST POOL +$2 ]</span>
+                <Flame className="w-3.5 h-3.5 text-[#e8622c] fill-[#e8622c]" />
+                <span>SPONSOR AUCTION</span>
               </button>
             </>
-          ) : (
+          )}
+
+          {challenge.status === 'submission_window' && (
+            <>
+              <button
+                onClick={() => onSubmitWork(challenge)}
+                className="flex-1 py-2.5 px-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer shadow-xs"
+              >
+                <span>[ SUBMIT PROJECT ]</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
+              <button
+                onClick={() => onSponsorChallenge(challenge)}
+                className="py-2.5 px-3 bg-white hover:bg-orange-50 text-black font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer"
+              >
+                <Flame className="w-3.5 h-3.5 text-[#e8622c] fill-[#e8622c]" />
+                <span>SPONSOR AUCTION</span>
+              </button>
+            </>
+          )}
+
+          {challenge.status === 'voting_window' && (
             <button
-              onClick={() => onViewDetails?.(challenge)}
+              onClick={() => onViewDetails(challenge)}
+              className="w-full py-2.5 px-3 bg-emerald-600 hover:bg-black text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer shadow-xs"
+            >
+              <Vote className="w-3.5 h-3.5" />
+              <span>[ VOTE ON SUBMISSIONS ]</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+
+          {challenge.status === 'closed' && (
+            <button
+              onClick={() => onViewDetails(challenge)}
               className="w-full py-2.5 px-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer"
             >
-              <span>[ VIEW WINNER & SUBMISSIONS ]</span>
+              <span>[ VIEW WINNERS & LEADERBOARD ]</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
 
-        {/* Structural Integrity Guarantee Note */}
+        {/* Disclaimer Note */}
         <p className="text-[10px] font-mono text-slate-500 text-center leading-tight">
-          ⚡ Fixed $2 pool expansion strictly funds the prize pool. Bids never impact vote scores or win odds.
+          ⚡ Pure merit ranking. Rewards are non-cash visibility placements (72h Top Developer Rail).
         </p>
 
       </div>
@@ -178,3 +220,5 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
     </div>
   );
 };
+
+export default ChallengeCard;

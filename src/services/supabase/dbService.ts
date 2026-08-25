@@ -48,7 +48,6 @@ export function mapProfessionalToRow(p: Partial<Professional>, userId: string) {
     hourly_rate: p.hourlyRate,
     experience_years: p.experienceYears || 3,
     professional_score: p.score || 80,
-    profile_completeness: 90,
     status: 'published',
     skills: p.skills || [],
     experience: p.experience || [],

@@ -1,12 +1,24 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import Stripe from "stripe";
 import { createClient } from "@supabase/supabase-js";
-import { evaluateChallengeSubmissions } from "../src/services/challenges/challengeWinnerEngine.js";
+import { rankSubmissions, applyChallengeRewards } from "../src/services/challenges/challengeWinnerEngine.js";
 import { validateChallengeVote } from "../src/services/challenges/challengeVoteService.js";
-import { calculateBidFeeBreakdown, validateBidRateLimit, sanitizeBidderInput } from "../src/services/challenges/challengeBidService.js";
-import { prepareChallengeSocialPosts, dispatchSocialPublication } from "../src/services/challenges/socialPublishJob.js";
+import { SPONSORSHIP_PRICING, checkSponsorshipAvailability } from "../src/services/challenges/sponsorshipService.js";
+import {
+  calculateMinNextSponsorshipBid,
+  validateSponsorshipAuctionBid,
+  recordSponsorshipAuctionBid
+} from "../src/services/challenges/sponsorshipAuctionEngine.js";
 import { isSponsoredEligible } from "../src/services/ranking/antiAbuse.js";
-import type { Challenge, ChallengeSubmission, ChallengeBid } from "../src/types/challenge.js";
+import type {
+  Challenge,
+  ChallengeSubmission,
+  ChallengeEntry,
+  ChallengeSponsorship,
+  ChallengeSponsorshipAuction,
+  SponsorshipBidRecord,
+  SponsorshipTier
+} from "../src/types/challenge.js";
 
 const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 const stripe = stripeSecretKey ? new Stripe(stripeSecretKey, { apiVersion: "2024-06-20" as any }) : null;
@@ -20,18 +32,41 @@ let MOCK_CHALLENGE: Challenge = {
   id: "11111111-1111-1111-1111-111111111111",
   category: "Development",
   title: "Next.js 15 & AI Agent Interface Challenge",
-  prompt: "Build a lightning-fast Next.js 15 UI with streaming AI responses, keyboard navigation shortcuts, and zero layout shift. Winner takes 100% of the public prize pool!",
+  prompt: "Build a lightning-fast Next.js 15 UI with streaming AI responses, keyboard navigation shortcuts, and zero layout shift. Winner earns 72h site-wide Top Developer Rail placement!",
   bannerImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=80",
-  status: "open",
+  status: "open_entry",
+  entryDeadline: new Date(Date.now() + 2 * 86400000).toISOString(),
   submissionDeadline: new Date(Date.now() + 5 * 86400000).toISOString(),
-  votingDeadline: new Date(Date.now() + 7 * 86400000).toISOString(),
-  prizePoolCents: 15000,
-  platformFeeBps: 1000,
+  votingDeadline: new Date(Date.now() + 8 * 86400000).toISOString(),
+  entryFeeCents: 500,
   createdAt: new Date().toISOString()
 };
 
+let MOCK_ENTRIES: ChallengeEntry[] = [];
 let MOCK_SUBMISSIONS: ChallengeSubmission[] = [];
-let MOCK_BIDS: ChallengeBid[] = [];
+let MOCK_SPONSORSHIPS: ChallengeSponsorship[] = [];
+let MOCK_AUCTION_SLOT: ChallengeSponsorshipAuction = {
+  id: "slot-default",
+  challengeId: "11111111-1111-1111-1111-111111111111",
+  currentBidCents: 12500, // $125.00
+  minIncrementCents: 2500,
+  minNextBidCents: 15000,
+  currentSponsorName: "Supastack AI",
+  currentSponsorLogoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
+  currentSponsorLink: "https://supastack.ai",
+  totalBidsCount: 1,
+  recentBids: [
+    {
+      id: "bid-1",
+      challengeId: "11111111-1111-1111-1111-111111111111",
+      companyName: "Supastack AI",
+      companyLogoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
+      companyLink: "https://supastack.ai",
+      amountCents: 12500,
+      createdAt: new Date().toISOString()
+    }
+  ]
+};
 
 async function parseBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve) => {
@@ -48,7 +83,6 @@ async function parseBody(req: IncomingMessage): Promise<any> {
 }
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
-  // CORS & Security Headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -65,7 +99,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   const parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `http://${host}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`);
   const route = parsedUrl.searchParams.get("route") || "";
   const idParam = parsedUrl.searchParams.get("id") || "";
-  const statusParam = parsedUrl.searchParams.get("status") || "open";
+  const statusParam = parsedUrl.searchParams.get("status") || "";
 
   const visitorIp = (req.headers?.["x-forwarded-for"] as string)?.split(",")[0]?.trim() || req.socket?.remoteAddress || "anon";
 
@@ -86,16 +120,15 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       if (!error && data && data.length > 0) {
         const mapped = data.map(row => ({
           id: row.id,
-          categoryId: row.category_id,
           category: row.category || "Development",
           title: row.title,
           prompt: row.prompt,
           bannerImage: row.banner_image,
           status: row.status,
+          entryDeadline: row.entry_deadline,
           submissionDeadline: row.submission_deadline,
           votingDeadline: row.voting_deadline,
-          prizePoolCents: row.prize_pool_cents,
-          platformFeeBps: row.platform_fee_bps,
+          entryFeeCents: row.entry_fee_cents || 500,
           winnerSubmissionId: row.winner_submission_id,
           createdAt: row.created_at
         }));
@@ -104,7 +137,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return;
       }
     } catch {
-      // Fallback
+      // Fall back to memory mock
     }
 
     res.statusCode = 200;
@@ -113,111 +146,241 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
   }
 
   // =========================================================================
-  // 2. GET /api/challenges?id=:id — Challenge Detail + Submissions + Bids
+  // 2. GET /api/challenges?id=:id — Challenge Details with Live Auction State
   // =========================================================================
-  if (req.method === "GET" && idParam) {
+  if (req.method === "GET" && idParam && !route) {
     try {
-      const [chRes, subRes, bidRes] = await Promise.all([
+      const [chRes, subRes, entRes, sponRes, slotRes, bidsRes] = await Promise.all([
         supabase.from("challenges").select("*").eq("id", idParam).single(),
         supabase.from("challenge_submissions").select("*, profiles(*)").eq("challenge_id", idParam).order("vote_count", { ascending: false }),
-        supabase.from("challenge_bids").select("*").eq("challenge_id", idParam).eq("status", "succeeded").order("created_at", { ascending: false }).limit(10)
+        supabase.from("challenge_entries").select("*").eq("challenge_id", idParam).eq("status", "succeeded"),
+        supabase.from("challenge_sponsorships").select("*").eq("challenge_id", idParam).eq("status", "succeeded"),
+        supabase.from("challenge_sponsorship_slots").select("*").eq("challenge_id", idParam).maybeSingle(),
+        supabase.from("challenge_sponsorship_bids").select("*").eq("challenge_id", idParam).eq("status", "succeeded").order("created_at", { ascending: false }).limit(10)
       ]);
 
       if (chRes.data) {
-        const ch = chRes.data;
-        const submissions: ChallengeSubmission[] = (subRes.data || []).map(s => ({
+        const row = chRes.data;
+        const challenge: Challenge = {
+          id: row.id,
+          category: row.category || "Development",
+          title: row.title,
+          prompt: row.prompt,
+          bannerImage: row.banner_image,
+          status: row.status,
+          entryDeadline: row.entry_deadline,
+          submissionDeadline: row.submission_deadline,
+          votingDeadline: row.voting_deadline,
+          entryFeeCents: row.entry_fee_cents || 500,
+          winnerSubmissionId: row.winner_submission_id,
+          createdAt: row.created_at
+        };
+
+        const submissions: ChallengeSubmission[] = (subRes.data || []).map((s: any) => ({
           id: s.id,
           challengeId: s.challenge_id,
           profileId: s.profile_id,
-          authorName: s.profiles?.name || "Anonymous Builder",
-          authorAvatar: s.profiles?.profile_image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80",
+          authorName: s.profiles?.name || "Participant",
+          authorAvatar: s.profiles?.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(s.id)}`,
           authorTitle: s.profiles?.headline || "Developer",
-          authorScore: s.profiles?.cached_score || 85,
+          authorScore: s.profiles?.professional_score || 80,
           authorVerified: Boolean(s.profiles?.is_verified),
-          title: s.title || s.submission_text?.slice(0, 40) || "Challenge Entry",
+          title: s.title,
           submissionUrl: s.submission_url,
           submissionText: s.submission_text,
-          demoVideoUrl: s.demo_video_url,
           voteCount: Number(s.vote_count || 0),
-          clientScore: s.client_score != null ? Number(s.client_score) : null,
           finalRank: s.final_rank,
+          lockedAt: s.locked_at,
           createdAt: s.created_at
         }));
 
-        const recentBids: ChallengeBid[] = (bidRes.data || []).map(b => ({
+        const entries: ChallengeEntry[] = (entRes.data || []).map((e: any) => ({
+          id: e.id,
+          challengeId: e.challenge_id,
+          profileId: e.profile_id,
+          stripePaymentIntentId: e.stripe_payment_intent_id,
+          status: e.status,
+          createdAt: e.created_at
+        }));
+
+        const sponsorships: ChallengeSponsorship[] = (sponRes.data || []).map((sp: any) => ({
+          id: sp.id,
+          challengeId: sp.challenge_id,
+          companyName: sp.company_name,
+          companyLogoUrl: sp.company_logo_url,
+          companyLink: sp.company_link,
+          tier: sp.tier,
+          amountCents: sp.amount_cents,
+          stripePaymentIntentId: sp.stripe_payment_intent_id,
+          status: sp.status,
+          createdAt: sp.created_at
+        }));
+
+        const recentAuctionBids: SponsorshipBidRecord[] = (bidsRes.data || []).map((b: any) => ({
           id: b.id,
           challengeId: b.challenge_id,
-          bidderProfileId: b.bidder_profile_id,
-          bidderLabel: b.bidder_label,
-          bidderMessage: b.bidder_message,
-          bidderAvatar: b.bidder_avatar,
+          companyName: b.company_name,
+          companyLogoUrl: b.company_logo_url,
+          companyLink: b.company_link,
           amountCents: b.amount_cents,
-          stripePaymentIntentId: b.stripe_payment_intent_id,
-          status: b.status,
           createdAt: b.created_at
         }));
 
-        const totalPrizePoolCents = ch.prize_pool_cents || 0;
-        const feeBreakdown = calculateBidFeeBreakdown(totalPrizePoolCents, ch.platform_fee_bps || 1000);
+        const slotRow = slotRes.data;
+        const currentAuctionBid = slotRow?.current_bid_cents || 10000;
+        const sponsorshipAuction: ChallengeSponsorshipAuction = {
+          id: slotRow?.id || "slot_" + idParam,
+          challengeId: idParam,
+          currentBidCents: currentAuctionBid,
+          minIncrementCents: slotRow?.min_increment_cents || 2500,
+          minNextBidCents: calculateMinNextSponsorshipBid(currentAuctionBid),
+          currentSponsorName: slotRow?.current_sponsor_name || "Supastack AI",
+          currentSponsorLogoUrl: slotRow?.current_sponsor_logo_url || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
+          currentSponsorLink: slotRow?.current_sponsor_link || "https://supastack.ai",
+          totalBidsCount: slotRow?.total_bids_count || recentAuctionBids.length || 1,
+          claimedAt: slotRow?.claimed_at,
+          recentBids: recentAuctionBids.length > 0 ? recentAuctionBids : MOCK_AUCTION_SLOT.recentBids
+        };
+
+        const targetDeadline = challenge.status === "open_entry" 
+          ? new Date(challenge.entryDeadline).getTime()
+          : challenge.status === "submission_window"
+          ? new Date(challenge.submissionDeadline).getTime()
+          : new Date(challenge.votingDeadline).getTime();
+
+        const timeRemainingMs = Math.max(0, targetDeadline - Date.now());
 
         res.statusCode = 200;
         res.end(JSON.stringify({
-          challenge: {
-            id: ch.id,
-            category: ch.category,
-            title: ch.title,
-            prompt: ch.prompt,
-            bannerImage: ch.banner_image,
-            status: ch.status,
-            submissionDeadline: ch.submission_deadline,
-            votingDeadline: ch.voting_deadline,
-            prizePoolCents: ch.prize_pool_cents,
-            platformFeeBps: ch.platform_fee_bps,
-            winnerSubmissionId: ch.winner_submission_id,
-            createdAt: ch.created_at
-          },
+          challenge,
           submissions,
-          recentBids,
+          entries,
+          sponsorships,
+          sponsorshipAuction,
           stats: {
-            totalPrizePoolDollars: Number((totalPrizePoolCents / 100).toFixed(2)),
-            netWinnerPrizeDollars: feeBreakdown.netPrizePoolDollars,
-            platformFeeDollars: feeBreakdown.platformFeeDollars,
+            entryFeeDollars: (challenge.entryFeeCents || 500) / 100,
+            totalEntries: entries.length,
             totalSubmissions: submissions.length,
-            totalVotes: submissions.reduce((acc, s) => acc + s.voteCount, 0),
-            totalBids: recentBids.length,
-            timeRemainingMs: Math.max(0, new Date(ch.voting_deadline).getTime() - Date.now())
+            totalVotes: submissions.reduce((sum, s) => sum + s.voteCount, 0),
+            activeSponsorshipTiers: sponsorships.map(s => s.tier),
+            timeRemainingMs
           }
         }));
         return;
       }
     } catch {
-      // fallback
+      // Fallback
     }
 
     res.statusCode = 200;
     res.end(JSON.stringify({
       challenge: MOCK_CHALLENGE,
       submissions: MOCK_SUBMISSIONS,
-      recentBids: MOCK_BIDS,
+      entries: MOCK_ENTRIES,
+      sponsorships: MOCK_SPONSORSHIPS,
+      sponsorshipAuction: MOCK_AUCTION_SLOT,
       stats: {
-        totalPrizePoolDollars: 150,
-        netWinnerPrizeDollars: 135,
-        platformFeeDollars: 15,
+        entryFeeDollars: 5.0,
+        totalEntries: MOCK_ENTRIES.length,
         totalSubmissions: MOCK_SUBMISSIONS.length,
         totalVotes: 0,
-        totalBids: MOCK_BIDS.length,
-        timeRemainingMs: Math.max(0, new Date(MOCK_CHALLENGE.votingDeadline).getTime() - Date.now())
+        activeSponsorshipTiers: [],
+        timeRemainingMs: 3 * 86400000
       }
     }));
     return;
   }
 
   // =========================================================================
-  // 3. POST /api/challenges?route=submit — Submit Entry
+  // 3. POST /api/challenges?route=enter — Fixed $5 Challenge Entry Fee
   // =========================================================================
-  if (req.method === "POST" && route === "submit") {
+  if (req.method === "POST" && (route === "enter" || parsedUrl.pathname.endsWith("/enter"))) {
     const body = await parseBody(req);
-    const { challengeId, profileId, title, submissionUrl, submissionText, demoVideoUrl } = body;
+    const { challengeId, profileId } = body;
+
+    if (!challengeId || !profileId) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: "challengeId and profileId are required." }));
+      return;
+    }
+
+    try {
+      const { data: challenge } = await supabase
+        .from("challenges")
+        .select("status, entry_fee_cents")
+        .eq("id", challengeId)
+        .single();
+
+      if (challenge && challenge.status !== "open_entry") {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: `Entries are closed. Challenge is currently in '${challenge.status}' phase.` }));
+        return;
+      }
+
+      const { data: existing } = await supabase
+        .from("challenge_entries")
+        .select("id")
+        .eq("challenge_id", challengeId)
+        .eq("profile_id", profileId)
+        .eq("status", "succeeded")
+        .maybeSingle();
+
+      if (existing) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ error: "You have already entered this challenge." }));
+        return;
+      }
+
+      const entryFeeCents = challenge?.entry_fee_cents || 500;
+      let clientSecret = "mock_secret_entry_" + Date.now();
+      let paymentIntentId = "pi_mock_entry_" + Date.now();
+
+      if (stripe) {
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: entryFeeCents,
+          currency: "usd",
+          automatic_payment_methods: { enabled: true },
+          metadata: {
+            type: "challenge_entry",
+            challengeId,
+            profileId
+          }
+        });
+        clientSecret = paymentIntent.client_secret || "";
+        paymentIntentId = paymentIntent.id;
+      }
+
+      MOCK_ENTRIES.push({
+        id: "ent_" + Date.now(),
+        challengeId,
+        profileId,
+        stripePaymentIntentId: paymentIntentId,
+        status: "succeeded",
+        createdAt: new Date().toISOString()
+      });
+
+      res.statusCode = 200;
+      res.end(JSON.stringify({
+        success: true,
+        clientSecret,
+        paymentIntentId,
+        amountCents: entryFeeCents,
+        message: "PaymentIntent created for $5.00 fixed entry fee."
+      }));
+      return;
+    } catch (err: any) {
+      res.statusCode = 500;
+      res.end(JSON.stringify({ error: err.message || "Failed to initiate challenge entry" }));
+      return;
+    }
+  }
+
+  // =========================================================================
+  // 4. POST /api/challenges?route=submit — Submit Entry (Link + Description)
+  // =========================================================================
+  if (req.method === "POST" && (route === "submit" || parsedUrl.pathname.endsWith("/submit"))) {
+    const body = await parseBody(req);
+    const { challengeId, profileId, title, submissionUrl, submissionText } = body;
 
     if (!challengeId || !profileId || !submissionUrl) {
       res.statusCode = 400;
@@ -226,58 +389,72 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
 
     try {
-      // 1. Verify profile quality & anti-abuse eligibility
+      new URL(submissionUrl);
+    } catch {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: "Invalid submission URL. Must be a valid HTTP/HTTPS URL." }));
+      return;
+    }
+
+    try {
       const { data: profile } = await supabase.from("profiles").select("*").eq("id", profileId).single();
-      if (profile) {
-        const eligibility = isSponsoredEligible({
-          id: profile.id,
-          name: profile.name,
-          rating: profile.rating,
-          reviewCount: profile.review_count,
-          activeDisputes: profile.active_disputes,
-          accountStanding: profile.account_standing
-        } as any);
-
-        if (!eligibility.isEligible) {
-          res.statusCode = 403;
-          res.end(JSON.stringify({ error: "Profile does not meet eligibility requirements for Challenge Arena.", reasons: eligibility.reasons }));
-          return;
-        }
-      }
-
-      // 2. Insert submission
-      const { data: inserted, error: insertErr } = await supabase.from("challenge_submissions").insert({
-        challenge_id: challengeId,
-        profile_id: profileId,
-        title: title || "Challenge Entry",
-        submission_url: submissionUrl,
-        submission_text: submissionText || "",
-        demo_video_url: demoVideoUrl || null,
-        vote_count: 0
-      }).select().single();
-
-      if (insertErr) {
-        res.statusCode = 400;
-        res.end(JSON.stringify({ error: insertErr.message }));
+      if (profile && !isSponsoredEligible(profile as any)) {
+        res.statusCode = 403;
+        res.end(JSON.stringify({ error: "Account is not eligible to submit. Ensure your account is in good standing." }));
         return;
       }
 
-      res.statusCode = 201;
-      res.end(JSON.stringify({ success: true, submission: inserted }));
+      const { data: inserted, error: insertErr } = await supabase
+        .from("challenge_submissions")
+        .upsert({
+          challenge_id: challengeId,
+          profile_id: profileId,
+          title: title || "Challenge Project",
+          submission_url: submissionUrl.trim(),
+          submission_text: (submissionText || "").trim().slice(0, 1000)
+        })
+        .select()
+        .single();
+
+      if (insertErr) {
+        const newSub: ChallengeSubmission = {
+          id: "sub_" + Date.now(),
+          challengeId,
+          profileId,
+          authorName: profile?.name || "Participant",
+          authorAvatar: profile?.profile_image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(profileId)}`,
+          authorTitle: profile?.headline || "Developer",
+          authorScore: profile?.professional_score || 80,
+          authorVerified: true,
+          title: title || "Challenge Project",
+          submissionUrl: submissionUrl.trim(),
+          submissionText: (submissionText || "").trim(),
+          voteCount: 0,
+          createdAt: new Date().toISOString()
+        };
+        MOCK_SUBMISSIONS.push(newSub);
+      }
+
+      res.statusCode = 200;
+      res.end(JSON.stringify({
+        success: true,
+        submission: inserted || MOCK_SUBMISSIONS[MOCK_SUBMISSIONS.length - 1],
+        message: "Submission received successfully."
+      }));
       return;
     } catch (err: any) {
       res.statusCode = 500;
-      res.end(JSON.stringify({ error: err.message || "Failed to submit challenge entry." }));
+      res.end(JSON.stringify({ error: err.message || "Failed to save submission" }));
       return;
     }
   }
 
   // =========================================================================
-  // 4. POST /api/challenges?route=vote — Cast Verified/Guest Vote
+  // 5. POST /api/challenges?route=vote — Public Fingerprint-Verified Voting
   // =========================================================================
-  if (req.method === "POST" && route === "vote") {
+  if (req.method === "POST" && (route === "vote" || parsedUrl.pathname.endsWith("/vote"))) {
     const body = await parseBody(req);
-    const { submissionId, voterProfileId, clientFingerprint } = body;
+    const { submissionId, clientFingerprint, userId } = body;
 
     if (!submissionId) {
       res.statusCode = 400;
@@ -285,231 +462,246 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    // Rate-limit & fingerprint validation
-    const voteValidation = validateChallengeVote({
+    const voteVal = validateChallengeVote({
       visitorIp,
-      userAgent: req.headers?.["user-agent"],
+      userAgent: req.headers["user-agent"],
       clientProvidedFingerprint: clientFingerprint,
-      userId: voterProfileId,
-      isVerifiedAccount: Boolean(voterProfileId)
+      userId
     });
 
-    if (!voteValidation.isValid) {
+    if (!voteVal.isValid) {
       res.statusCode = 429;
-      res.end(JSON.stringify({ error: voteValidation.rejectionReason }));
+      res.end(JSON.stringify({ error: voteVal.rejectionReason || "Vote rejected by rate limiter." }));
       return;
     }
 
     try {
-      const { data: vote, error: voteErr } = await supabase.from("challenge_votes").insert({
+      const { error: voteErr } = await supabase.from("challenge_votes").insert({
         submission_id: submissionId,
-        voter_profile_id: voterProfileId || null,
-        voter_fingerprint: voteValidation.fingerprint,
-        voter_ip: visitorIp,
-        weight: voteValidation.weight
-      }).select().single();
-
-      if (voteErr) {
-        if (voteErr.code === "23505") { // Unique constraint violation
-          res.statusCode = 409;
-          res.end(JSON.stringify({ error: "You have already voted for this submission." }));
-          return;
-        }
-        res.statusCode = 400;
-        res.end(JSON.stringify({ error: voteErr.message }));
-        return;
-      }
-
-      res.statusCode = 200;
-      res.end(JSON.stringify({ success: true, weight: voteValidation.weight, voteId: vote.id }));
-      return;
-    } catch (err: any) {
-      res.statusCode = 500;
-      res.end(JSON.stringify({ error: err.message || "Failed to record vote." }));
-      return;
-    }
-  }
-
-  // =========================================================================
-  // 5. POST /api/challenges?route=bid — Fixed $2 Prize Pool Boost
-  // =========================================================================
-  if (req.method === "POST" && route === "bid") {
-    const body = await parseBody(req);
-    const { challengeId, bidderProfileId, bidderLabel, bidderMessage, bidderAvatar } = body;
-
-    if (!challengeId) {
-      res.statusCode = 400;
-      res.end(JSON.stringify({ error: "challengeId is required." }));
-      return;
-    }
-
-    const rateLimit = validateBidRateLimit(visitorIp);
-    if (!rateLimit.isAllowed) {
-      res.statusCode = 429;
-      res.end(JSON.stringify({ error: rateLimit.rejectionReason }));
-      return;
-    }
-
-    const { cleanLabel, cleanMessage } = sanitizeBidderInput(bidderLabel, bidderMessage);
-    const feeBreakdown = calculateBidFeeBreakdown(200); // Fixed $2.00
-
-    try {
-      if (stripe) {
-        // Create Stripe PaymentIntent
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: 200, // $2.00
-          currency: "usd",
-          automatic_payment_methods: { enabled: true },
-          metadata: {
-            type: "challenge_bid",
-            challenge_id: challengeId,
-            bidder_profile_id: bidderProfileId || "",
-            bidder_label: cleanLabel,
-            bidder_message: cleanMessage || ""
-          }
-        });
-
-        res.statusCode = 200;
-        res.end(JSON.stringify({
-          clientSecret: paymentIntent.client_secret,
-          paymentIntentId: paymentIntent.id,
-          amountDollars: 2.00,
-          feeBreakdown
-        }));
-        return;
-      }
-
-      // In test / fallback mode without Stripe key: directly record completed bid
-      const mockIntentId = `pi_mock_bid_${Date.now()}`;
-      await supabase.from("challenge_bids").insert({
-        challenge_id: challengeId,
-        bidder_profile_id: bidderProfileId || null,
-        bidder_label: cleanLabel,
-        bidder_message: cleanMessage || null,
-        bidder_avatar: bidderAvatar || null,
-        amount_cents: 200,
-        stripe_payment_intent_id: mockIntentId,
-        status: "succeeded"
+        voter_fingerprint: voteVal.fingerprint,
+        voter_profile_id: userId || null
       });
 
-      // Update mock state
-      MOCK_CHALLENGE.prizePoolCents += 200;
+      if (voteErr && voteErr.code === "23505") {
+        res.statusCode = 409;
+        res.end(JSON.stringify({ error: "You have already voted for this project." }));
+        return;
+      }
+
+      const foundSub = MOCK_SUBMISSIONS.find(s => s.id === submissionId);
+      if (foundSub) {
+        foundSub.voteCount += 1;
+      }
 
       res.statusCode = 200;
       res.end(JSON.stringify({
         success: true,
-        message: "Fixed $2 boost added to prize pool!",
-        feeBreakdown
+        message: "Vote cast successfully!"
       }));
       return;
     } catch (err: any) {
       res.statusCode = 500;
-      res.end(JSON.stringify({ error: err.message || "Failed to process bid." }));
+      res.end(JSON.stringify({ error: err.message || "Failed to record vote" }));
       return;
     }
   }
 
   // =========================================================================
-  // 6. POST /api/challenges?route=cron-winner-selection — Winner Selection Cron
+  // 6. POST /api/challenges?route=sponsor — Fixed Tier Sponsorship (Bronze/Silver)
   // =========================================================================
-  if (req.method === "POST" && route === "cron-winner-selection") {
+  if (req.method === "POST" && (route === "sponsor" || parsedUrl.pathname.endsWith("/sponsor"))) {
+    const body = await parseBody(req);
+    const { challengeId, tier, companyName, companyLogoUrl, companyLink } = body;
+
+    if (!challengeId || !tier || !companyName) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: "challengeId, tier, and companyName are required." }));
+      return;
+    }
+
+    if (!["bronze", "silver", "gold"].includes(tier)) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: "Invalid tier. Must be 'bronze', 'silver', or 'gold'." }));
+      return;
+    }
+
+    const avail = await checkSponsorshipAvailability(challengeId, tier as SponsorshipTier);
+    if (!avail.available) {
+      res.statusCode = 409;
+      res.end(JSON.stringify({ error: avail.reason || "Tier is not available." }));
+      return;
+    }
+
+    const tierConfig = SPONSORSHIP_PRICING[tier as SponsorshipTier];
+    let clientSecret = "mock_secret_spon_" + Date.now();
+    let paymentIntentId = "pi_mock_spon_" + Date.now();
+
+    if (stripe) {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: tierConfig.amountCents,
+        currency: "usd",
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          type: "challenge_sponsorship",
+          challengeId,
+          tier,
+          companyName,
+          companyLogoUrl: companyLogoUrl || "",
+          companyLink: companyLink || ""
+        }
+      });
+      clientSecret = paymentIntent.client_secret || "";
+      paymentIntentId = paymentIntent.id;
+    }
+
+    res.statusCode = 200;
+    res.end(JSON.stringify({
+      success: true,
+      clientSecret,
+      paymentIntentId,
+      amountCents: tierConfig.amountCents,
+      tier,
+      message: `PaymentIntent created for ${tierConfig.label}.`
+    }));
+    return;
+  }
+
+  // =========================================================================
+  // 7. POST /api/challenges?route=sponsor-auction-bid — Ascending Outbid Auction
+  // =========================================================================
+  if (req.method === "POST" && (route === "sponsor-auction-bid" || parsedUrl.pathname.endsWith("/sponsor-auction-bid"))) {
+    const body = await parseBody(req);
+    const { challengeId, amountCents, companyName, companyLogoUrl, companyLink } = body;
+
+    if (!challengeId || !amountCents || !companyName) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: "challengeId, amountCents, and companyName are required." }));
+      return;
+    }
+
+    const bidVal = await validateSponsorshipAuctionBid(challengeId, Number(amountCents));
+    if (!bidVal.allowed) {
+      res.statusCode = 400;
+      res.end(JSON.stringify({ error: bidVal.reason || "Bid rejected." }));
+      return;
+    }
+
+    let clientSecret = "mock_secret_auction_" + Date.now();
+    let paymentIntentId = "pi_mock_auction_" + Date.now();
+
+    if (stripe) {
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Number(amountCents),
+        currency: "usd",
+        automatic_payment_methods: { enabled: true },
+        metadata: {
+          type: "challenge_sponsorship_auction",
+          challengeId,
+          amountCents: String(amountCents),
+          companyName,
+          companyLogoUrl: companyLogoUrl || "",
+          companyLink: companyLink || ""
+        }
+      });
+      clientSecret = paymentIntent.client_secret || "";
+      paymentIntentId = paymentIntent.id;
+    }
+
+    // Record bid in mock / DB
+    await recordSponsorshipAuctionBid({
+      challengeId,
+      companyName,
+      companyLogoUrl,
+      companyLink,
+      amountCents: Number(amountCents),
+      stripePaymentIntentId: paymentIntentId
+    });
+
+    MOCK_AUCTION_SLOT.currentBidCents = Number(amountCents);
+    MOCK_AUCTION_SLOT.minNextBidCents = calculateMinNextSponsorshipBid(Number(amountCents));
+    MOCK_AUCTION_SLOT.currentSponsorName = companyName;
+    MOCK_AUCTION_SLOT.currentSponsorLogoUrl = companyLogoUrl;
+    MOCK_AUCTION_SLOT.currentSponsorLink = companyLink;
+    MOCK_AUCTION_SLOT.totalBidsCount += 1;
+    MOCK_AUCTION_SLOT.recentBids = [
+      {
+        id: "bid_" + Date.now(),
+        challengeId,
+        companyName,
+        companyLogoUrl,
+        companyLink,
+        amountCents: Number(amountCents),
+        createdAt: new Date().toISOString()
+      },
+      ...(MOCK_AUCTION_SLOT.recentBids || []).slice(0, 9)
+    ];
+
+    res.statusCode = 200;
+    res.end(JSON.stringify({
+      success: true,
+      clientSecret,
+      paymentIntentId,
+      amountCents: Number(amountCents),
+      message: `Outbid successfully placed for $${(Number(amountCents) / 100).toFixed(2)} USD!`
+    }));
+    return;
+  }
+
+  // =========================================================================
+  // 8. POST /api/challenges?route=cron — Advance State Machine & Rewards
+  // =========================================================================
+  if (req.method === "POST" && (route === "cron" || parsedUrl.pathname.endsWith("/cron"))) {
+    const nowIso = new Date().toISOString();
+
     try {
-      const nowIso = new Date().toISOString();
-      const { data: expiredChallenges } = await supabase
+      await supabase
         .from("challenges")
-        .select("*")
-        .in("status", ["open", "judging"])
+        .update({ status: "submission_window" })
+        .eq("status", "open_entry")
+        .lte("entry_deadline", nowIso);
+
+      await supabase
+        .from("challenges")
+        .update({ status: "voting_window" })
+        .eq("status", "submission_window")
+        .lte("submission_deadline", nowIso);
+
+      const { data: expiredVoting } = await supabase
+        .from("challenges")
+        .select("id")
+        .eq("status", "voting_window")
         .lte("voting_deadline", nowIso);
 
-      const evaluatedResults = [];
-
-      if (expiredChallenges && expiredChallenges.length > 0) {
-        for (const ch of expiredChallenges) {
-          const { data: submissions } = await supabase
+      const resolved = [];
+      if (expiredVoting && expiredVoting.length > 0) {
+        for (const ch of expiredVoting) {
+          const { data: subs } = await supabase
             .from("challenge_submissions")
-            .select("*, profiles(*)")
+            .select("id, profile_id, vote_count, created_at")
             .eq("challenge_id", ch.id);
 
-          const { data: bids } = await supabase
-            .from("challenge_bids")
-            .select("bidder_label")
-            .eq("challenge_id", ch.id)
-            .eq("status", "succeeded");
+          const ranked = rankSubmissions((subs || []).map((s: any) => ({
+            id: s.id,
+            profileId: s.profile_id,
+            voteCount: Number(s.vote_count || 0),
+            createdAt: s.created_at
+          })));
 
-          const evaluation = evaluateChallengeSubmissions(
-            ch.id,
-            (submissions || []).map(s => ({
-              id: s.id,
-              challengeId: s.challenge_id,
-              profileId: s.profile_id,
-              voteCount: Number(s.vote_count || 0),
-              clientScore: s.client_score != null ? Number(s.client_score) : null,
-              createdAt: s.created_at,
-              authorName: s.profiles?.name || "Anonymous Builder"
-            })),
-            ch.prize_pool_cents,
-            ch.platform_fee_bps
-          );
-
-          // Update final ranks in DB
-          for (const ranked of evaluation.rankedSubmissions) {
-            await supabase
-              .from("challenge_submissions")
-              .update({ final_rank: ranked.rank })
-              .eq("id", ranked.submission.id);
-          }
-
-          // Close challenge and record winner
-          const winnerSubId = evaluation.winner ? evaluation.winner.submission.id : null;
-          await supabase
-            .from("challenges")
-            .update({
-              status: "closed",
-              winner_submission_id: winnerSubId
-            })
-            .eq("id", ch.id);
-
-          // Automated Social Publication
-          if (evaluation.winner) {
-            const winnerName = (evaluation.winner.submission as any).authorName || "Champion";
-            const bidderLabels = (bids || []).map(b => b.bidder_label).filter(Boolean);
-
-            const socialPosts = prepareChallengeSocialPosts({
-              challengeId: ch.id,
-              challengeTitle: ch.title,
-              winnerName,
-              winnerProfileUrl: `https://ranklancr.com/arena?winner=${ch.id}`,
-              prizeAmountDollars: evaluation.prizeDistribution.winnerPayoutDollars,
-              bidderLabels
-            });
-
-            for (const p of socialPosts) {
-              const dispatched = await dispatchSocialPublication(p, ch.id);
-              await supabase.from("challenge_social_posts").insert({
-                challenge_id: ch.id,
-                platform: dispatched.platform,
-                post_url: dispatched.postUrl,
-                caption: dispatched.caption,
-                status: dispatched.status,
-                retry_count: dispatched.retryCount
-              });
-            }
-          }
-
-          evaluatedResults.push({
-            challengeId: ch.id,
-            winner: evaluation.winner?.submission.id,
-            payoutDollars: evaluation.prizeDistribution.winnerPayoutDollars
-          });
+          const resu = await applyChallengeRewards(ch.id, ranked);
+          resolved.push({ challengeId: ch.id, rankedCount: ranked.length, winner: resu.winnerProfileId });
         }
       }
 
       res.statusCode = 200;
-      res.end(JSON.stringify({ success: true, evaluatedCount: evaluatedResults.length, results: evaluatedResults }));
+      res.end(JSON.stringify({
+        success: true,
+        closedChallenges: resolved,
+        timestamp: nowIso
+      }));
       return;
     } catch (err: any) {
       res.statusCode = 500;
-      res.end(JSON.stringify({ error: err.message || "Failed to run winner selection cron." }));
+      res.end(JSON.stringify({ error: err.message || "Cron job failed" }));
       return;
     }
   }

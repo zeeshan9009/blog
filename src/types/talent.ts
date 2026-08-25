@@ -120,7 +120,6 @@ export interface Professional {
   rating: number; // e.g. 4.9
   reviewCount: number;
   skills: string[];
-  detailedSkills?: Skill[];
   experience: ExperienceItem[];
   portfolio: PortfolioItem[];
   reviews: Review[];

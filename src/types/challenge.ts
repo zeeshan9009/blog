@@ -1,17 +1,18 @@
-export type ChallengeStatus = 'open' | 'judging' | 'closed';
+export type ChallengeStatus = 'draft' | 'open_entry' | 'submission_window' | 'voting_window' | 'closed';
+
+export type SponsorshipTier = 'bronze' | 'silver' | 'gold';
 
 export interface Challenge {
   id: string;
-  categoryId?: string | null;
-  category: string;
   title: string;
   prompt: string;
+  category: string;
   bannerImage?: string;
   status: ChallengeStatus;
+  entryDeadline: string;
   submissionDeadline: string;
   votingDeadline: string;
-  prizePoolCents: number;
-  platformFeeBps: number;
+  entryFeeCents: number; // 500 = $5.00
   winnerSubmissionId?: string | null;
   winner?: {
     submissionId: string;
@@ -19,10 +20,20 @@ export interface Challenge {
     name: string;
     avatar: string;
     title: string;
-    prizeAmountDollars: number;
   } | null;
   submissionCount?: number;
-  bidCount?: number;
+  entryCount?: number;
+  voteCount?: number;
+  sponsorships?: ChallengeSponsorship[];
+  createdAt: string;
+}
+
+export interface ChallengeEntry {
+  id: string;
+  challengeId: string;
+  profileId: string;
+  stripePaymentIntentId: string;
+  status: 'succeeded' | 'failed';
   createdAt: string;
 }
 
@@ -35,36 +46,85 @@ export interface ChallengeSubmission {
   authorTitle: string;
   authorScore: number;
   authorVerified: boolean;
-  title: string;
+  title?: string;
   submissionUrl: string;
   submissionText: string;
-  demoVideoUrl?: string;
   voteCount: number;
-  clientScore?: number | null;
   finalRank?: number | null;
-  finalScore?: number | null;
+  lockedAt?: string;
   createdAt: string;
 }
 
 export interface ChallengeVote {
   id: string;
   submissionId: string;
-  voterProfileId?: string | null;
   voterFingerprint: string;
-  weight: number;
+  voterProfileId?: string | null;
   createdAt: string;
 }
 
-export interface ChallengeBid {
+export interface ChallengeSponsorship {
   id: string;
   challengeId: string;
-  bidderProfileId?: string | null;
-  bidderLabel: string;
-  bidderMessage?: string;
-  bidderAvatar?: string;
-  amountCents: number;
+  companyName: string;
+  companyLogoUrl?: string;
+  companyLink?: string;
+  tier: SponsorshipTier;
+  amountCents: number; // 5000, 15000, 30000
   stripePaymentIntentId: string;
   status: 'succeeded' | 'failed';
+  createdAt: string;
+}
+
+export interface ChallengeSponsorshipAuction {
+  id: string;
+  challengeId: string;
+  currentBidCents: number;
+  minIncrementCents: number;
+  minNextBidCents: number;
+  currentSponsorName?: string;
+  currentSponsorLogoUrl?: string;
+  currentSponsorLink?: string;
+  totalBidsCount: number;
+  claimedAt?: string;
+  recentBids?: SponsorshipBidRecord[];
+}
+
+export interface SponsorshipBidRecord {
+  id: string;
+  challengeId: string;
+  companyName: string;
+  companyLogoUrl?: string;
+  companyLink?: string;
+  amountCents: number;
+  createdAt: string;
+}
+
+export interface TopDeveloperEntry {
+  id: string;
+  profileId: string;
+  name: string;
+  avatar: string;
+  title: string;
+  challengeId: string;
+  challengeTitle: string;
+  rankPosition: number; // 1, 2, or 3
+  expiresAt: string;
+  coSponsor?: {
+    companyName: string;
+    companyLogoUrl?: string;
+    companyLink?: string;
+    tier: 'gold';
+  } | null;
+  createdAt: string;
+}
+
+export interface ChallengeBadge {
+  id: string;
+  profileId: string;
+  challengeId: string;
+  challengeTitle: string;
+  badgeType: 'challenge_winner' | 'challenge_runner_up';
   createdAt: string;
 }
 
@@ -82,14 +142,16 @@ export interface ChallengeSocialPost {
 export interface ChallengeDetailResponse {
   challenge: Challenge;
   submissions: ChallengeSubmission[];
-  recentBids: ChallengeBid[];
+  entries: ChallengeEntry[];
+  sponsorships: ChallengeSponsorship[];
+  userHasEntered?: boolean;
+  userSubmission?: ChallengeSubmission | null;
   stats: {
-    totalPrizePoolDollars: number;
-    netWinnerPrizeDollars: number;
-    platformFeeDollars: number;
+    entryFeeDollars: number;
+    totalEntries: number;
     totalSubmissions: number;
     totalVotes: number;
-    totalBids: number;
+    activeSponsorshipTiers: SponsorshipTier[];
     timeRemainingMs: number;
   };
 }

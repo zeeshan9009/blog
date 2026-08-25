@@ -137,3 +137,30 @@ export async function dispatchSocialPublication(
     postedAt: new Date().toISOString()
   };
 }
+
+/**
+ * Triggers automated social publication queue for challenge winner
+ */
+export async function triggerSocialPublish(
+  challengeId: string,
+  winnerSubmissionId: string
+): Promise<boolean> {
+  try {
+    const postPayload = prepareChallengeSocialPosts({
+      challengeId,
+      challengeTitle: 'Community Skill Arena',
+      winnerName: 'Challenge Champion',
+      winnerProfileUrl: `https://ranklancr.com/arena?challenge=${challengeId}`,
+      prizeAmountDollars: 0,
+      bidderLabels: ['RankLancr Arena']
+    });
+
+    for (const post of postPayload) {
+      await dispatchSocialPublication(post, challengeId);
+    }
+    return true;
+  } catch (err) {
+    console.warn('triggerSocialPublish warning:', err);
+    return false;
+  }
+}

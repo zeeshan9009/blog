@@ -1,23 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Flame, Sparkles, Heart, ThumbsUp, ShieldCheck, DollarSign, Award, ExternalLink, Video, Clock, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Trophy, Sparkles, Heart, ShieldCheck, Building2, Vote, Clock, ArrowLeft, CheckCircle2, Lock, ExternalLink, Loader2, Award, Flame } from 'lucide-react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
+import { TopDeveloperRail } from '../components/challenges/TopDeveloperRail';
 import { ChallengeSubmitModal } from '../components/challenges/ChallengeSubmitModal';
-import { ChallengeBidModal } from '../components/challenges/ChallengeBidModal';
-import { calculateBidFeeBreakdown } from '../services/challenges/challengeBidService';
-import type { Challenge, ChallengeSubmission, ChallengeBid, ChallengeDetailResponse } from '../types/challenge';
+import { SponsorChallengeModal } from '../components/challenges/SponsorChallengeModal';
+import { useAuth } from '../context/AuthContext';
+import { useTalent } from '../context/TalentContext';
+import type { Challenge, ChallengeSubmission, ChallengeSponsorship } from '../types/challenge';
 import toast from 'react-hot-toast';
 
 export const ChallengeArenaPage: React.FC = () => {
   const [searchParams] = useSearchParams();
-  const challengeIdParam = searchParams.get('id');
+  const challengeIdParam = searchParams.get('challenge') || searchParams.get('id');
+  const actionParam = searchParams.get('action');
+
+  const { user } = useAuth();
+  const { professionals } = useTalent();
+  const userProfile = professionals.find(p => p.userId === user?.id) || professionals[0];
 
   const [activeChallenge, setActiveChallenge] = useState<Challenge | null>(null);
   const [submissions, setSubmissions] = useState<ChallengeSubmission[]>([]);
-  const [recentBids, setRecentBids] = useState<ChallengeBid[]>([]);
+  const [sponsorships, setSponsorships] = useState<ChallengeSponsorship[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // User state
+  const [hasEntered, setHasEntered] = useState(false);
+  const [isEntering, setIsEntering] = useState(false);
 
   // Voting state
   const [votedSubmissionIds, setVotedSubmissionIds] = useState<string[]>([]);
@@ -25,14 +36,13 @@ export const ChallengeArenaPage: React.FC = () => {
 
   // Modals
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
-  const [isBidModalOpen, setIsBidModalOpen] = useState(false);
+  const [isSponsorModalOpen, setIsSponsorModalOpen] = useState(false);
 
   const fetchChallengeDetail = async () => {
     try {
-      // 1. If ID provided fetch it, otherwise fetch the default open challenge
       let targetId = challengeIdParam;
       if (!targetId) {
-        const listRes = await fetch('/api/challenges?status=open');
+        const listRes = await fetch('/api/challenges');
         if (listRes.ok) {
           const listData = await listRes.json();
           if (listData.challenges && listData.challenges.length > 0) {
@@ -43,11 +53,16 @@ export const ChallengeArenaPage: React.FC = () => {
 
       const res = await fetch(`/api/challenges?id=${targetId || '11111111-1111-1111-1111-111111111111'}`);
       if (res.ok) {
-        const data: ChallengeDetailResponse = await res.json();
+        const data = await res.json();
         setActiveChallenge(data.challenge);
-        setSubmissions(data.submissions);
-        setRecentBids(data.recentBids);
+        setSubmissions(data.submissions || []);
+        setSponsorships(data.sponsorships || []);
         setStats(data.stats);
+
+        if (userProfile && data.entries) {
+          const entered = data.entries.some((e: any) => e.profileId === userProfile.id);
+          setHasEntered(entered);
+        }
       }
     } catch (e) {
       console.warn('Failed to load challenge details:', e);
@@ -60,6 +75,52 @@ export const ChallengeArenaPage: React.FC = () => {
     fetchChallengeDetail();
   }, [challengeIdParam]);
 
+  useEffect(() => {
+    if (actionParam === 'enter' && activeChallenge?.status === 'open_entry') {
+      handleEnterChallenge();
+    }
+  }, [actionParam, activeChallenge]);
+
+  // Handle $5 Entry Fee
+  const handleEnterChallenge = async () => {
+    if (!activeChallenge) return;
+    if (!userProfile) {
+      toast.error('Please create or sign into your profile to enter.');
+      return;
+    }
+
+    if (hasEntered) {
+      toast.success('You have already entered this challenge!');
+      return;
+    }
+
+    setIsEntering(true);
+    try {
+      const res = await fetch('/api/challenges?route=enter', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          challengeId: activeChallenge.id,
+          profileId: userProfile.id
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        throw new Error(data.error || 'Failed to enter challenge.');
+      }
+
+      setHasEntered(true);
+      toast.success('Successfully entered challenge ($5.00 fixed entry)! You can submit your project when the submission window opens.');
+      fetchChallengeDetail();
+    } catch (err: any) {
+      toast.error(err.message || 'Error entering challenge.');
+    } finally {
+      setIsEntering(false);
+    }
+  };
+
+  // Handle Voting
   const handleVote = async (submission: ChallengeSubmission) => {
     if (votedSubmissionIds.includes(submission.id)) {
       toast.error('You have already voted for this entry.');
@@ -73,7 +134,8 @@ export const ChallengeArenaPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           submissionId: submission.id,
-          clientFingerprint: `fp_${Date.now().toString(36)}`
+          clientFingerprint: `fp_${Date.now().toString(36)}`,
+          userId: user?.id
         })
       });
 
@@ -83,8 +145,10 @@ export const ChallengeArenaPage: React.FC = () => {
       }
 
       setVotedSubmissionIds(prev => [...prev, submission.id]);
-      setSubmissions(prev => prev.map(s => s.id === submission.id ? { ...s, voteCount: s.voteCount + (data.weight || 1) } : s));
-      toast.success(`Vote recorded (+${data.weight || 1.0} weight)!`);
+      setSubmissions(prev =>
+        prev.map(s => (s.id === submission.id ? { ...s, voteCount: s.voteCount + 1 } : s))
+      );
+      toast.success('Vote cast successfully!');
     } catch (err: any) {
       toast.error(err.message || 'Error recording vote.');
     } finally {
@@ -92,8 +156,10 @@ export const ChallengeArenaPage: React.FC = () => {
     }
   };
 
-  const prizeDollars = activeChallenge ? (activeChallenge.prizePoolCents / 100).toLocaleString('en-US') : '0';
-  const feeBreakdown = calculateBidFeeBreakdown(activeChallenge?.prizePoolCents || 0);
+  const isEntryOpen = activeChallenge?.status === 'open_entry';
+  const isSubmissionOpen = activeChallenge?.status === 'submission_window';
+  const isVotingOpen = activeChallenge?.status === 'voting_window';
+  const isClosed = activeChallenge?.status === 'closed';
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-slate-900 font-sans flex flex-col justify-between selection:bg-[#e8622c] selection:text-white">
@@ -101,286 +167,207 @@ export const ChallengeArenaPage: React.FC = () => {
 
       <main className="flex-1 pb-24">
         
+        {/* Top Developer Rail Showcase */}
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-8">
+          <TopDeveloperRail />
+        </div>
+
         {/* Hero Header */}
-        <div className="bg-black text-white border-b-4 border-[#e8622c] py-12 px-4 sm:px-8">
+        <div className="bg-black text-white border-y-2 border-black py-12 px-4 sm:px-8 mt-8">
           <div className="max-w-[1440px] mx-auto space-y-4">
             <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider">
               <Trophy className="w-4 h-4 fill-white" />
-              <span>OFFICIAL COMPETITION // FIXED $2 BID PRIZE POOL</span>
+              <span>COMMUNITY SKILL ARENA // $5 ENTRY • ZERO CASH PRIZES</span>
             </div>
 
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
               <div className="space-y-2 max-w-3xl">
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-tight">
-                  CHALLENGE ARENA: <span className="text-amber-400">MERIT LEADERBOARD</span>
+                  CHALLENGE ARENA: <span className="text-[#e8622c]">MERIT VISIBILITY.</span>
                 </h1>
                 <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed">
-                  Compete in weekly prompts evaluated 100% on merit (60% community vote + 40% expert judge score). Bidding $2 expands the shared prize pool for builders without altering win odds.
+                  Compete in weekly skill prompts for a fixed $5 entry fee. Winners and top 3 receive 72-hour site-wide Top Developer Rail placement and permanent profile accolades. Pure merit, 100% public votes.
                 </p>
               </div>
 
-              {/* Prize Pool Hero Widget */}
-              <div className="bg-slate-900 border-2 border-amber-400 p-4 sm:p-5 shadow-[4px_4px_0px_0px_#f59e0b] min-w-[280px] shrink-0 font-mono">
+              {/* Reward Highlights Card */}
+              <div className="bg-slate-900 border-2 border-[#e8622c] p-4 sm:p-5 shadow-[4px_4px_0px_0px_#e8622c] min-w-[280px] shrink-0 font-mono">
                 <span className="text-[10px] text-slate-400 uppercase tracking-widest block font-bold">
-                  TOTAL SHARED PRIZE POOL
+                  FLAGSHIP REWARD
                 </span>
-                <div className="text-3xl sm:text-4xl font-black text-amber-400 leading-tight">
-                  ${prizeDollars}
+                <div className="text-2xl sm:text-3xl font-black text-amber-400 leading-tight">
+                  72h Rail Placement
                 </div>
                 <div className="text-[11px] text-slate-400 mt-1 flex justify-between">
-                  <span>Net Winner Take:</span>
-                  <span className="text-emerald-400 font-bold">${feeBreakdown.netPrizePoolDollars.toFixed(2)}</span>
+                  <span>Entry Fee:</span>
+                  <span className="text-white font-bold">$5.00 USD</span>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Challenge Action Toolbar */}
+        {/* Challenge Action Toolbar & Details */}
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-8 space-y-8">
           
           {activeChallenge && (
             <div className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2">
+              <div className="space-y-2 max-w-2xl">
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
-                    ACTIVE CHALLENGE
+                  <span className="px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
+                    PHASE: {activeChallenge.status.replace('_', ' ').toUpperCase()}
                   </span>
                   <span className="text-xs font-mono font-bold text-slate-500 uppercase">
                     Category: {activeChallenge.category}
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-black">{activeChallenge.title}</h2>
-                <p className="text-xs sm:text-sm text-slate-700 max-w-2xl">{activeChallenge.prompt}</p>
+
+                <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
+                  {activeChallenge.title}
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-600 font-medium">
+                  {activeChallenge.prompt}
+                </p>
               </div>
 
-              <div className="flex flex-wrap items-center gap-3 shrink-0">
-                <button
-                  onClick={() => setIsSubmitModalOpen(true)}
-                  className="px-5 py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-                >
-                  <Sparkles className="w-4 h-4 text-amber-300" />
-                  <span>[ SUBMIT ENTRY ]</span>
-                </button>
+              {/* Action Buttons */}
+              <div className="flex flex-wrap items-center gap-3">
+                {isEntryOpen && (
+                  <button
+                    onClick={handleEnterChallenge}
+                    disabled={isEntering || hasEntered}
+                    className="py-3 px-5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
+                  >
+                    {isEntering ? (
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                    ) : hasEntered ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                        <span>[ ENTERED ($5 PAID) ]</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 text-amber-300" />
+                        <span>[ ENTER CHALLENGE — $5 ]</span>
+                      </>
+                    )}
+                  </button>
+                )}
+
+                {isSubmissionOpen && (
+                  <button
+                    onClick={() => setIsSubmitModalOpen(true)}
+                    className="py-3 px-5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                  >
+                    <Sparkles className="w-4 h-4 text-amber-300" />
+                    <span>[ SUBMIT WORK ]</span>
+                  </button>
+                )}
 
                 <button
-                  onClick={() => setIsBidModalOpen(true)}
-                  className="px-5 py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                  onClick={() => setIsSponsorModalOpen(true)}
+                  className="py-3 px-4 bg-white hover:bg-orange-50 text-black font-mono text-xs font-bold transition flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
                 >
-                  <DollarSign className="w-4 h-4 text-amber-400" />
-                  <span>[ BOOST POOL +$2 ]</span>
+                  <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c]" />
+                  <span>SPONSOR AUCTION / OUTBID</span>
                 </button>
               </div>
             </div>
           )}
 
-          {/* Submissions Section */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            {/* Left: Submissions Feed */}
-            <div className="lg:col-span-2 space-y-4">
-              <div className="flex items-center justify-between border-b-2 border-black pb-2">
-                <h3 className="font-mono font-black text-sm uppercase tracking-wider text-black flex items-center gap-2">
-                  <Award className="w-4 h-4 text-[#e8622c]" />
-                  <span>SUBMISSIONS LEADERBOARD ({submissions.length})</span>
+          {/* Submissions & Voting Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between border-b-2 border-black pb-3">
+              <div className="flex items-center gap-2">
+                <Vote className="w-5 h-5 text-[#e8622c]" />
+                <h3 className="text-xl font-black text-black tracking-tight">
+                  {isClosed ? 'Final Submissions & Rankings' : 'Community Submissions & Voting'}
                 </h3>
-                <span className="text-[11px] font-mono text-slate-500">
-                  RANKED BY MERIT (60% VOTES + 40% JUDGE SCORE)
-                </span>
               </div>
+              <span className="text-xs font-mono font-bold text-slate-500">
+                {submissions.length} Projects Submitted
+              </span>
+            </div>
 
-              {submissions.length > 0 ? (
-                <div className="space-y-4">
-                  {submissions.map((sub, idx) => {
-                    const hasVoted = votedSubmissionIds.includes(sub.id);
+            {submissions.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {submissions.map((sub, idx) => {
+                  const hasVotedThis = votedSubmissionIds.includes(sub.id);
+                  const isWinner = sub.finalRank === 1;
 
-                    return (
-                      <div
-                        key={sub.id}
-                        className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4"
-                      >
-                        {/* Header: Rank + Author */}
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="flex items-center gap-3">
-                            <span className={`w-8 h-8 flex items-center justify-center font-mono font-black text-sm border-2 border-black ${
-                              idx === 0 ? 'bg-amber-400 text-black' : idx === 1 ? 'bg-slate-200 text-black' : idx === 2 ? 'bg-orange-200 text-black' : 'bg-slate-50 text-slate-700'
-                            }`}>
-                              #{idx + 1}
-                            </span>
+                  return (
+                    <div
+                      key={sub.id}
+                      className={`bg-white border-2 border-black p-5 flex flex-col justify-between transition-all ${
+                        isWinner
+                          ? 'shadow-[6px_6px_0px_0px_#e8622c]'
+                          : 'shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-0.5'
+                      }`}
+                    >
+                      <div>
+                        {/* Rank / Winner Tag */}
+                        <div className="flex items-center justify-between gap-2 mb-3">
+                          <span className="px-2 py-0.5 bg-slate-100 border border-slate-300 text-[10px] font-mono font-bold text-slate-700 uppercase">
+                            {sub.finalRank ? `RANK #${sub.finalRank}` : `ENTRY #${idx + 1}`}
+                          </span>
+                          <span className="font-mono text-xs font-bold text-[#e8622c]">
+                            {sub.voteCount} Votes
+                          </span>
+                        </div>
 
-                            <img
-                              src={sub.authorAvatar}
-                              alt={sub.authorName}
-                              className="w-10 h-10 border border-black object-cover"
-                            />
-
-                            <div>
-                              <div className="flex items-center gap-1.5">
-                                <h4 className="font-bold text-sm text-black">{sub.authorName}</h4>
-                                {sub.authorVerified && (
-                                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" />
-                                )}
-                              </div>
-                              <span className="text-xs text-slate-500 font-medium block">
-                                {sub.authorTitle} • Score {sub.authorScore}/100
-                              </span>
-                            </div>
+                        {/* Author Info */}
+                        <div className="flex items-center gap-3 mb-4">
+                          <img
+                            src={sub.authorAvatar}
+                            alt={sub.authorName}
+                            className="w-10 h-10 border border-black object-cover shrink-0"
+                          />
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-black text-black truncate">{sub.authorName}</h4>
+                            <p className="text-xs text-slate-500 truncate">{sub.authorTitle}</p>
                           </div>
-
-                          {/* Vote Action */}
-                          <button
-                            onClick={() => handleVote(sub)}
-                            disabled={hasVoted || isVoting === sub.id}
-                            className={`px-3 py-1.5 font-mono text-xs font-bold border-2 border-black transition flex items-center gap-1.5 shadow-xs cursor-pointer ${
-                              hasVoted
-                                ? 'bg-emerald-100 text-emerald-800 border-emerald-600 cursor-default'
-                                : 'bg-white hover:bg-[#e8622c] hover:text-white text-black'
-                            }`}
-                          >
-                            <ThumbsUp className={`w-3.5 h-3.5 ${hasVoted ? 'fill-emerald-600' : ''}`} />
-                            <span>{hasVoted ? 'VOTED' : 'VOTE'}</span>
-                            <span className="px-1.5 py-0.2 bg-black text-white text-[10px] font-bold">
-                              {sub.voteCount}
-                            </span>
-                          </button>
                         </div>
 
-                        {/* Title & Description */}
-                        <div className="space-y-1.5">
-                          <h5 className="font-black text-base text-black">{sub.title}</h5>
-                          {sub.submissionText && (
-                            <p className="text-xs text-slate-700 leading-relaxed font-sans">
-                              {sub.submissionText}
-                            </p>
-                          )}
-                        </div>
+                        <h4 className="font-bold text-sm text-black mb-1.5">{sub.title || 'Project Submission'}</h4>
+                        <p className="text-xs text-slate-600 font-medium line-clamp-3 mb-4">{sub.submissionText}</p>
 
-                        {/* Links Toolbar */}
-                        <div className="pt-2 border-t border-slate-100 flex flex-wrap items-center gap-3">
-                          <a
-                            href={sub.submissionUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 hover:bg-black hover:text-white border border-slate-300 font-mono text-xs font-bold transition"
-                          >
-                            <span>VIEW WORK PREVIEW</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-
-                          {sub.demoVideoUrl && (
-                            <a
-                              href={sub.demoVideoUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-orange-50 hover:bg-[#e8622c] hover:text-white text-[#e8622c] border border-orange-300 font-mono text-xs font-bold transition"
-                            >
-                              <Video className="w-3 h-3" />
-                              <span>WATCH DEMO</span>
-                            </a>
-                          )}
-                        </div>
-
+                        <a
+                          href={sub.submissionUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1 text-xs font-mono font-bold text-blue-600 hover:underline mb-4"
+                        >
+                          <span>Live Preview / GitHub</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </a>
                       </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="bg-white border-2 border-black p-12 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
-                  <Sparkles className="w-10 h-10 text-amber-500 mx-auto" />
-                  <h4 className="text-base font-black text-black">NO SUBMISSIONS YET</h4>
-                  <p className="text-xs text-slate-600 max-w-sm mx-auto">
-                    Be the first builder to enter and claim the public prize pool!
-                  </p>
-                  <button
-                    onClick={() => setIsSubmitModalOpen(true)}
-                    className="mt-2 px-5 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition cursor-pointer"
-                  >
-                    [ SUBMIT FIRST ENTRY ]
-                  </button>
-                </div>
-              )}
-            </div>
 
-            {/* Right: Prize Pool & Recent Boosters */}
-            <div className="space-y-6">
-              
-              {/* Prize Pool Breakdown Card */}
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
-                <div className="flex items-center gap-2 border-b-2 border-black pb-2">
-                  <Trophy className="w-4 h-4 text-amber-500" />
-                  <h4 className="font-mono font-black text-xs uppercase tracking-wider text-black">
-                    PRIZE POOL DISTRIBUTION
-                  </h4>
-                </div>
-
-                <div className="space-y-2 text-xs font-mono">
-                  <div className="flex justify-between p-2 bg-slate-50 border border-slate-200">
-                    <span className="text-slate-600">Total Pool:</span>
-                    <span className="font-black text-black">${prizeDollars}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-emerald-50 border border-emerald-300">
-                    <span className="text-emerald-900 font-bold">1st Place Payout (90%):</span>
-                    <span className="font-black text-emerald-700">${feeBreakdown.netPrizePoolDollars.toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between p-2 bg-slate-50 border border-slate-200 text-slate-500 text-[11px]">
-                    <span>Platform Operations (10%):</span>
-                    <span>${feeBreakdown.platformFeeDollars.toFixed(2)}</span>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => setIsBidModalOpen(true)}
-                  className="w-full py-2.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer shadow-xs"
-                >
-                  <DollarSign className="w-3.5 h-3.5 text-amber-400" />
-                  <span>[ ADD $2 POOL BOOST ]</span>
-                </button>
+                      {/* Vote Button */}
+                      {isVotingOpen && (
+                        <button
+                          onClick={() => handleVote(sub)}
+                          disabled={hasVotedThis || isVoting === sub.id}
+                          className={`w-full py-2.5 px-3 font-mono text-xs font-bold border border-black transition flex items-center justify-center gap-1.5 cursor-pointer ${
+                            hasVotedThis
+                              ? 'bg-emerald-100 text-emerald-800'
+                              : 'bg-black hover:bg-[#e8622c] text-white shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
+                          }`}
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${hasVotedThis ? 'fill-emerald-600 text-emerald-600' : ''}`} />
+                          <span>{hasVotedThis ? 'VOTED' : 'VOTE FOR THIS PROJECT'}</span>
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Recent Sponsors Feed */}
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
-                <div className="flex items-center gap-2 border-b-2 border-black pb-2">
-                  <Heart className="w-4 h-4 text-red-500 fill-red-400" />
-                  <h4 className="font-mono font-black text-xs uppercase tracking-wider text-black">
-                    RECENT POOL BOOSTERS
-                  </h4>
-                </div>
-
-                {recentBids.length > 0 ? (
-                  <div className="space-y-2.5">
-                    {recentBids.map(b => (
-                      <div key={b.id} className="p-2.5 bg-slate-50 border border-slate-200 text-xs space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="font-bold text-black font-mono">{b.bidderLabel}</span>
-                          <span className="font-mono text-emerald-600 font-bold">+$2.00</span>
-                        </div>
-                        {b.bidderMessage && (
-                          <p className="text-[11px] text-slate-600 italic">"{b.bidderMessage}"</p>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-xs text-slate-500 font-mono text-center py-4">
-                    Be the first sponsor to boost this week's pool!
-                  </p>
-                )}
+            ) : (
+              <div className="bg-white border-2 border-black p-8 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
+                <Trophy className="w-8 h-8 text-amber-500 mx-auto" />
+                <h4 className="text-sm font-black text-black">Submissions Opening Shortly</h4>
+                <p className="text-xs text-slate-600">Enter now to secure your spot for the submission window.</p>
               </div>
-
-              {/* Rules & Non-Pay-To-Win Guarantee */}
-              <div className="bg-amber-50 border-2 border-black p-4 space-y-2 text-xs">
-                <div className="flex items-center gap-1.5 font-mono font-bold text-amber-900 uppercase">
-                  <ShieldCheck className="w-4 h-4 text-amber-700" />
-                  <span>Fairness & Merit Rules</span>
-                </div>
-                <p className="text-[11px] text-slate-700 leading-snug">
-                  1. Winner decided by 60% community votes + 40% client judge score.<br/>
-                  2. Bidding $2 expands prize money only — it <strong>never</strong> increases votes or win odds.<br/>
-                  3. Ties break by earliest submission time.
-                </p>
-              </div>
-
-            </div>
+            )}
 
           </div>
 
@@ -388,28 +375,36 @@ export const ChallengeArenaPage: React.FC = () => {
 
       </main>
 
-      {/* Modals */}
-      <ChallengeSubmitModal
-        challenge={activeChallenge}
-        isOpen={isSubmitModalOpen}
-        onClose={() => setIsSubmitModalOpen(false)}
-        onSubmitted={() => {
-          setIsSubmitModalOpen(false);
-          fetchChallengeDetail();
-        }}
-      />
-
-      <ChallengeBidModal
-        challenge={activeChallenge}
-        isOpen={isBidModalOpen}
-        onClose={() => setIsBidModalOpen(false)}
-        onBidComplete={() => {
-          setIsBidModalOpen(false);
-          fetchChallengeDetail();
-        }}
-      />
-
       <Footer />
+
+      {/* Modals */}
+      {activeChallenge && (
+        <>
+          <ChallengeSubmitModal
+            challenge={activeChallenge}
+            isOpen={isSubmitModalOpen}
+            onClose={() => setIsSubmitModalOpen(false)}
+            onSubmitted={() => {
+              setIsSubmitModalOpen(false);
+              fetchChallengeDetail();
+            }}
+          />
+
+          <SponsorChallengeModal
+            challengeId={activeChallenge.id}
+            challengeTitle={activeChallenge.title}
+            isOpen={isSponsorModalOpen}
+            onClose={() => setIsSponsorModalOpen(false)}
+            onSuccess={() => {
+              setIsSponsorModalOpen(false);
+              fetchChallengeDetail();
+            }}
+          />
+        </>
+      )}
+
     </div>
   );
 };
+
+export default ChallengeArenaPage;

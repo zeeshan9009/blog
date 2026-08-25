@@ -1,7 +1,7 @@
 import React from 'react';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
-import { ShieldCheck, Flame, Scale, FileText, AlertTriangle } from 'lucide-react';
+import { ShieldCheck, Flame, Scale, FileText, AlertTriangle, Trophy, Building2 } from 'lucide-react';
 
 export const TermsPage: React.FC = () => {
   return (
@@ -17,69 +17,77 @@ export const TermsPage: React.FC = () => {
             <span>Legal Documentation</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black text-black tracking-tight">
-            Terms of Service & Auction Rules
+            Terms of Service & Challenge Arena Rules
           </h1>
           <p className="text-xs text-slate-600">
-            Last Updated: August 2026 • RankLancr 0% Commission Protocol
+            Last Updated: August 2026 • RankLancr Challenge-First Protocol
           </p>
         </div>
 
-        {/* Section 1: 0% Commission & Platform Direct Links */}
+        {/* Section 1: Challenge Arena Rules & No Cash Prize Notice */}
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
-            <Scale className="w-4 h-4 text-emerald-600" />
-            <span>1. 0% Commission Marketplace Architecture</span>
+            <Trophy className="w-4 h-4 text-amber-600" />
+            <span>1. Challenge Arena Architecture (Visibility Rewards Only — No Cash Payouts)</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            RankLancr operates with zero platform commission on client-freelancer transactions. Freelancers link their authentic external professional profiles (LinkedIn, Upwork, Fiverr, GitHub, or Portfolio) and negotiate contract terms directly with buyers. RankLancr does not intermediate funds, hold escrow, or scrape third-party data.
+            RankLancr operates skill-based challenge competitions. <strong>All rewards awarded to winners and top 3 participants are strictly visibility-based</strong> (specifically, 72-hour site-wide Top Developer Rail placement, permanent profile badges, and automated social media broadcasts). <strong>No cash prizes or monetary distributions are paid out</strong> under any circumstances.
           </p>
         </div>
 
-        {/* Section 2: Outbid Spotlight & Ascending Auction Policy */}
+        {/* Section 2: Fixed $5 Entry Fee Policy */}
         <div className="bg-amber-50/80 border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
-            <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c]" />
-            <span>2. Outbid Spotlight Ascending Auction Policy (Strict No-Refund Policy)</span>
+            <AlertTriangle className="w-4 h-4 text-[#e8622c]" />
+            <span>2. Fixed $5.00 Entry Fee (Strict Non-Refundable Policy)</span>
           </div>
           
           <div className="p-3.5 bg-white border border-amber-300 text-xs text-amber-950 space-y-2">
-            <div className="font-bold flex items-center gap-1.5 text-[#e8622c]">
-              <AlertTriangle className="w-4 h-4 shrink-0" />
-              <span>ASCENDING AUCTION DISPLACEMENT POLICY:</span>
-            </div>
             <p className="leading-relaxed">
-              When you submit a paid bid to claim a <strong>Top 3 Spotlight Leaderboard Slot</strong>, your payment purchases visibility for up to <strong>72 hours</strong>.
+              Entering a challenge requires a <strong>fixed $5.00 entry fee</strong>:
             </p>
             <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-800 pt-1">
-              <li><strong>Displacement Without Refund:</strong> If another freelancer places a higher qualifying bid (+5% or +$1.00 min increment), they immediately assume that slot, displacing the prior holder. <strong>All auction bids are final and non-refundable</strong>.</li>
-              <li><strong>Decay & Reset:</strong> If an active slot reaches the end of its 72-hour hold period without new competing bids, the slot reverts to open status and price decays toward the base floor ($5.00).</li>
-              <li><strong>Fairness Exemption:</strong> Spotlight leaderboard slots are pure paid auctions and are explicitly exempt from organic impression equalizers.</li>
+              <li><strong>Non-Refundable:</strong> Entry fees are pure platform service fees that fund platform maintenance and verification infrastructure. They are non-refundable once paid.</li>
+              <li><strong>Submission Right Only:</strong> Paying the entry fee unlocks the eligibility to submit one project during the challenge submission window. It <strong>never</strong> buys votes, improves ranking, or guarantees placement.</li>
+              <li><strong>Disqualification:</strong> Submissions violating anti-abuse policies (e.g. malicious URLs or bot-voting manipulation) will be disqualified without refund.</li>
             </ul>
-          </div>
-
-          <div className="p-3 bg-slate-100 border border-slate-300 text-[11px] text-slate-600">
-            <strong>Legacy System Notice:</strong> The legacy $2 / 24h Sponsored Boost feature was formally discontinued as of August 2026 in preparation for Challenge Arena. Historic terms and conditions applied to prior purchases made before retirement.
           </div>
         </div>
 
-        {/* Section 3: ProRank Organic Independence & Quality Gate */}
+        {/* Section 3: Company Sponsorship Non-Influence & Ascending Auction Policy */}
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
-            <ShieldCheck className="w-4 h-4 text-blue-600" />
-            <span>3. ProRank Organic Talent Integrity & Quality Gate</span>
+            <Building2 className="w-4 h-4 text-blue-600" />
+            <span>3. Brand Sponsorship & Gold Ascending Auction Policy</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            Organic ProRank scores are determined strictly by relevance, skill benchmarks, client reviews, and project quality. <strong>Paying for paid promotion NEVER alters, inflates, or feeds into a freelancer's organic ProRank score.</strong> Furthermore, accounts with active disputes, flagged standing, or ratings below 4.0 are ineligible to purchase sponsored placements.
+            Companies and tool creators may purchase Bronze ($50) or Silver ($150) fixed sponsorships, or compete in the <strong>Gold Flagship Ascending Outbid Auction</strong> (floor $100, minimum +$25 / +10% increment).
+          </p>
+          <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-800 pt-1">
+            <li><strong>Displacement & No Refunds:</strong> Outbid bids are non-refundable and purchase visibility for the duration held on the live leaderboard. Highest bidder at the close of the bidding window claims the 72h co-branded Top Developer rail placement.</li>
+            <li><strong>Strict Non-Influence Policy:</strong> Sponsorship payments purchase brand advertising placement only. <strong>Sponsors have zero influence over community voting, algorithmic ranking, or winner selection.</strong></li>
+          </ul>
+        </div>
+
+        {/* Section 4: Outbid Spotlight Ascending Auction Policy */}
+        <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
+          <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
+            <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c]" />
+            <span>4. Outbid Spotlight Ascending Auction Policy</span>
+          </div>
+          <p className="text-xs text-slate-700 leading-relaxed">
+            Spotlight leaderboard slots are claimed via ascending auction. Holding a slot guarantees placement for up to 72 hours or until outbid by another party (+5% / +$1.00 min increment). Bids are final and non-refundable.
           </p>
         </div>
 
-        {/* Section 4: Anti-Abuse & Wash Bidding Prevention */}
+        {/* Section 5: Anti-Abuse & Rate Limiting */}
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
-            <span>4. Anti-Abuse & Rate Limiting</span>
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>5. Anti-Abuse & Voter Fingerprint Verification</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            To prevent botting, self-dealing, or artificial price manipulation, claim attempts are rate-limited to a maximum of 1 claim per slot per 10 minutes per profile. All bids and PaymentIntents are logged to an immutable audit ledger (`spotlight_bids`).
+            Voting is limited to 1 vote per verified browser/device fingerprint per submission, and rate-limited to 5 votes per minute per IP. Scripted, automated, or sybil vote attempts are filtered and discarded.
           </p>
         </div>
 

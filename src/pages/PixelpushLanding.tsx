@@ -1,6 +1,7 @@
 import React from 'react';
 import Navbar from '../components/pixelpush/Navbar';
 import Hero from '../components/pixelpush/Hero';
+import { TopDeveloperRail } from '../components/challenges/TopDeveloperRail';
 import { SpotlightSection } from '../components/pixelpush/SpotlightSection';
 import { ChallengeSection } from '../components/challenges/ChallengeSection';
 import FeatureGrid from '../components/pixelpush/FeatureGrid';
@@ -19,49 +20,54 @@ export const PixelpushLanding: React.FC = () => {
       {/* Main Content Landmark with Accessibility Anchor */}
       <main id="main-content">
         
-        {/* 1. Direct Marketplace Hero */}
+        {/* 1. Direct Challenge Hero */}
         <div id="hero">
           <Hero />
         </div>
 
-        {/* 2. Outbid Spotlight Ascending Auction Top 3 Slots */}
-        <div id="spotlight">
-          <SpotlightSection />
+        {/* 2. Top Developer 72-Hour Earned Rail */}
+        <div id="top-dev-rail" className="max-w-[1440px] mx-auto px-4 sm:px-8 py-8">
+          <TopDeveloperRail />
         </div>
 
-        {/* 3. Challenge Arena (Weekly skill challenges + fixed-$2 bid pool) */}
+        {/* 3. Challenge Arena (Weekly skill challenges + $5 entries) */}
         <div id="arena">
           <ChallengeSection />
         </div>
 
-        {/* 4. Feature Grid */}
+        {/* 4. Outbid Spotlight Ascending Auction Top 3 Slots */}
+        <div id="spotlight">
+          <SpotlightSection />
+        </div>
+
+        {/* 5. Feature Grid */}
         <div id="features">
           <FeatureGrid />
         </div>
 
-        {/* 4. Benchmark / Chart Section */}
+        {/* 6. Benchmark / Chart Section */}
         <div id="benchmark">
           <BenchmarkChart />
         </div>
 
-        {/* 5. Pricing Section */}
+        {/* 7. Pricing Section */}
         <div id="pricing">
           <Pricing />
         </div>
 
-        {/* 6. FAQ Section */}
+        {/* 8. FAQ Section */}
         <div id="faq">
           <Faq />
         </div>
 
-        {/* 7. Final CTA Section */}
+        {/* 9. Final CTA Section */}
         <div id="cta">
           <FinalCta />
         </div>
 
       </main>
 
-      {/* 8. Footer */}
+      {/* 10. Footer */}
       <Footer />
     </div>
   );

@@ -1,20 +1,22 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Flame, Sparkles, ArrowRight, ShieldCheck, DollarSign, Award, Users } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Trophy, Sparkles, ArrowRight, ShieldCheck, Award, Building2, Vote } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { ChallengeCard } from './ChallengeCard';
 import { ChallengeSubmitModal } from './ChallengeSubmitModal';
-import { ChallengeBidModal } from './ChallengeBidModal';
+import { SponsorChallengeModal } from './SponsorChallengeModal';
 import type { Challenge } from '../../types/challenge';
+import toast from 'react-hot-toast';
 
 export const ChallengeSection: React.FC = () => {
+  const navigate = useNavigate();
   const [challenges, setChallenges] = useState<Challenge[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedChallengeForSubmit, setSelectedChallengeForSubmit] = useState<Challenge | null>(null);
-  const [selectedChallengeForBid, setSelectedChallengeForBid] = useState<Challenge | null>(null);
+  const [selectedChallengeForSponsor, setSelectedChallengeForSponsor] = useState<Challenge | null>(null);
 
   const fetchChallenges = async () => {
     try {
-      const res = await fetch('/api/challenges?status=open');
+      const res = await fetch('/api/challenges');
       if (res.ok) {
         const data = await res.json();
         if (data.challenges && data.challenges.length > 0) {
@@ -32,8 +34,12 @@ export const ChallengeSection: React.FC = () => {
     fetchChallenges();
   }, []);
 
+  const handleEnter = (challenge: Challenge) => {
+    navigate(`/arena?challenge=${challenge.id}&action=enter`);
+  };
+
   return (
-    <section className="py-16 bg-[#fffdfa] border-y-2 border-black relative overflow-hidden">
+    <section className="py-16 bg-[#fffdfa] border-y-2 border-black relative overflow-hidden font-sans">
       
       {/* Background Micro Dots */}
       <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
@@ -45,15 +51,15 @@ export const ChallengeSection: React.FC = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 border border-amber-400 font-mono text-xs font-bold text-amber-900 uppercase">
               <Trophy className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-              <span>COMMUNITY SKILL COMPETITION // FIXED $2 BID POOL</span>
+              <span>SKILL ARENA // $5 ENTRY • EARNED VISIBILITY REWARDS</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-black tracking-tight leading-tight">
-              CHALLENGE ARENA: <span className="text-[#e8622c] underline decoration-4 underline-offset-4">WIN ON MERIT.</span>
+              CHALLENGE ARENA: <span className="text-[#e8622c] underline decoration-4 underline-offset-4">COMPETE & EARN SPOTLIGHT.</span>
             </h2>
 
             <p className="text-xs sm:text-sm text-slate-700 max-w-2xl font-medium">
-              Weekly skill prompts for top builders. The public grows the shared prize pool via fixed $2 boosts, while community votes and expert client judges determine the champion.
+              Join focused 3-day skill prompts for $5. Public vote chooses the winners. Top 3 earn 72 hours in our site-wide Top Developer Rail and permanent profile accolades.
             </p>
           </div>
 
@@ -62,7 +68,7 @@ export const ChallengeSection: React.FC = () => {
               to="/arena"
               className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
             >
-              <span>[ EXPLORE ALL CHALLENGES ]</span>
+              <span>[ VIEW ALL CHALLENGES ]</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
@@ -75,69 +81,80 @@ export const ChallengeSection: React.FC = () => {
               <ChallengeCard
                 key={ch.id}
                 challenge={ch}
-                onOpenSubmitModal={(c) => setSelectedChallengeForSubmit(c)}
-                onOpenBidModal={(c) => setSelectedChallengeForBid(c)}
+                onEnterChallenge={handleEnter}
+                onSubmitWork={(c) => setSelectedChallengeForSubmit(c)}
+                onSponsorChallenge={(c) => setSelectedChallengeForSponsor(c)}
+                onViewDetails={(c) => navigate(`/arena?challenge=${c.id}`)}
               />
             ))
           ) : (
             <div className="col-span-full bg-white border-2 border-black p-8 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
               <Trophy className="w-8 h-8 text-amber-500 mx-auto" />
-              <h4 className="text-sm font-black text-black">New Weekly Challenge Opening Soon</h4>
-              <p className="text-xs text-slate-600">The next category prompt is being curated. Check back shortly!</p>
+              <h4 className="text-sm font-black text-black">Weekly Challenges Open</h4>
+              <p className="text-xs text-slate-600">Explore active challenges in the Arena.</p>
             </div>
           )}
         </div>
 
-        {/* Feature Guarantees Strip */}
+        {/* 3 Value Props Strip */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200 text-xs font-mono">
-          <div className="p-3 bg-white border border-black flex items-start gap-2.5">
+          <div className="p-3 bg-white border border-black flex items-start gap-2.5 shadow-xs">
             <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-black block">100% Merit Winner</span>
-              <span className="text-[11px] text-slate-600">60% community vote + 40% judge score. Zero pay-to-win.</span>
+              <span className="font-bold text-black block">100% Merit-Based Voting</span>
+              <span className="text-[11px] text-slate-600">Pure public votes with fingerprint deduplication. Zero pay-to-win.</span>
             </div>
           </div>
 
-          <div className="p-3 bg-white border border-black flex items-start gap-2.5">
-            <DollarSign className="w-4 h-4 text-[#e8622c] shrink-0 mt-0.5" />
+          <div className="p-3 bg-white border border-black flex items-start gap-2.5 shadow-xs">
+            <Award className="w-4 h-4 text-[#e8622c] shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-black block">Fixed $2 Pool Expansion</span>
-              <span className="text-[11px] text-slate-600">Repeatable $2 contributions grow the prize pool for builders.</span>
+              <span className="font-bold text-black block">72h Top Developer Rail</span>
+              <span className="text-[11px] text-slate-600">Top 3 finishers receive exclusive high-impact homepage placement.</span>
             </div>
           </div>
 
-          <div className="p-3 bg-white border border-black flex items-start gap-2.5">
-            <Award className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+          <div className="p-3 bg-white border border-black flex items-start gap-2.5 shadow-xs">
+            <Building2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-black block">Viral Social Spotlight</span>
-              <span className="text-[11px] text-slate-600">Winners auto-published to official RankLancr X, LinkedIn & IG.</span>
+              <span className="font-bold text-black block">3-Tier Brand Sponsorship</span>
+              <span className="text-[11px] text-slate-600">Companies sponsor challenges; Gold sponsors co-brand with the winner.</span>
             </div>
           </div>
         </div>
 
       </div>
 
-      {/* Modals */}
-      <ChallengeSubmitModal
-        challenge={selectedChallengeForSubmit}
-        isOpen={Boolean(selectedChallengeForSubmit)}
-        onClose={() => setSelectedChallengeForSubmit(null)}
-        onSubmitted={() => {
-          setSelectedChallengeForSubmit(null);
-          fetchChallenges();
-        }}
-      />
+      {/* Submit Modal */}
+      {selectedChallengeForSubmit && (
+        <ChallengeSubmitModal
+          challenge={selectedChallengeForSubmit}
+          isOpen={Boolean(selectedChallengeForSubmit)}
+          onClose={() => setSelectedChallengeForSubmit(null)}
+          onSubmitted={() => {
+            setSelectedChallengeForSubmit(null);
+            fetchChallenges();
+            toast.success('Project submission recorded!');
+          }}
+        />
+      )}
 
-      <ChallengeBidModal
-        challenge={selectedChallengeForBid}
-        isOpen={Boolean(selectedChallengeForBid)}
-        onClose={() => setSelectedChallengeForBid(null)}
-        onBidComplete={() => {
-          setSelectedChallengeForBid(null);
-          fetchChallenges();
-        }}
-      />
+      {/* Sponsor Modal */}
+      {selectedChallengeForSponsor && (
+        <SponsorChallengeModal
+          challengeId={selectedChallengeForSponsor.id}
+          challengeTitle={selectedChallengeForSponsor.title}
+          isOpen={Boolean(selectedChallengeForSponsor)}
+          onClose={() => setSelectedChallengeForSponsor(null)}
+          onSuccess={() => {
+            setSelectedChallengeForSponsor(null);
+            fetchChallenges();
+          }}
+        />
+      )}
 
     </section>
   );
 };
+
+export default ChallengeSection;
