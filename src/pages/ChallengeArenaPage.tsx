@@ -53,7 +53,15 @@ export const ChallengeArenaPage: React.FC = () => {
         }
       }
 
-      const res = await fetch(`/api/challenges?id=${targetId || '11111111-1111-1111-1111-111111111111'}`);
+      if (!targetId) {
+        setActiveChallenge(null);
+        setSubmissions([]);
+        setSponsorships([]);
+        setIsLoading(false);
+        return;
+      }
+
+      const res = await fetch(`/api/challenges?id=${targetId}`);
       if (res.ok) {
         const data = await res.json();
         setActiveChallenge(data.challenge);
@@ -65,9 +73,12 @@ export const ChallengeArenaPage: React.FC = () => {
           const entered = data.entries.some((e: any) => e.profileId === userProfile.id);
           setHasEntered(entered);
         }
+      } else {
+        setActiveChallenge(null);
       }
     } catch (e) {
       console.warn('Failed to load challenge details:', e);
+      setActiveChallenge(null);
     } finally {
       setIsLoading(false);
     }
@@ -200,6 +211,36 @@ export const ChallengeArenaPage: React.FC = () => {
         {/* Challenge Action Toolbar & Details */}
         <div className="max-w-[1440px] mx-auto px-4 sm:px-8 py-8 space-y-8">
           
+          {!activeChallenge && !isLoading && (
+            <div className="bg-white border-2 border-black p-12 sm:p-16 text-center shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] max-w-2xl mx-auto space-y-5">
+              <div className="w-16 h-16 bg-amber-100 border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <Trophy className="w-8 h-8 text-amber-600" />
+              </div>
+              <div className="space-y-2">
+                <h2 className="text-2xl sm:text-3xl font-black font-mono text-black uppercase tracking-tight">
+                  No Active Challenge Open Right Now
+                </h2>
+                <p className="text-xs sm:text-sm font-mono text-slate-600 leading-relaxed max-w-md mx-auto">
+                  New 3-day engineering prompts drop regularly. Check back soon to pay the $5 entry, submit your project, and compete for the 72-hour Top Developer Rail!
+                </p>
+              </div>
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  to="/"
+                  className="px-5 py-2.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase transition border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  [ Back to Homepage ]
+                </Link>
+                <Link
+                  to="/pricing"
+                  className="px-5 py-2.5 bg-white hover:bg-slate-100 text-black font-mono text-xs font-bold uppercase transition border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  [ View Pricing & Rules ]
+                </Link>
+              </div>
+            </div>
+          )}
+
           {activeChallenge && (
             <div className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div className="space-y-2 max-w-2xl">
@@ -266,18 +307,19 @@ export const ChallengeArenaPage: React.FC = () => {
           )}
 
           {/* Submissions & Voting Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between border-b-2 border-black pb-3">
-              <div className="flex items-center gap-2">
-                <Vote className="w-5 h-5 text-[#e8622c]" />
-                <h3 className="text-xl font-black text-black tracking-tight">
-                  {isClosed ? 'Final Submissions & Rankings' : 'Community Submissions & Voting'}
-                </h3>
+          {activeChallenge && (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between border-b-2 border-black pb-3">
+                <div className="flex items-center gap-2">
+                  <Vote className="w-5 h-5 text-[#e8622c]" />
+                  <h3 className="text-xl font-black text-black tracking-tight">
+                    {isClosed ? 'Final Submissions & Rankings' : 'Community Submissions & Voting'}
+                  </h3>
+                </div>
+                <span className="text-xs font-mono font-bold text-slate-500">
+                  {submissions.length} Projects Submitted
+                </span>
               </div>
-              <span className="text-xs font-mono font-bold text-slate-500">
-                {submissions.length} Projects Submitted
-              </span>
-            </div>
 
             {submissions.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -360,6 +402,7 @@ export const ChallengeArenaPage: React.FC = () => {
             )}
 
           </div>
+          )}
 
         </div>
 

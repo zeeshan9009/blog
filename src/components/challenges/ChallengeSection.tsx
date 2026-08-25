@@ -88,10 +88,26 @@ export const ChallengeSection: React.FC = () => {
               />
             ))
           ) : (
-            <div className="col-span-full bg-white border-2 border-black p-8 text-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-              <Trophy className="w-8 h-8 text-amber-500 mx-auto" />
-              <h4 className="text-sm font-black text-black">Weekly Challenges Open</h4>
-              <p className="text-xs text-slate-600">Explore active challenges in the Arena.</p>
+            <div className="col-span-full bg-white border-2 border-black p-10 sm:p-14 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4 max-w-2xl mx-auto">
+              <div className="w-14 h-14 bg-amber-100 border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
+                <Trophy className="w-7 h-7 text-amber-600" />
+              </div>
+              <div className="space-y-1">
+                <h4 className="text-xl font-black font-mono text-black uppercase tracking-tight">
+                  Next Skill Challenge Dropping Soon
+                </h4>
+                <p className="text-xs sm:text-sm font-mono text-slate-600 max-w-md mx-auto leading-relaxed">
+                  Our next 3-day engineering prompt is currently being prepared. Check back shortly to pay the $5 entry, submit your project, and compete for the 72-hour Top Developer Rail!
+                </p>
+              </div>
+              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                <Link
+                  to="/pricing"
+                  className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase transition border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                >
+                  [ View Pricing & Rules ]
+                </Link>
+              </div>
             </div>
           )}
         </div>

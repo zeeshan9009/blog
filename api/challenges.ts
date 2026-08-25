@@ -52,46 +52,11 @@ function calculateMinNextSponsorshipBid(currentBidCents: number): number {
   return currentBidCents + increment;
 }
 
-// Memory Fallback Seed Challenge
-let MOCK_CHALLENGE: Challenge = {
-  id: "11111111-1111-1111-1111-111111111111",
-  category: "Development",
-  title: "Next.js 15 & AI Agent Interface Challenge",
-  prompt: "Build a lightning-fast Next.js 15 UI with streaming AI responses, keyboard navigation shortcuts, and zero layout shift. Winner earns 72h site-wide Top Developer Rail placement!",
-  bannerImage: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=80",
-  status: "open_entry",
-  entryDeadline: new Date(Date.now() + 2 * 86400000).toISOString(),
-  submissionDeadline: new Date(Date.now() + 5 * 86400000).toISOString(),
-  votingDeadline: new Date(Date.now() + 8 * 86400000).toISOString(),
-  entryFeeCents: 500,
-  createdAt: new Date().toISOString()
-};
-
-let MOCK_ENTRIES: ChallengeEntry[] = [];
-let MOCK_SUBMISSIONS: ChallengeSubmission[] = [];
-let MOCK_SPONSORSHIPS: ChallengeSponsorship[] = [];
-let MOCK_AUCTION_SLOT: ChallengeSponsorshipAuction = {
-  id: "slot-default",
-  challengeId: "11111111-1111-1111-1111-111111111111",
-  currentBidCents: 12500,
-  minIncrementCents: 2500,
-  minNextBidCents: 15000,
-  currentSponsorName: "Supastack AI",
-  currentSponsorLogoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-  currentSponsorLink: "https://supastack.ai",
-  totalBidsCount: 1,
-  recentBids: [
-    {
-      id: "bid-1",
-      challengeId: "11111111-1111-1111-1111-111111111111",
-      companyName: "Supastack AI",
-      companyLogoUrl: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-      companyLink: "https://supastack.ai",
-      amountCents: 12500,
-      createdAt: new Date().toISOString()
-    }
-  ]
-};
+// In-memory runtime storage for testing/fallback if DB is unreachable
+let RUNTIME_CHALLENGES: Challenge[] = [];
+let RUNTIME_ENTRIES: ChallengeEntry[] = [];
+let RUNTIME_SUBMISSIONS: ChallengeSubmission[] = [];
+let RUNTIME_SPONSORSHIPS: ChallengeSponsorship[] = [];
 
 async function parseBody(req: IncomingMessage): Promise<any> {
   return new Promise((resolve) => {
@@ -139,7 +104,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         query = query.order("created_at", { ascending: false }).limit(20);
 
         const { data, error } = await query;
-        if (!error && data && data.length > 0) {
+        if (!error && data) {
           const mapped = data.map(row => ({
             id: row.id,
             category: row.category || "Development",
@@ -163,7 +128,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       }
 
       res.statusCode = 200;
-      res.end(JSON.stringify({ challenges: [MOCK_CHALLENGE] }));
+      res.end(JSON.stringify({ challenges: RUNTIME_CHALLENGES }));
       return;
     }
 
@@ -248,19 +213,19 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
 
           const slotRow = slotRes.data;
           const currentAuctionBid = slotRow?.current_bid_cents || 10000;
-          const sponsorshipAuction: ChallengeSponsorshipAuction = {
-            id: slotRow?.id || "slot_" + idParam,
+          const sponsorshipAuction: ChallengeSponsorshipAuction | null = slotRow ? {
+            id: slotRow.id,
             challengeId: idParam,
             currentBidCents: currentAuctionBid,
-            minIncrementCents: slotRow?.min_increment_cents || 2500,
+            minIncrementCents: slotRow.min_increment_cents || 2500,
             minNextBidCents: calculateMinNextSponsorshipBid(currentAuctionBid),
-            currentSponsorName: slotRow?.current_sponsor_name || "Supastack AI",
-            currentSponsorLogoUrl: slotRow?.current_sponsor_logo_url || "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=100&auto=format&fit=crop&q=80",
-            currentSponsorLink: slotRow?.current_sponsor_link || "https://supastack.ai",
-            totalBidsCount: slotRow?.total_bids_count || recentAuctionBids.length || 1,
-            claimedAt: slotRow?.claimed_at,
-            recentBids: recentAuctionBids.length > 0 ? recentAuctionBids : MOCK_AUCTION_SLOT.recentBids
-          };
+            currentSponsorName: slotRow.current_sponsor_name || undefined,
+            currentSponsorLogoUrl: slotRow.current_sponsor_logo_url || undefined,
+            currentSponsorLink: slotRow.current_sponsor_link || undefined,
+            totalBidsCount: slotRow.total_bids_count || recentAuctionBids.length || 0,
+            claimedAt: slotRow.claimed_at,
+            recentBids: recentAuctionBids
+          } : null;
 
           const targetDeadline = challenge.status === "open_entry" 
             ? new Date(challenge.entryDeadline).getTime()
@@ -292,22 +257,8 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         // fallback
       }
 
-      res.statusCode = 200;
-      res.end(JSON.stringify({
-        challenge: MOCK_CHALLENGE,
-        submissions: MOCK_SUBMISSIONS,
-        entries: MOCK_ENTRIES,
-        sponsorships: MOCK_SPONSORSHIPS,
-        sponsorshipAuction: MOCK_AUCTION_SLOT,
-        stats: {
-          entryFeeDollars: 5.0,
-          totalEntries: MOCK_ENTRIES.length,
-          totalSubmissions: MOCK_SUBMISSIONS.length,
-          totalVotes: 0,
-          activeSponsorshipTiers: [],
-          timeRemainingMs: 3 * 86400000
-        }
-      }));
+      res.statusCode = 404;
+      res.end(JSON.stringify({ error: "Challenge not found" }));
       return;
     }
 
