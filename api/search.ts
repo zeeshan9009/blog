@@ -1,6 +1,5 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createClient } from "@supabase/supabase-js";
-import { INITIAL_PROFESSIONALS } from "../src/data/mockTalentData.js";
 import { executeProRankSearch } from "../src/services/ranking/searchEngine.js";
 import { validateSearchRateLimit } from "../src/services/ranking/antiAbuse.js";
 import { tokenize } from "../src/services/ranking/relevanceScore.js";
@@ -73,7 +72,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     }
 
     // 1. Fetch filtered candidate subset from Supabase (Optimized for 10k+ scale)
-    let candidateProfiles: Professional[] = INITIAL_PROFESSIONALS;
+    let candidateProfiles: Professional[] = [];
     try {
       let queryBuilder = supabase
         .from("profiles")

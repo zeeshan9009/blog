@@ -10,7 +10,34 @@ import {
   SPOTLIGHT_HOLD_DURATION_MS
 } from "../src/services/ranking/spotlightEngine.js";
 import { calculateProfileQualityScore } from "../src/services/ranking/profileQualityScore.js";
-import { INITIAL_PROFESSIONALS } from "../src/data/mockTalentData.js";
+import type { Professional } from "../src/types/talent.js";
+
+const sampleTalent: Professional = {
+  id: "test-spotlight-talent",
+  name: "Spotlight Specialist",
+  title: "Full Stack Engineer",
+  category: "Web Development",
+  location: "Global",
+  country: "Global",
+  avatar: "https://example.com/avatar.jpg",
+  bio: "Experienced developer",
+  hourlyRate: 50,
+  experienceYears: 5,
+  score: 90,
+  rating: 5.0,
+  reviewCount: 10,
+  skills: ["React", "Node.js"],
+  experience: [],
+  portfolio: [],
+  reviews: [],
+  externalLinks: {},
+  isVerified: true,
+  isPromoted: false,
+  viewsCount: 0,
+  clicksCount: 0,
+  inquiriesCount: 0,
+  createdAt: new Date().toISOString()
+};
 
 console.log("\n================================================================");
 console.log("⚡ STARTING OUTBID SPOTLIGHT LEADERBOARD ENGINE TEST SUITE ⚡");
@@ -95,7 +122,6 @@ console.log("✅ PASS: Quality gate prevents low-quality or disputed accounts fr
 
 // [TEST 6] Organic ProRank Score Independence
 console.log("[TEST 6] Organic ProRank Independence Verification");
-const sampleTalent = { ...INITIAL_PROFESSIONALS[0] };
 const organicScoreBefore = calculateProfileQualityScore(sampleTalent);
 
 // User pays $500 to claim #1 Spotlight

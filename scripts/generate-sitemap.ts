@@ -7,7 +7,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { createClient } from '@supabase/supabase-js';
-import { INITIAL_PROFESSIONALS } from '../src/data/mockTalentData';
 
 const BASE_DOMAIN = process.env.SITE_URL || 'https://ranklancr.com';
 const SUPABASE_URL = process.env.VITE_SUPABASE_URL || 'https://femtnrbswscrxidxuzgb.supabase.co';
@@ -62,13 +61,9 @@ export async function generateSitemapXml() {
     if (!error && data && data.length > 0) {
       dynamicProfiles = data;
       console.log(`[SITEMAP] Fetched ${data.length} published profiles from Supabase.`);
-    } else {
-      console.log('[SITEMAP] Supabase table empty or offline. Falling back to local talent dataset.');
-      dynamicProfiles = INITIAL_PROFESSIONALS.map(p => ({ id: p.id, updated_at: p.createdAt }));
     }
   } catch {
-    console.log('[SITEMAP] Falling back to local talent seed data for profile URLs.');
-    dynamicProfiles = INITIAL_PROFESSIONALS.map(p => ({ id: p.id, updated_at: p.createdAt }));
+    console.log('[SITEMAP] Skipping dynamic profiles (Supabase offline or empty).');
   }
 
   const profileEntries: SitemapEntry[] = dynamicProfiles.map(p => ({

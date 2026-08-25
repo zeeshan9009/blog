@@ -1,7 +1,34 @@
 import assert from "node:assert/strict";
 import { autoDetectPlatformAndValidate } from "../src/services/validation/externalProfileValidator.js";
 import { calculateProfileQualityScore } from "../src/services/ranking/profileQualityScore.js";
-import { INITIAL_PROFESSIONALS } from "../src/data/mockTalentData.js";
+import type { Professional } from "../src/types/talent.js";
+
+const testProfile: Professional = {
+  id: "test-pro-1",
+  name: "Zeeshan Dev",
+  title: "Full Stack Engineer",
+  category: "Web Development",
+  location: "Global",
+  country: "Global",
+  avatar: "https://example.com/avatar.jpg",
+  bio: "Full stack developer with 5 years experience.",
+  hourlyRate: 50,
+  experienceYears: 5,
+  score: 85,
+  rating: 5.0,
+  reviewCount: 10,
+  skills: ["React", "Node.js", "TypeScript"],
+  experience: [],
+  portfolio: [],
+  reviews: [],
+  externalLinks: {},
+  isVerified: true,
+  isPromoted: false,
+  viewsCount: 0,
+  clicksCount: 0,
+  inquiriesCount: 0,
+  createdAt: new Date().toISOString()
+};
 
 console.log("\n================================================================");
 console.log("⚡ STARTING SMART EXTERNAL PROFILE URL SYSTEM TEST SUITE ⚡");
@@ -84,7 +111,7 @@ console.log("✅ PASS: SSRF, localhost, private IPs, and dangerous schemes block
 
 // [TEST 7] Organic ProRank Independence Verification
 console.log("[TEST 7] Organic ProRank Independence Verification");
-const sampleProfile = { ...INITIAL_PROFESSIONALS[0] };
+const sampleProfile = { ...testProfile };
 const scoreBefore = calculateProfileQualityScore(sampleProfile);
 
 // Add external profile links to profile
