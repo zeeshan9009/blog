@@ -8,7 +8,6 @@ import FeatureGrid from '../components/pixelpush/FeatureGrid';
 import BenchmarkChart from '../components/pixelpush/BenchmarkChart';
 import Pricing from '../components/pixelpush/Pricing';
 import Faq from '../components/pixelpush/Faq';
-import FinalCta from '../components/pixelpush/FinalCta';
 import Footer from '../components/pixelpush/Footer';
 
 export const PixelpushLanding: React.FC = () => {
@@ -58,11 +57,6 @@ export const PixelpushLanding: React.FC = () => {
         {/* 8. FAQ Section */}
         <div id="faq">
           <Faq />
-        </div>
-
-        {/* 9. Final CTA Section */}
-        <div id="cta">
-          <FinalCta />
         </div>
 
       </main>
