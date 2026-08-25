@@ -150,7 +150,7 @@ export async function triggerSocialPublish(
       challengeId,
       challengeTitle: 'Community Skill Arena',
       winnerName: 'Challenge Champion',
-      winnerProfileUrl: `https://ranklancr.com/arena?challenge=${challengeId}`,
+      winnerProfileUrl: `https://ranklancr.lol/arena?challenge=${challengeId}`,
       prizeAmountDollars: 0,
       bidderLabels: ['RankLancr Arena']
     });

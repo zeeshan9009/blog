@@ -57,7 +57,7 @@ export const RankLancrLogo: React.FC<RankLancrLogoProps> = ({
           Rank<span className="text-black font-extrabold">Lancr</span>
           {showDomain && (
             <span className="text-[#e8622c] font-mono font-bold text-xs sm:text-sm ml-0.5">
-              .com
+              .lol
             </span>
           )}
         </span>

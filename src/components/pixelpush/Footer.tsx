@@ -131,7 +131,7 @@ export const Footer: React.FC = () => {
             <div className="w-5 h-5 bg-[#e8622c] flex items-center justify-center text-white text-[11px] font-black">
               R
             </div>
-            <span>© 2026 RankLancr.com Platform Inc. All rights reserved.</span>
+            <span>© 2026 RankLancr.lol Platform Inc. All rights reserved.</span>
           </div>
 
           <div className="flex items-center gap-6 font-mono">

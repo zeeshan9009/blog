@@ -288,7 +288,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         }
 
         const effectiveProfileId = profileId || `guest_${Date.now()}`;
-        const effectiveEmail = email || `${effectiveProfileId}@guest.ranklancr.com`;
+        const effectiveEmail = email || `${effectiveProfileId}@guest.ranklancr.lol`;
 
         // Rate limit check: max 1 claim per slot per 10 min
         const rateLimit = checkSpotlightRateLimit(effectiveProfileId, slotId);

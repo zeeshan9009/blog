@@ -1396,7 +1396,7 @@ export const CreateProfilePage: React.FC = () => {
                       <span>90% Profile Completeness Required for Public Search</span>
                     </div>
                     <p className="text-[11px] text-slate-700">
-                      Your profile is currently at <strong>{completenessPercent}%</strong>. You must reach at least <strong>90%</strong> for your profile and services to be publicly visible to clients on RankLancr.com.
+                      Your profile is currently at <strong>{completenessPercent}%</strong>. You must reach at least <strong>90%</strong> for your profile to be publicly visible on RankLancr.lol.
                     </p>
                   </div>
                 ) : (

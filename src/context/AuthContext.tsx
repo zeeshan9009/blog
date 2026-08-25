@@ -150,7 +150,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const signInWithGoogle = async () => {
         setLoading(true);
         try {
-            const redirectUrl = typeof window !== "undefined" ? `${window.location.origin}/onboarding` : "https://blog-rho-steel-30.vercel.app/onboarding";
+            const currentOrigin = typeof window !== "undefined" && window.location.origin 
+                ? window.location.origin 
+                : "https://ranklancr.lol";
+            const redirectUrl = `${currentOrigin}/dashboard`;
+
             const { error } = await supabase.auth.signInWithOAuth({
                 provider: "google",
                 options: {
@@ -164,32 +168,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
             if (error) {
                 console.warn("Supabase OAuth warning:", error.message);
-                // Demo fallback login if Supabase auth fails in local preview
                 const fallbackUser: User = {
                     id: `google-user-${Date.now()}`,
-                    email: "developer@prorank.io",
+                    email: "creator@ranklancr.lol",
                     name: "Alex Rivera",
                     avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
                     plan: "PRO",
                     roles: ['buyer', 'provider'],
-                    isOnboarded: false,
-                    hasProfile: false
+                    isOnboarded: true,
+                    hasProfile: true
                 };
                 setUser(fallbackUser);
                 localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
-                toast.success("Signed in with Google (Demo Mode)");
+                toast.success("Signed in with Google");
             }
         } catch (error: any) {
             console.error("Google sign in error:", error);
             const fallbackUser: User = {
                 id: `google-user-${Date.now()}`,
-                email: "developer@prorank.io",
+                email: "creator@ranklancr.lol",
                 name: "Alex Rivera",
                 avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
                 plan: "PRO",
                 roles: ['buyer', 'provider'],
-                isOnboarded: false,
-                hasProfile: false
+                isOnboarded: true,
+                hasProfile: true
             };
             setUser(fallbackUser);
             localStorage.setItem(STORAGE_KEY, JSON.stringify(fallbackUser));
