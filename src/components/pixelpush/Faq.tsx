@@ -33,7 +33,7 @@ export const Faq: React.FC = () => {
     },
     {
       q: 'Are payment transactions secure?',
-      a: 'Yes. All payments on RankLancr are processed through Stripe under PCI-DSS Level 1 compliance with 256-bit SSL encryption. We never store or log raw credit card numbers.'
+      a: 'Yes. All payments on RankLancr are processed through Paddle under PCI-DSS Level 1 compliance with 256-bit SSL encryption. We never store or log raw credit card numbers.'
     }
   ];
 

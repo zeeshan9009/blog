@@ -100,7 +100,7 @@ export const Pricing: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Instant Stripe payment reservation</span>
+                  <span>Instant Paddle payment reservation</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />

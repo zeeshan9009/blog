@@ -212,7 +212,7 @@ export const ContactPage: React.FC = () => {
 
             <div className="pt-2">
               <div className="font-bold text-black font-mono">How does brand sponsorship billing work?</div>
-              <p className="text-slate-600 mt-1">Sponsors can purchase fixed Bronze ($50), Silver ($150) tiers or compete in the live Gold outbid auction. Payments are processed securely via Stripe.</p>
+              <p className="text-slate-600 mt-1">Sponsors can purchase fixed Bronze ($50), Silver ($150) tiers or compete in the live Gold outbid auction. Payments are processed securely via Paddle.</p>
             </div>
           </div>
         </div>

@@ -62,7 +62,7 @@ export const PrivacyPage: React.FC = () => {
             </ul>
 
             <p className="pt-2">
-              <strong>B. Payment & Financial Data (Stripe Tokenization):</strong>
+              <strong>B. Payment & Financial Data (Paddle Tokenization):</strong>
             </p>
             <p className="p-3 bg-emerald-50 border border-emerald-300 text-emerald-950 text-xs">
               <strong>Merchant of Record & Zero Card Storage:</strong> All payment transactions (challenge entry fees, sponsorships, spotlight bids) are processed securely through our Merchant of Record <strong>Paddle.com</strong> (Paddle Payments) under PCI-DSS Level 1 compliance. <strong>RankLancr never stores, views, or logs your raw credit card numbers or banking credentials.</strong>

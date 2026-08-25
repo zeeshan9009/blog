@@ -35,18 +35,18 @@ export const GlobalCommunity: React.FC = () => {
         {/* Eyebrow with Orange Square Bullet */}
         <div className="inline-flex items-center gap-2 text-xs font-bold text-[#e8622c] mb-4">
           <span className="w-2 h-2 bg-[#e8622c] block" />
-          <span>Global editor network</span>
+          <span>Global developer network</span>
         </div>
 
-        {/* Updated Site-Specific Headline (Replacing generic 'Creators from all over the world') */}
+        {/* Updated Site-Specific Headline */}
         <h2 className="text-4xl sm:text-6xl font-black text-black tracking-[-0.03em] leading-tight mb-4">
-          Powering video teams, <br />
-          studios & creators everywhere
+          Powering engineers, <br />
+          builders & creators everywhere
         </h2>
 
-        {/* Tailored Subtext for Pixelpush AI Editor */}
+        {/* Tailored Subtext for RankLancr */}
         <p className="text-slate-500 text-sm sm:text-base max-w-xl mx-auto leading-relaxed mb-16">
-          From solo YouTube creators and commercial filmmakers to high-growth media agencies, Pixelpush automates timeline assembly across 120+ countries.
+          From solo fullstack builders and AI engineers to high-growth tech teams, RankLancr benchmarks code, rewards skill, and showcases top engineering talent across 120+ countries.
         </p>
 
         {/* Real Rotating 3D Dotted Sphere with Glowing Warm Sunset Rim */}
