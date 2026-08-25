@@ -91,6 +91,31 @@ export const TermsPage: React.FC = () => {
           </p>
         </div>
 
+        {/* Section 6: Digital Delivery & Intellectual Property */}
+        <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
+          <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
+            <Scale className="w-4 h-4 text-purple-600" />
+            <span>6. Intellectual Property & Creator Rights</span>
+          </div>
+          <p className="text-xs text-slate-700 leading-relaxed">
+            Participants retain 100% intellectual property ownership of code, designs, and content submitted to challenges. By submitting a project, you grant RankLancr a non-exclusive license to publicly display your submission in the arena and showcase rail.
+          </p>
+        </div>
+
+        {/* Section 7: Merchant of Record & Support Contact */}
+        <div className="bg-orange-50 border-2 border-black p-6 shadow-[4px_4px_0px_0px_#e8622c] space-y-2">
+          <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
+            <FileText className="w-4 h-4 text-[#e8622c]" />
+            <span>7. Merchant of Record & Support Contact</span>
+          </div>
+          <p className="text-xs text-slate-700 leading-relaxed">
+            Our order process is conducted by our online reseller <strong>Paddle.com</strong>. Paddle.com is the Merchant of Record for all our orders. Paddle provides all customer service inquiries and handles returns.
+          </p>
+          <p className="text-xs text-slate-700 pt-1">
+            For direct platform support or terms inquiries, contact us at <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklanrc@gmail.com</a>.
+          </p>
+        </div>
+
       </main>
 
       <Footer />

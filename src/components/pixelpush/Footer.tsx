@@ -1,159 +1,172 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
-import toast from 'react-hot-toast';
+import { Trophy, Flame, ShieldCheck, Lock, Mail, ExternalLink, ArrowRight } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const [email, setEmail] = useState('');
-
-  const scrollTo = (id: string) => {
-    const el = document.getElementById(id);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
-
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      toast.success('Thank you for subscribing to ProRank updates!');
-      setEmail('');
-    }
-  };
-
   return (
-    <footer className="bg-[#0a0a0a] text-slate-400 border-t border-slate-900 pt-20 pb-12">
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
+    <footer className="bg-black text-slate-400 border-t-2 border-black pt-16 pb-12 font-sans selection:bg-[#e8622c] selection:text-white">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12 space-y-12">
         
-        {/* Large Tagline Callout */}
-        <div className="pb-16 border-b border-slate-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-8">
-          <div>
-            <h3 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white tracking-[-0.03em]">
-              Hire top talent the direct way.
+        {/* Top Callout Banner */}
+        <div className="pb-12 border-b border-slate-800 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div className="space-y-2">
+            <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
+              <Trophy className="w-3.5 h-3.5" />
+              <span>COMMUNITY SKILL COMPETITION PLATFORM</span>
+            </div>
+            <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
+              Compete in Skill Arenas. Win 72h Visibility.
             </h3>
-            <p className="text-slate-400 text-sm mt-2 font-medium">
-              Vetted developers, UI/UX designers, video editors, and growth specialists with zero commission cuts.
+            <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-2xl">
+              Pay $5 to enter skill challenges, earn public community votes, and claim site-wide Top Developer Rail showcase placements.
             </p>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
               to="/arena"
-              className="px-6 py-3 bg-[#e8622c] hover:bg-white text-white hover:text-black font-bold text-xs transition shadow-md rounded-none cursor-pointer"
+              className="px-5 py-3 bg-[#e8622c] hover:bg-white text-white hover:text-black font-mono text-xs font-bold transition border border-black shadow-[3px_3px_0px_0px_rgba(255,255,255,0.2)]"
             >
-              Enter Challenge Arena
+              [ BROWSE CHALLENGES ]
             </Link>
-            <button
-              onClick={() => scrollTo('spotlight')}
-              className="px-6 py-3 bg-transparent hover:bg-white/10 text-white border border-slate-700 hover:border-white font-bold text-xs transition rounded-none cursor-pointer"
+            <Link
+              to="/pricing"
+              className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-mono text-xs font-bold transition border border-slate-700"
             >
-              Outbid Spotlight
-            </button>
+              View Pricing & Fees
+            </Link>
           </div>
         </div>
 
-        {/* 4-Column Link Grid */}
-        <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
+        {/* 4-Column Navigation & Legal Compliance Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-xs">
           
-          {/* Col 1: Explore */}
-          <div className="space-y-4">
-            <div className="text-xs font-bold uppercase tracking-wider text-white">
-              Explore RankLancr
+          {/* Column 1: Platform & Arenas */}
+          <div className="space-y-3">
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2">
+              Platform & Arenas
             </div>
-            <ul className="space-y-2.5 text-xs">
-              <li><Link to="/arena" className="hover:text-white transition text-amber-400 font-bold">🏆 Challenge Arena</Link></li>
-              <li><button onClick={() => scrollTo('spotlight')} className="hover:text-white transition text-left cursor-pointer">🔥 Outbid Spotlight Top 3</button></li>
-              <li><Link to="/create-profile" className="hover:text-white transition">Create Free Developer Profile</Link></li>
-              <li><a href="#features" className="hover:text-white transition">0% Commission Model</a></li>
-              <li><a href="#faq" className="hover:text-white transition">ProRank Deterministic Scoring</a></li>
+            <ul className="space-y-2 font-medium">
+              <li>
+                <Link to="/arena" className="hover:text-white transition flex items-center gap-1.5 text-amber-400 font-bold">
+                  <span>🏆 Challenge Arena</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/spotlight" className="hover:text-white transition flex items-center gap-1.5 text-[#e8622c] font-bold">
+                  <span>🔥 Outbid Spotlight (72h)</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/pricing" className="hover:text-white transition">
+                  Pricing & Fee Breakdown ($5 Entry)
+                </Link>
+              </li>
+              <li>
+                <Link to="/create-profile" className="hover:text-white transition">
+                  Create Creator Passport
+                </Link>
+              </li>
+              <li>
+                <Link to="/dashboard" className="hover:text-white transition">
+                  User Command Dashboard
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Col 2: Platform */}
-          <div className="space-y-4">
-            <div className="text-xs font-bold uppercase tracking-wider text-white">
-              Platform
+          {/* Column 2: Legal & Merchant Compliance */}
+          <div className="space-y-3">
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2">
+              Legal & Compliance
             </div>
-            <ul className="space-y-2.5 text-xs">
-              <li><a href="#features" className="hover:text-white transition">How ProRank Works</a></li>
-              <li><a href="#spotlight" className="hover:text-white transition">Outbid Spotlight Top 3</a></li>
-              <li><Link to="/create-profile" className="hover:text-white transition">Create Free Profile</Link></li>
-              <li><a href="#faq" className="hover:text-white transition">ProRank 0-100 Scoring</a></li>
-              <li><a href="#faq" className="hover:text-white transition">Zero Commission Model</a></li>
+            <ul className="space-y-2 font-medium">
+              <li>
+                <Link to="/terms" className="hover:text-white transition">
+                  Terms of Service (No Cash Payouts)
+                </Link>
+              </li>
+              <li>
+                <Link to="/privacy" className="hover:text-white transition text-emerald-400 font-bold">
+                  Privacy Policy (GDPR / CCPA)
+                </Link>
+              </li>
+              <li>
+                <Link to="/refunds" className="hover:text-white transition text-amber-400 font-bold">
+                  Refund & Cancellation Policy
+                </Link>
+              </li>
+              <li>
+                <Link to="/rules" className="hover:text-white transition">
+                  Auction & Fair Play Rules
+                </Link>
+              </li>
             </ul>
           </div>
 
-          {/* Col 3: Resources */}
-          <div className="space-y-4">
-            <div className="text-xs font-bold uppercase tracking-wider text-white">
-              Resources
+          {/* Column 3: Customer Support & Inquiries */}
+          <div className="space-y-3">
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2">
+              Customer Support Desk
             </div>
-            <ul className="space-y-2.5 text-xs">
-              <li><a href="#faq" className="hover:text-white transition">Frequently Asked Questions</a></li>
-              <li><a href="mailto:support@prorank.io" className="hover:text-white transition">Direct Support Desk</a></li>
-              <li><button onClick={() => scrollTo('talent')} className="hover:text-white transition cursor-pointer">Verified Talent Directory</button></li>
-              <li><a href="#faq" className="hover:text-white transition">Security & Trust</a></li>
+            <ul className="space-y-2 font-medium">
+              <li>
+                <Link to="/contact" className="hover:text-white transition flex items-center gap-1 text-white font-bold">
+                  <Mail className="w-3.5 h-3.5 text-[#e8622c]" />
+                  <span>Contact Support Ticket</span>
+                </Link>
+              </li>
+              <li>
+                <a href="mailto:ranklanrc@gmail.com" className="hover:text-white transition font-mono text-[#e8622c]">
+                  ranklanrc@gmail.com
+                </a>
+              </li>
+              <li className="text-[11px] text-slate-500 font-mono">
+                Response SLA: Within 24-48 Hours
+              </li>
+              <li className="text-[11px] text-slate-500 font-mono">
+                Dispute Desk: Active Mon-Sat
+              </li>
             </ul>
           </div>
 
-          {/* Col 4 & 5: Newsletter Box */}
-          <div className="lg:col-span-2 space-y-4 p-6 bg-slate-900/60 border border-slate-800 rounded-none">
-            <div className="text-xs font-bold uppercase tracking-wider text-white">
-              Stay in the loop
+          {/* Column 4: Merchant of Record (Paddle) */}
+          <div className="space-y-3 p-4 bg-slate-900/80 border border-slate-800">
+            <div className="text-xs font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-emerald-400" />
+              <span>Merchant of Record</span>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed">
-              New vetted talent additions and platform growth updates, once a month. No spam.
+            <p className="text-[11px] text-slate-400 leading-relaxed">
+              Our order process is conducted by our online reseller & Merchant of Record <strong>Paddle.com</strong>.
             </p>
-
-            <form onSubmit={handleSubscribe} className="flex items-center gap-2">
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="Enter your work email"
-                className="w-full px-4 py-2.5 text-xs text-white bg-black border border-slate-700 rounded-none focus:outline-hidden focus:border-[#e8622c]"
-              />
-              <button
-                type="submit"
-                className="px-5 py-2.5 bg-[#e8622c] hover:bg-orange-500 text-white font-bold text-xs transition shrink-0 cursor-pointer rounded-none"
-              >
-                Subscribe
-              </button>
-            </form>
+            <div className="pt-2 border-t border-slate-800 flex items-center gap-2 font-mono text-[10px] text-slate-400">
+              <Lock className="w-3 h-3 text-emerald-400" />
+              <span>Paddle 256-Bit SSL Encrypted</span>
+            </div>
           </div>
 
         </div>
 
-        {/* Bottom Bar */}
+        {/* Bottom Copyright Bar */}
         <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
           
           <div className="flex items-center gap-3">
-            <div className="w-5 h-5 bg-[#e8622c] flex items-center justify-center text-white text-[11px] font-black">
+            <div className="w-6 h-6 bg-[#e8622c] flex items-center justify-center text-white text-xs font-black font-mono border border-black">
               R
             </div>
             <span>© 2026 RankLancr.lol Platform Inc. All rights reserved.</span>
           </div>
 
-          <div className="flex items-center gap-6 font-mono">
-            <Link to="/terms" className="hover:text-white transition">Terms of Service</Link>
-            <Link to="/rules" className="hover:text-white transition">Auction & Outbid Rules</Link>
-            <Link to="/terms" className="hover:text-white transition">No-Refund Policy</Link>
-          </div>
-
-          {/* Social Icons */}
-          <div className="flex items-center gap-4 text-slate-400 font-mono text-xs font-bold">
-            <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-white transition" aria-label="Twitter">
-              [𝕏]
-            </a>
-            <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-white transition" aria-label="GitHub">
-              [GH]
-            </a>
-            <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-white transition" aria-label="LinkedIn">
-              [IN]
-            </a>
-            <a href="https://discord.com" target="_blank" rel="noreferrer" className="hover:text-white transition" aria-label="Discord">
-              [DC]
-            </a>
+          <div className="flex flex-wrap items-center gap-4 font-mono text-[11px]">
+            <Link to="/terms" className="hover:text-white transition">Terms</Link>
+            <span>•</span>
+            <Link to="/privacy" className="hover:text-white transition">Privacy</Link>
+            <span>•</span>
+            <Link to="/refunds" className="hover:text-white transition">Refunds</Link>
+            <span>•</span>
+            <Link to="/pricing" className="hover:text-white transition">Pricing</Link>
+            <span>•</span>
+            <Link to="/contact" className="hover:text-white transition">Support</Link>
           </div>
 
         </div>

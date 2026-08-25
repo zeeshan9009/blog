@@ -14,6 +14,10 @@ import PromotedRankingPage from "./pages/PromotedRankingPage";
 import { ChallengeArenaPage } from "./pages/ChallengeArenaPage";
 import TermsPage from "./pages/TermsPage";
 import AdminPage from "./pages/AdminPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import RefundPolicyPage from "./pages/RefundPolicyPage";
+import ContactPage from "./pages/ContactPage";
+import PricingPage from "./pages/PricingPage";
 
 export default function App() {
   const isDashboardSubdomain = typeof window !== 'undefined' && window.location.hostname.startsWith('dashboard.');
@@ -62,9 +66,21 @@ export default function App() {
           <Route path="/challenges" element={<ChallengeArenaPage />} />
           <Route path="/challenge/:id" element={<ChallengeArenaPage />} />
 
-          {/* Legal & Rules */}
+          {/* Pricing & Fees */}
+          <Route path="/pricing" element={<PricingPage />} />
+          <Route path="/fees" element={<PricingPage />} />
+
+          {/* Legal & Payment Gateway Compliance */}
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/rules" element={<TermsPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/privacy-policy" element={<PrivacyPage />} />
+          <Route path="/refunds" element={<RefundPolicyPage />} />
+          <Route path="/refund-policy" element={<RefundPolicyPage />} />
+
+          {/* Customer Support Desk */}
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/support" element={<ContactPage />} />
 
           {/* Fallback */}
           <Route path="*" element={<PixelpushLanding />} />

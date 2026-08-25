@@ -109,6 +109,14 @@ export const Navbar: React.FC = () => {
                   <span>Challenge Arena</span>
                 </button>
 
+                {/* Pricing & Fees */}
+                <button
+                  onClick={() => goToPage('/pricing')}
+                  className="hover:text-black transition py-1.5 px-2 cursor-pointer"
+                >
+                  Pricing
+                </button>
+
                 {/* How It Works */}
                 <a
                   href="#features"
@@ -225,6 +233,13 @@ export const Navbar: React.FC = () => {
             >
               <Trophy className="w-4 h-4 text-amber-600" />
               <span>Challenge Arena</span>
+            </button>
+
+            <button
+              onClick={() => goToPage('/pricing')}
+              className="w-full text-left py-2 px-3 font-bold text-xs text-slate-800 hover:bg-slate-50 flex items-center gap-2"
+            >
+              <span>Pricing & Fees</span>
             </button>
 
             <a
