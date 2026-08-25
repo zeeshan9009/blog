@@ -150,7 +150,7 @@ export const TopDeveloperRail: React.FC<TopDeveloperRailProps> = ({ className = 
                   Champion Showcase Slot
                 </div>
                 <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                  Reserved for the #1 top-voted winner in the active Next.js & AI Challenge arena.
+                  Reserved for the #1 top-voted winner in our upcoming skill challenge arena.
                 </p>
               </div>
 
