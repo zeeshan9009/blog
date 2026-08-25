@@ -258,66 +258,83 @@ export const ChallengeArenaPage: React.FC = () => {
           )}
 
           {activeChallenge && (
-            <div className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="space-y-2 max-w-2xl">
-                <div className="flex items-center gap-2">
-                  <span className="px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
-                    PHASE: {activeChallenge.status.replace('_', ' ').toUpperCase()}
-                  </span>
-                  <span className="text-xs font-mono font-bold text-slate-500 uppercase">
-                    Category: {activeChallenge.category}
-                  </span>
+            <div className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
+              <div className="flex flex-col md:flex-row md:items-start justify-between gap-6">
+                <div className="space-y-3 flex-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
+                      PHASE: {activeChallenge.status.replace('_', ' ').toUpperCase()}
+                    </span>
+                    <span className="text-xs font-mono font-bold text-slate-500 uppercase">
+                      Category: {activeChallenge.category}
+                    </span>
+                  </div>
+
+                  <h2 className="text-xl sm:text-3xl font-black text-black tracking-tight font-mono">
+                    {activeChallenge.title}
+                  </h2>
                 </div>
 
-                <h2 className="text-xl sm:text-2xl font-black text-black tracking-tight">
-                  {activeChallenge.title}
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-600 font-medium">
-                  {activeChallenge.prompt}
-                </p>
+                {/* Top Actions */}
+                <div className="flex flex-wrap items-center gap-3 shrink-0">
+                  {isEntryOpen && (
+                    <button
+                      onClick={handleEnterChallenge}
+                      disabled={isEntering || hasEntered}
+                      className="py-3 px-5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
+                    >
+                      {isEntering ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : hasEntered ? (
+                        <>
+                          <CheckCircle2 className="w-4 h-4 text-emerald-300" />
+                          <span>[ ENTERED ($5 PAID) ]</span>
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="w-4 h-4 text-amber-300" />
+                          <span>[ ENTER CHALLENGE — $5 ]</span>
+                        </>
+                      )}
+                    </button>
+                  )}
+
+                  {isSubmissionOpen && (
+                    <button
+                      onClick={() => setIsSubmitModalOpen(true)}
+                      className="py-3 px-5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                    >
+                      <Sparkles className="w-4 h-4 text-amber-300" />
+                      <span>[ SUBMIT WORK ]</span>
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => setIsSponsorModalOpen(true)}
+                    className="py-3 px-4 bg-white hover:bg-slate-100 text-black font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                  >
+                    <Building2 className="w-4 h-4 text-blue-600" />
+                    <span>[ SPONSOR ARENA ]</span>
+                  </button>
+                </div>
               </div>
 
-              {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3">
-                {isEntryOpen && (
-                  <button
-                    onClick={handleEnterChallenge}
-                    disabled={isEntering || hasEntered}
-                    className="py-3 px-5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
+              {/* Formatted Structured Challenge Prompt Box */}
+              <div className="bg-[#faf8f5] border-2 border-slate-300 p-5 font-mono text-xs sm:text-sm text-slate-800 space-y-2">
+                <div className="flex items-center justify-between border-b border-slate-300 pb-2">
+                  <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                    📋 CHALLENGE SPECIFICATION & PROMPT
+                  </span>
+                  <Link
+                    to={`/challenges/${activeChallenge.slug || activeChallenge.id}/submit`}
+                    className="text-[11px] text-[#e8622c] hover:underline font-bold"
                   >
-                    {isEntering ? (
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                    ) : hasEntered ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-300" />
-                        <span>[ ENTERED ($5 PAID) ]</span>
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles className="w-4 h-4 text-amber-300" />
-                        <span>[ ENTER CHALLENGE — $5 ]</span>
-                      </>
-                    )}
-                  </button>
-                )}
-
-                {isSubmissionOpen && (
-                  <button
-                    onClick={() => setIsSubmitModalOpen(true)}
-                    className="py-3 px-5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-                  >
-                    <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>[ SUBMIT WORK ]</span>
-                  </button>
-                )}
-
-                <button
-                  onClick={() => setIsSponsorModalOpen(true)}
-                  className="py-3 px-4 bg-white hover:bg-orange-50 text-black font-mono text-xs font-bold transition flex items-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-                >
-                  <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c]" />
-                  <span>SPONSOR AUCTION / OUTBID</span>
-                </button>
+                    Direct Submission Link ↗
+                  </Link>
+                </div>
+                <div className="whitespace-pre-line leading-relaxed max-h-80 overflow-y-auto pr-2 space-y-2 text-slate-700">
+                  {activeChallenge.prompt}
+                </div>
               </div>
             </div>
           )}

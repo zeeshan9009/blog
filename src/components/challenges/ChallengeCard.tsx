@@ -107,14 +107,29 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         <div className="space-y-2.5">
           <h3 
             onClick={() => onViewDetails(challenge)}
-            className="text-lg sm:text-xl font-black text-black leading-tight tracking-tight hover:text-[#e8622c] transition cursor-pointer"
+            className="text-lg sm:text-xl font-black text-black leading-tight tracking-tight hover:text-[#e8622c] transition cursor-pointer line-clamp-2"
           >
             {challenge.title}
           </h3>
 
-          <p className="text-xs sm:text-sm text-slate-700 font-medium leading-relaxed">
-            {challenge.prompt}
+          <p className="text-xs sm:text-sm text-slate-700 font-mono leading-relaxed line-clamp-3">
+            {challenge.prompt
+              ? challenge.prompt
+                  .replace(/#+\s*/g, '')
+                  .replace(/\*\*/g, '')
+                  .replace(/---+/g, ' ')
+                  .replace(/\n+/g, ' ')
+                  .trim()
+              : 'Compete in this skill challenge, build your project, and get public community votes.'}
           </p>
+
+          <button
+            type="button"
+            onClick={() => onViewDetails(challenge)}
+            className="text-[11px] font-mono font-bold text-[#e8622c] hover:text-black transition inline-flex items-center gap-1 cursor-pointer"
+          >
+            <span>[ Read Full Prompt & Rules → ]</span>
+          </button>
         </div>
 
         {/* Challenge Metrics & Countdown */}

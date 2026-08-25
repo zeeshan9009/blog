@@ -227,13 +227,13 @@ export const ChallengeSubmissionPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h1 className="text-2xl sm:text-4xl font-black text-black tracking-tight font-mono">
               {challenge.title}
             </h1>
-            <p className="text-xs sm:text-sm font-mono text-slate-700 leading-relaxed">
+            <div className="text-xs sm:text-sm font-mono text-slate-700 leading-relaxed whitespace-pre-line bg-[#faf8f5] p-4 border border-slate-300 max-h-64 overflow-y-auto">
               {challenge.prompt}
-            </p>
+            </div>
           </div>
 
           {/* Reward Flagship Callout */}
