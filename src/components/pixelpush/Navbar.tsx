@@ -10,8 +10,7 @@ import {
   Flame,
   Trophy,
   Settings,
-  ChevronDown,
-  ShieldAlert
+  ChevronDown
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RankLancrLogo } from '../brand/RankLancrLogo';
@@ -127,15 +126,23 @@ export const Navbar: React.FC = () => {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setUserDropdownOpen(!userDropdownOpen)}
-                    className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border-2 border-black text-xs font-bold transition cursor-pointer"
+                    className="flex items-center gap-2 px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 border-2 border-black text-xs font-bold transition cursor-pointer"
                   >
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
-                    <span className="truncate max-w-[120px]">{user.email?.split('@')[0] || 'My Account'}</span>
+                    {user.avatar_url ? (
+                      <img
+                        src={user.avatar_url}
+                        alt="Avatar"
+                        className="w-5 h-5 rounded-full object-cover border border-black"
+                      />
+                    ) : (
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
+                    )}
+                    <span className="truncate max-w-[120px]">{user.name || user.email?.split('@')[0] || 'My Account'}</span>
                     <ChevronDown className="w-3 h-3 text-slate-600" />
                   </button>
 
                   {userDropdownOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-52 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-2 z-50 animate-fadeIn">
+                    <div className="absolute right-0 top-full mt-2 w-48 bg-white border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] p-2 z-50 animate-fadeIn">
                       <Link
                         to="/dashboard"
                         onClick={() => setUserDropdownOpen(false)}
@@ -154,21 +161,12 @@ export const Navbar: React.FC = () => {
                         <span>Settings</span>
                       </Link>
 
-                      <Link
-                        to="/admin"
-                        onClick={() => setUserDropdownOpen(false)}
-                        className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#e8622c] hover:bg-orange-50 transition font-mono"
-                      >
-                        <ShieldAlert className="w-3.5 h-3.5 text-[#e8622c]" />
-                        <span>Admin Console</span>
-                      </Link>
-
                       <button
                         onClick={() => {
                           setUserDropdownOpen(false);
                           logout();
                         }}
-                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition text-left cursor-pointer"
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-600 hover:bg-red-50 transition text-left cursor-pointer pt-2 border-t border-slate-100"
                       >
                         <LogOut className="w-3.5 h-3.5" />
                         <span>Sign Out</span>
