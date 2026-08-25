@@ -25,7 +25,7 @@ export const PixelpushLanding: React.FC = () => {
         </div>
 
         {/* 2. Top Developer 72-Hour Earned Rail */}
-        <div id="top-dev-rail" className="max-w-[1440px] mx-auto px-4 sm:px-8 py-8">
+        <div id="top-dev-rail" className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-4 pb-6">
           <TopDeveloperRail />
         </div>
 
