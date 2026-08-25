@@ -70,24 +70,6 @@ export const Hero: React.FC = () => {
           </button>
         </div>
 
-        {/* Three Micro Highlights */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-4 border-t border-slate-300 max-w-2xl mx-auto text-[11px] font-mono">
-          <div className="p-2 bg-white border border-black flex items-center gap-2">
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-            <span className="font-bold text-slate-800">Zero Pay-to-Win</span>
-          </div>
-
-          <div className="p-2 bg-white border border-black flex items-center gap-2">
-            <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="font-bold text-slate-800">72h Top Developer Rail</span>
-          </div>
-
-          <div className="p-2 bg-white border border-black flex items-center gap-2">
-            <Building2 className="w-3.5 h-3.5 text-blue-600 shrink-0" />
-            <span className="font-bold text-slate-800">3-Tier Sponsorships</span>
-          </div>
-        </div>
-
       </div>
     </section>
   );
