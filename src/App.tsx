@@ -15,13 +15,15 @@ import { ChallengeArenaPage } from "./pages/ChallengeArenaPage";
 import TermsPage from "./pages/TermsPage";
 
 export default function App() {
+  const isDashboardSubdomain = typeof window !== 'undefined' && window.location.hostname.startsWith('dashboard.');
+
   return (
     <AuthProvider>
       <TalentProvider>
         <Toaster position="top-right" />
         <Routes>
-          {/* Main Landing Page */}
-          <Route path="/" element={<PixelpushLanding />} />
+          {/* Main Landing Page (or Direct Dashboard on dashboard. subdomain) */}
+          <Route path="/" element={isDashboardSubdomain ? <DashboardPage /> : <PixelpushLanding />} />
 
           {/* Dedicated Full Page Sign In & Register */}
           <Route path="/login" element={<AuthPage />} />
