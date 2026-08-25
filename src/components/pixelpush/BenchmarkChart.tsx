@@ -12,7 +12,7 @@ export const BenchmarkChart: React.FC = () => {
       { name: 'Staffing Agencies', score: 67.5, color: 'bg-[#e8622c]', isProRank: false },
       { name: 'Vetted Portals', score: 70.2, color: 'bg-[#0a0a0a]', isProRank: false },
       { name: 'Boutique Studios', score: 76.4, color: 'bg-[#e8622c]', isProRank: false },
-      { name: 'ProRank Talent', score: 95.1, color: 'bg-white', isProRank: true }
+      { name: 'RankLancr Finalists', score: 95.1, color: 'bg-white', isProRank: true }
     ],
     speed: [
       { name: 'Staffing Agencies', score: 40.5, color: 'bg-[#c5c8cb]', isProRank: false },
@@ -22,7 +22,7 @@ export const BenchmarkChart: React.FC = () => {
       { name: 'Unverified Web', score: 68.5, color: 'bg-[#e8622c]', isProRank: false },
       { name: 'Vetted Portals', score: 74.0, color: 'bg-[#0a0a0a]', isProRank: false },
       { name: 'Boutique Studios', score: 80.2, color: 'bg-[#e8622c]', isProRank: false },
-      { name: 'ProRank Talent', score: 98.4, color: 'bg-white', isProRank: true }
+      { name: 'RankLancr Finalists', score: 98.4, color: 'bg-white', isProRank: true }
     ],
     accuracy: [
       { name: 'Unverified Web', score: 38.0, color: 'bg-[#c5c8cb]', isProRank: false },
@@ -32,12 +32,12 @@ export const BenchmarkChart: React.FC = () => {
       { name: 'Staffing Agencies', score: 78.0, color: 'bg-[#e8622c]', isProRank: false },
       { name: 'Boutique Studios', score: 84.0, color: 'bg-[#0a0a0a]', isProRank: false },
       { name: 'Vetted Portals', score: 88.5, color: 'bg-[#e8622c]', isProRank: false },
-      { name: 'ProRank Talent', score: 99.2, color: 'bg-white', isProRank: true }
+      { name: 'RankLancr Finalists', score: 99.2, color: 'bg-white', isProRank: true }
     ]
   };
 
   return (
-    <section className="py-20 sm:py-28 bg-white border-b border-slate-200">
+    <section className="py-20 sm:py-28 bg-white border-b-2 border-black">
       <div className="max-w-[1360px] mx-auto px-4 sm:px-8 lg:px-12">
         
         {/* Main 2-Column Split: Left Sidebar & Right Square Chart */}
@@ -49,14 +49,14 @@ export const BenchmarkChart: React.FC = () => {
             {/* Top: Benchmark Title & Legend */}
             <div className="space-y-8">
               <h3 className="text-xl font-extrabold text-black tracking-tight font-sans">
-                Hiring Benchmark
+                Skill & Code Benchmark
               </h3>
 
               {/* Legend List */}
               <div className="space-y-4 text-xs font-semibold text-slate-700">
                 <div className="flex items-center gap-3">
                   <span className="w-3.5 h-3.5 bg-[#e8622c] block shrink-0" />
-                  <span className="text-slate-800 font-bold">ProRank Verified</span>
+                  <span className="text-slate-800 font-bold">RankLancr Verified</span>
                 </div>
                 <div className="flex items-center gap-3">
                   <span className="w-3.5 h-3.5 bg-[#e8622c] block shrink-0" />
