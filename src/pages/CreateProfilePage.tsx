@@ -1,60 +1,58 @@
-import React, { useState, useMemo, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  Zap,
   ArrowRight,
   ArrowLeft,
   CheckCircle2,
   Plus,
-  Trash2,
-  AlertCircle,
-  Upload,
-  Camera
+  X,
+  Camera,
+  Sparkles,
+  ExternalLink,
+  Loader2,
+  Code,
+  User,
+  Globe
 } from 'lucide-react';
 import { useTalent } from '../context/TalentContext';
 import { useAuth } from '../context/AuthContext';
-import { calculateProfileQualityScore } from '../services/ranking/profileQualityScore';
-import { calculateProfessionalScore } from '../services/ranking/professionalScore';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
-import { SmartExternalProfilesManager } from '../components/profile/SmartExternalProfilesManager';
-import { validateExternalProfileUrl, type ExternalPlatform } from '../services/validation/externalProfileValidator';
-import type { Professional, ExperienceItem, PortfolioItem, ExternalLinks, ExternalProfileLink } from '../types/talent';
+import type { Professional } from '../types/talent';
 import toast from 'react-hot-toast';
 
 const PRESET_CATEGORIES = [
-  'Web Development',
-  'Graphic Design',
-  'UI/UX Design',
-  'SEO & Marketing',
-  'Video Editing',
-  'AI Engineering',
-  'Mobile Development',
-  'Content Writing'
+  'Development',
+  'Design & UI/UX',
+  'AI & Machine Learning',
+  'Marketing & Growth',
+  'Video & 3D',
+  'Writing & Strategy'
 ];
 
-const PRESET_SKILLS = [
-  'Node.js', 'React', 'TypeScript', 'Next.js', 'Express', 'MongoDB', 'PostgreSQL', 'Python',
-  'FastAPI', 'Figma', 'Webflow', 'Framer', 'GoHighLevel', 'ClickFunnels', 'Make.com', 'Zapier',
-  'SEO', 'Graphic Design', 'Video Editing', 'Adobe Premiere', 'After Effects', 'Tailwind CSS', 'Docker', 'AWS'
+const POPULAR_SKILLS = [
+  'React', 'TypeScript', 'Next.js', 'Node.js', 'Python', 'Tailwind CSS',
+  'Figma', 'PostgreSQL', 'FastAPI', 'Docker', 'AI Agents', 'UI/UX'
 ];
 
 export const CreateProfilePage: React.FC = () => {
   const navigate = useNavigate();
-  const { addProfessional, addService } = useTalent();
+  const { addProfessional } = useTalent();
   const { user, setHasProfile } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState<number>(1);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Step 1: Basic Info
+  // Form States (Simple & Required Info Only)
   const [name, setName] = useState(user?.name || '');
   const [headline, setHeadline] = useState('');
-  const [category, setCategory] = useState('Web Development');
-  const [location, setLocation] = useState('Lahore, Pakistan');
+  const [category, setCategory] = useState('Development');
   const [bio, setBio] = useState('');
-  const [avatar, setAvatar] = useState(user?.avatar_url || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=300&auto=format&fit=crop&q=80');
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [avatar, setAvatar] = useState(
+    user?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(user?.name || 'Creator')}`
+  );
+  const [selectedSkills, setSelectedSkills] = useState<string[]>(['React', 'TypeScript']);
+  const [customSkillInput, setCustomSkillInput] = useState('');
+  const [primaryLink, setPrimaryLink] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -69,473 +67,93 @@ export const CreateProfilePage: React.FC = () => {
     reader.onload = (event) => {
       if (event.target?.result) {
         setAvatar(event.target.result as string);
-        clearFieldError('avatar');
-        toast.success('Photo uploaded successfully!');
+        toast.success('Profile photo uploaded!');
       }
     };
     reader.readAsDataURL(file);
   };
 
-  // Step 2: Services
-  const [servicesList, setServicesList] = useState<Array<{
-    title: string;
-    category: string;
-    description: string;
-    skills: string[];
-    startingPrice: number;
-    priceType: 'fixed' | 'hourly' | 'starting_from';
-    deliveryTime: string;
-  }>>([
-    {
-      title: 'Build a REST API with Node.js & PostgreSQL',
-      category: 'Web Development',
-      description: 'High-throughput microservices backend with authentication and Redis caching.',
-      skills: ['Node.js', 'Express', 'PostgreSQL'],
-      startingPrice: 50,
-      priceType: 'starting_from',
-      deliveryTime: '3 days'
-    }
-  ]);
-
-  // Step 3: Skills
-  const [selectedSkills, setSelectedSkills] = useState<string[]>(['Node.js', 'Express', 'PostgreSQL', 'TypeScript']);
-  const [skillSearch, setSkillSearch] = useState('');
-
-  // Step 4: Experience
-  const [experienceList, setExperienceList] = useState<ExperienceItem[]>([
-    {
-      id: 'exp-1',
-      role: 'Senior Backend Engineer',
-      company: 'TechCorp Solutions',
-      period: '2022 - Present',
-      description: 'Built scalable microservices and API gateways.'
-    }
-  ]);
-
-  // Step 5: Portfolio & Links
-  const [portfolioList, setPortfolioList] = useState<PortfolioItem[]>([
-    {
-      id: 'port-1',
-      title: 'Real-time Payment Microservice',
-      description: 'High-concurrency payment processing API.',
-      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
-      tags: ['Node.js', 'PostgreSQL']
-    }
-  ]);
-  const [externalLinks, setExternalLinks] = useState<ExternalLinks>({
-    github: 'https://github.com',
-    linkedin: 'https://linkedin.com',
-    website: '',
-    upwork: '',
-    fiverr: ''
-  });
-
-  // Step 6: Pricing
-  const [hourlyRate, setHourlyRate] = useState<number>(50);
-  const [pricingModel, setPricingModel] = useState<'hourly' | 'starting_from' | 'fixed'>('starting_from');
-
-  // New Service draft state
-  const [newServiceTitle, setNewServiceTitle] = useState('');
-  const [newServiceCategory, setNewServiceCategory] = useState('Web Development');
-  const [newServicePrice, setNewServicePrice] = useState<number>(50);
-  const [newServiceDelivery, setNewServiceDelivery] = useState('3 days');
-  const [newServiceDesc, setNewServiceDesc] = useState('');
-
-  // New Experience draft state
-  const [newExpRole, setNewExpRole] = useState('');
-  const [newExpCompany, setNewExpCompany] = useState('');
-  const [newExpPeriod, setNewExpPeriod] = useState('');
-  const [newExpDesc, setNewExpDesc] = useState('');
-
-  // New Project draft state
-  const [newProjectTitle, setNewProjectTitle] = useState('');
-  const [newProjectDesc, setNewProjectDesc] = useState('');
-  const [newProjectUrl, setNewProjectUrl] = useState('');
-
-  // External Professional Profiles list
-  const [profileLinksList, setProfileLinksList] = useState<Array<{
-    id: string;
-    platform: ExternalPlatform;
-    url: string;
-    displayOrder?: number;
-  }>>([
-    {
-      id: 'ext-init-1',
-      platform: 'linkedin',
-      url: 'https://linkedin.com/in/specialist',
-      displayOrder: 0
-    },
-    {
-      id: 'ext-init-2',
-      platform: 'github',
-      url: 'https://github.com/developer',
-      displayOrder: 1
-    }
-  ]);
-  const [selectedPlatform, setSelectedPlatform] = useState<ExternalPlatform>('linkedin');
-  const [urlInput, setUrlInput] = useState<string>('');
-
-  const handleAddProfileLink = () => {
-    if (!urlInput.trim()) {
-      toast.error('Please enter a profile URL');
-      return;
-    }
-
-    const val = validateExternalProfileUrl(urlInput, selectedPlatform);
-    if (!val.isValid || !val.sanitizedUrl) {
-      toast.error(val.error || 'Invalid profile URL');
-      return;
-    }
-
-    // Check duplicate platform
-    if (profileLinksList.some(p => p.platform === selectedPlatform)) {
-      toast.error(`A link for ${selectedPlatform.toUpperCase()} is already added`);
-      return;
-    }
-
-    const newLink = {
-      id: `ext-${Date.now()}`,
-      platform: selectedPlatform,
-      url: val.sanitizedUrl
-    };
-
-    setProfileLinksList(prev => [...prev, newLink]);
-    
-    // Synchronize backwards-compatible externalLinks object
-    setExternalLinks(prev => ({
-      ...prev,
-      [selectedPlatform]: val.sanitizedUrl
-    }));
-
-    setUrlInput('');
-    toast.success(`Connected ${selectedPlatform.toUpperCase()} profile!`);
-  };
-
-  // Helper to clear error on field change
-  const clearFieldError = (fieldName: string) => {
-    if (errors[fieldName]) {
-      setErrors(prev => {
-        const next = { ...prev };
-        delete next[fieldName];
-        return next;
-      });
+  const toggleSkill = (skill: string) => {
+    if (selectedSkills.includes(skill)) {
+      setSelectedSkills(selectedSkills.filter(s => s !== skill));
+    } else {
+      setSelectedSkills([...selectedSkills, skill]);
     }
   };
 
-  // Step Validation Logic
-  const validateStep = (step: number): boolean => {
-    const stepErrors: Record<string, string> = {};
+  const addCustomSkill = (e: React.KeyboardEvent | React.MouseEvent) => {
+    if ('key' in e && e.key !== 'Enter') return;
+    e.preventDefault();
+    const trimmed = customSkillInput.trim();
+    if (!trimmed) return;
+    if (!selectedSkills.includes(trimmed)) {
+      setSelectedSkills([...selectedSkills, trimmed]);
+    }
+    setCustomSkillInput('');
+  };
 
-    if (step === 1) {
-      if (!name.trim()) {
-        stepErrors.name = 'Full name is required';
-      } else if (name.trim().length < 2) {
-        stepErrors.name = 'Full name must be at least 2 characters';
-      }
+  const removeSkill = (skillToRemove: string) => {
+    setSelectedSkills(selectedSkills.filter(s => s !== skillToRemove));
+  };
 
-      if (!headline.trim()) {
-        stepErrors.headline = 'Professional headline is required (e.g. Senior Node.js Developer)';
-      } else if (headline.trim().length < 3) {
-        stepErrors.headline = 'Headline must be at least 3 characters';
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-      if (!category.trim()) {
-        stepErrors.category = 'Primary category is required';
-      }
-
-      if (!location.trim()) {
-        stepErrors.location = 'Location / Country is required';
-      }
-
-      if (!bio.trim()) {
-        stepErrors.bio = 'Bio overview is required';
-      } else if (bio.trim().length < 15) {
-        stepErrors.bio = 'Bio must be at least 15 characters to explain your background';
-      }
-
-      if (!avatar.trim()) {
-        stepErrors.avatar = 'Avatar image URL is required';
-      }
+    if (!name.trim()) {
+      toast.error('Please enter your full name');
+      return;
     }
 
-    if (step === 2) {
-      if (servicesList.length === 0) {
-        stepErrors.services = 'Please add at least 1 service before continuing';
-      }
+    if (!headline.trim()) {
+      toast.error('Please enter your professional title (e.g. Full Stack Developer)');
+      return;
     }
 
-    if (step === 3) {
-      if (selectedSkills.length < 3) {
-        stepErrors.skills = 'Please select at least 3 skills for accurate search matching';
-      }
-    }
+    setIsSubmitting(true);
 
-    if (step === 4) {
-      if (experienceList.length === 0) {
-        stepErrors.experience = 'Please add at least 1 work experience entry';
-      }
-    }
+    try {
+      const newProfileId = user?.id || `user_${Date.now()}`;
 
-    if (step === 5) {
-      // Validate URLs if provided
-      const validateUrl = (url: string) => {
-        if (!url) return true;
-        try {
-          new URL(url);
-          return true;
-        } catch {
-          return false;
-        }
+      const newProfile: Professional = {
+        id: newProfileId,
+        userId: user?.id,
+        name: name.trim(),
+        avatar: avatar.trim(),
+        title: headline.trim(),
+        category,
+        location: 'Remote',
+        country: 'Global',
+        bio: bio.trim() || `${headline.trim()} building on RankLancr.`,
+        score: 85,
+        rating: 5.0,
+        reviewCount: 0,
+        hourlyRate: 50,
+        experienceYears: 3,
+        skills: selectedSkills.length > 0 ? selectedSkills : ['Developer'],
+        experience: [],
+        portfolio: [],
+        reviews: [],
+        externalLinks: {
+          github: primaryLink.includes('github') ? primaryLink : undefined,
+          website: !primaryLink.includes('github') && primaryLink ? primaryLink : undefined
+        },
+        isVerified: true,
+        isPromoted: false,
+        viewsCount: 0,
+        clicksCount: 0,
+        inquiriesCount: 0,
+        createdAt: new Date().toISOString()
       };
 
-      if (externalLinks.github && !validateUrl(externalLinks.github)) {
-        stepErrors.github = 'Please enter a valid URL (e.g. https://github.com/username)';
-      }
-      if (externalLinks.linkedin && !validateUrl(externalLinks.linkedin)) {
-        stepErrors.linkedin = 'Please enter a valid URL (e.g. https://linkedin.com/in/username)';
-      }
-      if (externalLinks.website && !validateUrl(externalLinks.website)) {
-        stepErrors.website = 'Please enter a valid website URL (e.g. https://mywebsite.com)';
-      }
+      addProfessional(newProfile);
+      setHasProfile(true);
+      toast.success('🎉 Profile created successfully!');
+      navigate('/dashboard');
+    } catch (err: any) {
+      toast.error('Failed to create profile: ' + (err.message || 'Error'));
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (step === 6) {
-      if (!hourlyRate || hourlyRate <= 0) {
-        stepErrors.hourlyRate = 'Base rate must be greater than $0';
-      }
-    }
-
-    setErrors(stepErrors);
-
-    if (Object.keys(stepErrors).length > 0) {
-      const firstError = Object.values(stepErrors)[0];
-      toast.error(firstError);
-      return false;
-    }
-
-    return true;
-  };
-
-  const handleNextStep = () => {
-    if (validateStep(currentStep)) {
-      setErrors({});
-      setCurrentStep(prev => prev + 1);
-    }
-  };
-
-  const handleStepClick = (targetStep: number) => {
-    if (targetStep < currentStep) {
-      setCurrentStep(targetStep);
-      setErrors({});
-    } else {
-      if (validateStep(currentStep)) {
-        setErrors({});
-        setCurrentStep(targetStep);
-      }
-    }
-  };
-
-  // Dynamic Profile Completeness & ProRank Score (Backend formulas)
-  const candidateMockPro: Professional = useMemo(() => ({
-    id: 'draft-pro',
-    name: name || 'Your Name',
-    title: headline || 'Professional Title',
-    category,
-    location,
-    country: location.split(',')[1]?.trim() || 'Global',
-    avatar,
-    bio,
-    hourlyRate,
-    experienceYears: experienceList.length * 2,
-    score: 88,
-    rating: 5.0,
-    reviewCount: 0,
-    skills: selectedSkills,
-    experience: experienceList,
-    portfolio: portfolioList,
-    reviews: [],
-    externalLinks,
-    isVerified: true,
-    isPromoted: false,
-    viewsCount: 0,
-    clicksCount: 0,
-    inquiriesCount: 0,
-    createdAt: new Date().toISOString()
-  }), [name, headline, category, location, avatar, bio, hourlyRate, selectedSkills, experienceList, portfolioList, externalLinks]);
-
-  const qualityScoreNorm = useMemo(() => calculateProfileQualityScore(candidateMockPro), [candidateMockPro]);
-  const completenessPercent = Math.round(qualityScoreNorm * 100);
-  const computedProScore = useMemo(() => calculateProfessionalScore(candidateMockPro).displayScore, [candidateMockPro]);
-
-  // Handle Skill Toggle
-  const toggleSkill = (skill: string) => {
-    clearFieldError('skills');
-    if (selectedSkills.includes(skill)) {
-      setSelectedSkills(prev => prev.filter(s => s !== skill));
-    } else {
-      setSelectedSkills(prev => [...prev, skill]);
-    }
-  };
-
-  const handleAddService = () => {
-    const serviceErrors: Record<string, string> = {};
-    if (!newServiceTitle.trim()) {
-      serviceErrors.newServiceTitle = 'Service title is required (e.g. Build a REST API with Node.js)';
-    }
-    if (!newServicePrice || newServicePrice <= 0) {
-      serviceErrors.newServicePrice = 'Starting price must be greater than $0';
-    }
-    if (!newServiceDelivery.trim()) {
-      serviceErrors.newServiceDelivery = 'Delivery time is required (e.g. 3 days)';
-    }
-
-    if (Object.keys(serviceErrors).length > 0) {
-      setErrors(serviceErrors);
-      toast.error(Object.values(serviceErrors)[0]);
-      return;
-    }
-
-    setServicesList(prev => [
-      ...prev,
-      {
-        title: newServiceTitle.trim(),
-        category: newServiceCategory,
-        description: newServiceDesc.trim() || `${newServiceCategory} professional deliverables and support.`,
-        skills: selectedSkills.slice(0, 3),
-        startingPrice: newServicePrice,
-        priceType: 'starting_from',
-        deliveryTime: newServiceDelivery.trim()
-      }
-    ]);
-
-    setNewServiceTitle('');
-    setNewServiceDesc('');
-    clearFieldError('services');
-    toast.success('Service added to profile!');
-  };
-
-  const handleAddExperience = () => {
-    const expErrors: Record<string, string> = {};
-    if (!newExpRole.trim()) {
-      expErrors.newExpRole = 'Job role / title is required';
-    }
-    if (!newExpCompany.trim()) {
-      expErrors.newExpCompany = 'Company / client name is required';
-    }
-
-    if (Object.keys(expErrors).length > 0) {
-      setErrors(expErrors);
-      toast.error(Object.values(expErrors)[0]);
-      return;
-    }
-
-    const newExp: ExperienceItem = {
-      id: `exp-${Date.now()}`,
-      role: newExpRole.trim(),
-      title: newExpRole.trim(),
-      company: newExpCompany.trim(),
-      period: newExpPeriod.trim() || 'Present',
-      description: newExpDesc.trim() || 'Key accomplishments, project deliveries, and tech stack.'
-    };
-
-    setExperienceList(prev => [...prev, newExp]);
-    setNewExpRole('');
-    setNewExpCompany('');
-    setNewExpPeriod('');
-    setNewExpDesc('');
-    clearFieldError('experience');
-    clearFieldError('newExpRole');
-    clearFieldError('newExpCompany');
-    toast.success('Work experience added to profile!');
-  };
-
-  const handleAddProject = () => {
-    if (!newProjectTitle.trim()) {
-      setErrors(prev => ({ ...prev, newProjectTitle: 'Project title is required' }));
-      toast.error('Project title is required');
-      return;
-    }
-
-    const newPort: PortfolioItem = {
-      id: `port-${Date.now()}`,
-      title: newProjectTitle.trim(),
-      description: newProjectDesc.trim() || 'Production client deliverable and technical project.',
-      imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=600&auto=format&fit=crop&q=80',
-      liveUrl: newProjectUrl.trim() || undefined,
-      tags: selectedSkills.slice(0, 2)
-    };
-
-    setPortfolioList(prev => [...prev, newPort]);
-    setNewProjectTitle('');
-    setNewProjectDesc('');
-    setNewProjectUrl('');
-    clearFieldError('newProjectTitle');
-    toast.success('Project added to portfolio!');
-  };
-
-  const handlePublishProfile = () => {
-    // Validate all steps before publishing
-    for (let s = 1; s <= 6; s++) {
-      if (!validateStep(s)) {
-        setCurrentStep(s);
-        return;
-      }
-    }
-
-    if (completenessPercent < 90) {
-      toast.error(`⚠️ Minimum 90% profile completeness required to go live (Current: ${completenessPercent}%).`);
-      if (!bio || bio.length < 50) {
-        setCurrentStep(1);
-      } else if (servicesList.length === 0) {
-        setCurrentStep(2);
-      } else if (selectedSkills.length < 3) {
-        setCurrentStep(3);
-      } else if (portfolioList.length === 0) {
-        setCurrentStep(5);
-      }
-      return;
-    }
-
-    const newProfile = addProfessional({
-      name: name.trim(),
-      title: headline.trim(),
-      category,
-      location: location.trim(),
-      country: location.split(',')[1]?.trim() || 'Global',
-      avatar: avatar.trim(),
-      bio: bio.trim(),
-      hourlyRate,
-      experienceYears: Math.max(1, experienceList.length * 2),
-      skills: selectedSkills,
-      experience: experienceList,
-      portfolio: portfolioList,
-      reviews: [],
-      externalLinks,
-      externalProfileLinks: profileLinksList.map((p, i) => ({ ...p, profileId: user?.id || 'pro-user', displayOrder: i })),
-      isVerified: true
-    });
-
-    // Add defined services
-    servicesList.forEach(srv => {
-      addService({
-        providerId: newProfile.id,
-        providerName: newProfile.name,
-        providerAvatar: newProfile.avatar,
-        providerHeadline: newProfile.title,
-        title: srv.title,
-        category: srv.category,
-        description: srv.description,
-        skills: srv.skills,
-        startingPrice: srv.startingPrice,
-        priceType: srv.priceType,
-        deliveryTime: srv.deliveryTime,
-        image: portfolioList[0]?.imageUrl || 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&auto=format&fit=crop&q=80'
-      });
-    });
-
-    setHasProfile(true);
-    toast.success('🎉 Your professional profile & services are published live!');
-    navigate('/dashboard');
   };
 
   return (
@@ -545,932 +163,255 @@ export const CreateProfilePage: React.FC = () => {
       <header className="border-b-2 border-black bg-white px-4 sm:px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => navigate('/onboarding')}
+            onClick={() => navigate('/dashboard')}
             className="flex items-center gap-1.5 p-1 px-2.5 bg-slate-100 hover:bg-slate-200 border border-black font-mono text-xs font-bold transition cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>[ BACK ]</span>
+            <span>[ DASHBOARD ]</span>
           </button>
 
           <RankLancrLogo size="sm" showDomain={true} />
         </div>
 
-        {/* Live Profile Completeness Meter */}
-        <div className="flex items-center gap-3">
-          <div className="hidden sm:block text-right">
-            <div className="text-[10px] font-mono font-bold text-slate-500 uppercase">Profile Completeness</div>
-            <div className="text-xs font-black text-black font-mono">{completenessPercent}%</div>
-          </div>
-          <div className="w-24 sm:w-32 bg-slate-200 border border-black h-3 overflow-hidden">
-            <div
-              className="bg-[#e8622c] h-full transition-all duration-300"
-              style={{ width: `${completenessPercent}%` }}
-            />
-          </div>
+        <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white font-mono text-[10px] font-bold uppercase">
+          <Sparkles className="w-3.5 h-3.5 text-[#e8622c]" />
+          <span>CREATOR PASSPORT</span>
         </div>
       </header>
 
-      {/* Main Wizard Container */}
-      <main className="flex-1 max-w-4xl mx-auto px-4 sm:px-8 py-8 w-full">
-        
-        {/* Step Progress Ribbon */}
-        <div className="bg-white border-2 border-black p-3 mb-8 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-          <div className="grid grid-cols-7 gap-1 text-center font-mono text-[10px] sm:text-xs font-bold">
-            {[
-              { num: 1, label: 'Basic Info' },
-              { num: 2, label: 'Services' },
-              { num: 3, label: 'Skills' },
-              { num: 4, label: 'Experience' },
-              { num: 5, label: 'Portfolio' },
-              { num: 6, label: 'Pricing' },
-              { num: 7, label: 'Preview' }
-            ].map(step => (
-              <button
-                key={step.num}
-                onClick={() => handleStepClick(step.num)}
-                className={`py-1.5 px-1 border transition cursor-pointer ${
-                  currentStep === step.num
-                    ? 'bg-black text-white border-black shadow-xs'
-                    : currentStep > step.num
-                    ? 'bg-orange-100 text-[#e8622c] border-[#e8622c]/30'
-                    : 'bg-slate-50 text-slate-400 border-slate-200'
-                }`}
-              >
-                <span className="block">{step.num.toString().padStart(2, '0')}</span>
-                <span className="truncate hidden md:block">{step.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Wizard Form Cards */}
-        <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)]">
+      {/* Main Form Container */}
+      <main className="flex-1 max-w-2xl mx-auto px-4 sm:px-6 py-8 w-full">
+        <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
           
-          {/* STEP 1: BASIC INFORMATION */}
-          {currentStep === 1 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 01 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">Basic Information</h2>
-                <p className="text-xs text-slate-600 mt-0.5">Let clients know who you are and what you specialize in.</p>
-              </div>
+          {/* Header Title */}
+          <div className="space-y-1 pb-4 border-b-2 border-black">
+            <span className="text-[10px] font-mono font-bold uppercase text-[#e8622c]">
+              QUICK SETUP • 2 MINUTES
+            </span>
+            <h1 className="text-2xl sm:text-3xl font-black text-black tracking-tight">
+              Create Your Creator Profile
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium">
+              Set up your public identity to enter skill challenges, submit projects, and climb the Top Developer Rail.
+            </p>
+          </div>
 
-              {/* Photo Upload & URL Container */}
-              <div className="p-4 bg-slate-50 border-2 border-black space-y-3">
-                <div className="flex flex-col sm:flex-row items-center gap-5">
-                  {/* Clickable Avatar Box with Hover Overlay */}
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    className="relative group cursor-pointer w-20 h-20 border-2 border-black object-cover bg-orange-100 shrink-0 overflow-hidden shadow-xs hover:border-[#e8622c] transition"
-                    title="Click to choose a photo from your device"
-                  >
-                    <img
-                      src={avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(name || 'Pro')}`}
-                      alt={name || 'Avatar'}
-                      className="w-full h-full object-cover"
-                    />
-                    <div className="absolute inset-0 bg-black/65 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-mono font-bold">
-                      <Camera className="w-4 h-4 mb-0.5 text-[#e8622c]" />
-                      <span>UPLOAD</span>
-                    </div>
-                  </div>
-
-                  <div className="flex-1 w-full space-y-2">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5">
-                        <label className="block text-xs font-bold font-mono text-black uppercase">
-                          Profile Photo <span className="text-red-500 font-bold">*</span>
-                        </label>
-                        <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                          REQUIRED
-                        </span>
-                      </div>
-
-                      {/* Direct File Upload Button */}
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        className="px-3 py-1 bg-black hover:bg-[#e8622c] text-white font-mono text-[11px] font-bold transition flex items-center gap-1.5 cursor-pointer shadow-xs"
-                      >
-                        <Upload className="w-3 h-3 text-[#e8622c]" />
-                        <span>[ UPLOAD FROM DEVICE ]</span>
-                      </button>
-                    </div>
-
-                    {/* Hidden Native File Input */}
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageFileChange}
-                      className="hidden"
-                    />
-
-                    {/* URL Input */}
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="text"
-                        value={avatar}
-                        onChange={(e) => { setAvatar(e.target.value); clearFieldError('avatar'); }}
-                        placeholder="Or paste direct image URL (https://...)"
-                        className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
-                          errors.avatar ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                        }`}
-                      />
-                    </div>
-
-                    {errors.avatar && (
-                      <div className="text-[11px] text-red-600 font-bold font-mono flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.avatar}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <label className="block text-xs font-bold font-mono text-black uppercase">
-                      Full Name <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                      REQUIRED
-                    </span>
-                  </div>
-                  <input
-                    type="text"
-                    value={name}
-                    onChange={(e) => { setName(e.target.value); clearFieldError('name'); }}
-                    placeholder="e.g. Ahmed Khan"
-                    className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
-                      errors.name ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                    }`}
-                  />
-                  {errors.name && (
-                    <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.name}
-                    </div>
-                  )}
-                </div>
-
-                <div>
-                  <div className="flex items-center gap-1.5 mb-1">
-                    <label className="block text-xs font-bold font-mono text-black uppercase">
-                      Primary Category <span className="text-red-500 font-bold">*</span>
-                    </label>
-                    <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                      REQUIRED
-                    </span>
-                  </div>
-                  <select
-                    value={category}
-                    onChange={(e) => { setCategory(e.target.value); clearFieldError('category'); }}
-                    className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-bold focus:outline-hidden focus:border-[#e8622c]"
-                  >
-                    {PRESET_CATEGORIES.map(cat => (
-                      <option key={cat} value={cat}>{cat}</option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="block text-xs font-bold font-mono text-black uppercase">
-                    Professional Headline <span className="text-red-500 font-bold">*</span>
-                  </label>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                    REQUIRED
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  value={headline}
-                  onChange={(e) => { setHeadline(e.target.value); clearFieldError('headline'); }}
-                  placeholder="e.g. Senior Node.js & Backend Developer"
-                  className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
-                    errors.headline ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                  }`}
-                />
-                {errors.headline && (
-                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.headline}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="block text-xs font-bold font-mono text-black uppercase">
-                    Location / Country <span className="text-red-500 font-bold">*</span>
-                  </label>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                    REQUIRED
-                  </span>
-                </div>
-                <input
-                  type="text"
-                  value={location}
-                  onChange={(e) => { setLocation(e.target.value); clearFieldError('location'); }}
-                  placeholder="e.g. Lahore, Pakistan"
-                  className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
-                    errors.location ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                  }`}
-                />
-                {errors.location && (
-                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.location}
-                  </div>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="block text-xs font-bold font-mono text-black uppercase">
-                    Bio / Overview <span className="text-red-500 font-bold">*</span>
-                  </label>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                    REQUIRED (MIN 15 CHARS)
-                  </span>
-                </div>
-                <textarea
-                  value={bio}
-                  onChange={(e) => { setBio(e.target.value); clearFieldError('bio'); }}
-                  rows={4}
-                  placeholder="Describe your technical background, core specialties, and what projects you enjoy building..."
-                  className={`w-full p-2.5 bg-slate-50 border-2 text-xs font-medium focus:outline-hidden ${
-                    errors.bio ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                  }`}
-                />
-                {errors.bio && (
-                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.bio}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: SERVICES */}
-          {currentStep === 2 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 02 OF 07</span>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">What services do you offer?</h2>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
-                    AT LEAST 1 REQUIRED
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5">List one or multiple professional services with pricing and delivery times.</p>
-              </div>
-
-              {errors.services && (
-                <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-xs font-mono font-bold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errors.services}</span>
-                </div>
-              )}
-
-              {/* Existing Services List */}
-              <div className="space-y-3">
-                {servicesList.map((srv, idx) => (
-                  <div key={idx} className="p-4 bg-slate-50 border-2 border-black flex items-start justify-between gap-4">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-1.5 py-0.5 bg-black text-white font-mono text-[9px] font-bold">
-                          SERVICE #{idx + 1}
-                        </span>
-                        <h4 className="font-black text-sm text-black">{srv.title}</h4>
-                      </div>
-                      <p className="text-xs text-slate-600 mt-1">{srv.description}</p>
-                      <div className="flex items-center gap-3 text-[11px] font-mono text-slate-500 mt-2">
-                        <span className="font-bold text-black">${srv.startingPrice} starting</span>
-                        <span>•</span>
-                        <span>{srv.deliveryTime} delivery</span>
-                        <span>•</span>
-                        <span className="text-[#e8622c]">{srv.category}</span>
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => setServicesList(prev => prev.filter((_, i) => i !== idx))}
-                      className="p-1.5 text-slate-400 hover:text-red-600 transition cursor-pointer"
-                      title="Remove service"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </div>
-                ))}
-              </div>
-
-              {/* Add New Service Box */}
-              <div className="p-4 border-2 border-dashed border-black bg-orange-50/40 space-y-3">
-                <div className="font-mono text-xs font-bold text-black uppercase flex items-center gap-1.5">
-                  <Plus className="w-4 h-4 text-[#e8622c]" />
-                  <span>Add A New Service Offer</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <div className="flex items-center gap-1 mb-1">
-                      <label className="text-[10px] font-mono text-black font-bold uppercase">
-                        Service Title <span className="text-red-500">*</span>
-                      </label>
-                    </div>
-                    <input
-                      type="text"
-                      value={newServiceTitle}
-                      onChange={(e) => { setNewServiceTitle(e.target.value); clearFieldError('newServiceTitle'); }}
-                      placeholder="e.g. Build a REST API with Node.js"
-                      className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
-                        errors.newServiceTitle ? 'border-red-500' : 'border-black'
-                      }`}
-                    />
-                    {errors.newServiceTitle && (
-                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newServiceTitle}</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-mono text-black font-bold uppercase block mb-1">
-                      Service Category <span className="text-red-500">*</span>
-                    </label>
-                    <select
-                      value={newServiceCategory}
-                      onChange={(e) => setNewServiceCategory(e.target.value)}
-                      className="w-full p-2 bg-white border-2 border-black text-xs font-bold focus:outline-hidden"
-                    >
-                      {PRESET_CATEGORIES.map(c => (
-                        <option key={c} value={c}>{c}</option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-0.5">
-                      Starting Price ($ USD) <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="number"
-                      value={newServicePrice}
-                      onChange={(e) => { setNewServicePrice(Number(e.target.value)); clearFieldError('newServicePrice'); }}
-                      className={`w-full p-2 bg-white border-2 text-xs font-bold focus:outline-hidden ${
-                        errors.newServicePrice ? 'border-red-500' : 'border-black'
-                      }`}
-                    />
-                    {errors.newServicePrice && (
-                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newServicePrice}</span>
-                    )}
-                  </div>
-                  <div>
-                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-0.5">
-                      Delivery Time <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newServiceDelivery}
-                      onChange={(e) => { setNewServiceDelivery(e.target.value); clearFieldError('newServiceDelivery'); }}
-                      placeholder="e.g. 3 days"
-                      className={`w-full p-2 bg-white border-2 text-xs font-bold focus:outline-hidden ${
-                        errors.newServiceDelivery ? 'border-red-500' : 'border-black'
-                      }`}
-                    />
-                    {errors.newServiceDelivery && (
-                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newServiceDelivery}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-0.5">
-                    Deliverables & Overview
-                  </label>
-                  <textarea
-                    value={newServiceDesc}
-                    onChange={(e) => setNewServiceDesc(e.target.value)}
-                    rows={2}
-                    placeholder="Short description of deliverables..."
-                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden"
+          <form onSubmit={handleSubmit} className="space-y-6">
+            
+            {/* 1. Avatar & Name Section */}
+            <div className="flex flex-col sm:flex-row items-center gap-6 pb-6 border-b border-slate-200">
+              
+              {/* Profile Photo */}
+              <div className="relative group shrink-0">
+                <div className="w-24 h-24 rounded-full border-2 border-black overflow-hidden bg-slate-100 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                  <img
+                    src={avatar}
+                    alt="Profile Avatar"
+                    className="w-full h-full object-cover"
                   />
                 </div>
 
                 <button
                   type="button"
-                  onClick={handleAddService}
-                  className="px-4 py-2 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition cursor-pointer shadow-xs"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="absolute bottom-0 right-0 p-1.5 bg-black text-white rounded-full border border-white hover:bg-[#e8622c] transition shadow-xs cursor-pointer"
+                  title="Upload photo"
                 >
-                  [ + SAVE SERVICE TO PROFILE ]
+                  <Camera className="w-3.5 h-3.5" />
                 </button>
+
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageFileChange}
+                  className="hidden"
+                />
               </div>
+
+              {/* Display Name & Email */}
+              <div className="flex-1 w-full space-y-3">
+                <div>
+                  <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                    Full Name / Display Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="e.g. Alex Rivera, Ali Raza"
+                    className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-bold text-black focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                    Primary Domain / Category *
+                  </label>
+                  <select
+                    value={category}
+                    onChange={(e) => setCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border-2 border-black text-xs font-mono font-bold bg-white focus:outline-hidden"
+                  >
+                    {PRESET_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
             </div>
-          )}
 
-          {/* STEP 3: SKILLS */}
-          {currentStep === 3 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 03 OF 07</span>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Select Your Core Skills</h2>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
-                    MINIMUM 3 REQUIRED
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5">Pick at least 3 skills to ensure accurate search matching and candidate ranking.</p>
-              </div>
-
-              {errors.skills && (
-                <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-xs font-mono font-bold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errors.skills}</span>
-                </div>
-              )}
-
-              {/* Search Filter */}
+            {/* 2. Professional Headline */}
+            <div>
+              <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                Professional Headline / Title *
+              </label>
               <input
                 type="text"
-                value={skillSearch}
-                onChange={(e) => setSkillSearch(e.target.value)}
-                placeholder="Search skills (e.g. Node.js, React, SEO, Webflow)..."
-                className="w-full p-2.5 bg-slate-50 border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
+                required
+                value={headline}
+                onChange={(e) => setHeadline(e.target.value)}
+                placeholder="e.g. Senior Full Stack Engineer & AI Agent Architect"
+                className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium text-black focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
               />
+              <span className="text-[10px] text-slate-500 font-mono mt-1 block">
+                This appears alongside your project submissions in the arena.
+              </span>
+            </div>
 
-              {/* Preset Chips */}
-              <div className="flex flex-wrap gap-2">
-                {PRESET_SKILLS.filter(s => s.toLowerCase().includes(skillSearch.toLowerCase())).map(skill => {
+            {/* 3. Bio / About */}
+            <div>
+              <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                Short Bio / About (Optional)
+              </label>
+              <textarea
+                rows={3}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Briefly describe your experience, favorite tech stacks, or what you love building..."
+                className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
+              />
+            </div>
+
+            {/* 4. Skills & Tech Stack */}
+            <div className="space-y-2">
+              <label className="block text-xs font-mono font-bold text-slate-700 uppercase">
+                Skills & Tech Stack
+              </label>
+
+              {/* Popular Skill Chips */}
+              <div className="flex flex-wrap gap-1.5">
+                {POPULAR_SKILLS.map((skill) => {
                   const isSelected = selectedSkills.includes(skill);
                   return (
                     <button
                       key={skill}
                       type="button"
                       onClick={() => toggleSkill(skill)}
-                      className={`px-3 py-1.5 text-xs font-mono font-bold border-2 transition cursor-pointer ${
+                      className={`px-2.5 py-1 text-xs font-mono font-bold border transition cursor-pointer ${
                         isSelected
-                          ? 'bg-black text-white border-black shadow-xs'
-                          : 'bg-white text-slate-700 border-slate-300 hover:border-black'
+                          ? 'bg-black text-white border-black'
+                          : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300'
                       }`}
                     >
-                      {skill} {isSelected && '✓'}
+                      {isSelected ? '✓ ' : '+ '}
+                      {skill}
                     </button>
                   );
                 })}
               </div>
 
-              <div className="p-3 bg-slate-50 border-2 border-black text-xs font-mono text-slate-700 flex items-center justify-between">
-                <span>Selected Skills: <strong className="text-black">{selectedSkills.length}</strong> (Minimum 3 required)</span>
-                <span className={selectedSkills.length >= 3 ? 'text-emerald-600 font-bold' : 'text-red-500 font-bold'}>
-                  {selectedSkills.length >= 3 ? '✓ Minimum requirement met' : '⚠ Need more skills'}
-                </span>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: EXPERIENCE */}
-          {currentStep === 4 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 04 OF 07</span>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Work Experience</h2>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
-                    AT LEAST 1 REQUIRED
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5">Demonstrate past projects and professional roles.</p>
-              </div>
-
-              {errors.experience && (
-                <div className="p-3 bg-red-50 border-2 border-red-500 text-red-700 text-xs font-mono font-bold flex items-center gap-2">
-                  <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{errors.experience}</span>
-                </div>
-              )}
-
-              {/* Added Experiences List */}
-              {experienceList.length > 0 && (
-                <div className="space-y-3">
-                  {experienceList.map((exp, idx) => (
-                    <div key={exp.id || idx} className="p-4 bg-slate-50 border-2 border-black flex items-start justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="px-1.5 py-0.5 bg-black text-white font-mono text-[9px] font-bold">
-                            ROLE #{idx + 1}
-                          </span>
-                          <h4 className="font-black text-sm text-black">{exp.role || exp.title}</h4>
-                        </div>
-                        <div className="text-xs font-mono text-[#e8622c] mt-1 font-bold">
-                          {exp.company} <span className="text-slate-400">•</span> {exp.period}
-                        </div>
-                        <p className="text-xs text-slate-600 mt-1">{exp.description}</p>
-                      </div>
+              {/* Selected Skill Tags with Remove */}
+              {selectedSkills.length > 0 && (
+                <div className="flex flex-wrap gap-1.5 pt-2">
+                  {selectedSkills.map((s) => (
+                    <span
+                      key={s}
+                      className="inline-flex items-center gap-1 px-2.5 py-0.5 bg-orange-100 border border-orange-300 text-xs font-mono font-bold text-[#e8622c]"
+                    >
+                      <span>{s}</span>
                       <button
                         type="button"
-                        onClick={() => setExperienceList(prev => prev.filter((_, i) => i !== idx))}
-                        className="p-1.5 text-slate-400 hover:text-red-600 transition cursor-pointer"
-                        title="Remove experience"
+                        onClick={() => removeSkill(s)}
+                        className="text-slate-500 hover:text-black cursor-pointer"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <X className="w-3 h-3" />
                       </button>
-                    </div>
+                    </span>
                   ))}
                 </div>
               )}
 
-              {/* Add New Experience Form Box */}
-              <div className="p-4 border-2 border-dashed border-black bg-orange-50/40 space-y-3">
-                <div className="font-mono text-xs font-bold text-black uppercase flex items-center gap-1.5">
-                  <Plus className="w-4 h-4 text-[#e8622c]" />
-                  <span>Add Work Experience / Past Role</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-                      Job Title / Role <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newExpRole}
-                      onChange={(e) => { setNewExpRole(e.target.value); clearFieldError('newExpRole'); }}
-                      placeholder="e.g. Senior Backend Engineer"
-                      className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
-                        errors.newExpRole ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
-                      }`}
-                    />
-                    {errors.newExpRole && (
-                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newExpRole}</span>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-                      Company / Client / Project <span className="text-red-500">*</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={newExpCompany}
-                      onChange={(e) => { setNewExpCompany(e.target.value); clearFieldError('newExpCompany'); }}
-                      placeholder="e.g. TechCorp Solutions / Freelance"
-                      className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
-                        errors.newExpCompany ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
-                      }`}
-                    />
-                    {errors.newExpCompany && (
-                      <span className="text-[10px] text-red-600 font-mono font-bold mt-0.5 block">{errors.newExpCompany}</span>
-                    )}
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-                    Time Period / Duration
-                  </label>
-                  <input
-                    type="text"
-                    value={newExpPeriod}
-                    onChange={(e) => setNewExpPeriod(e.target.value)}
-                    placeholder="e.g. 2022 - Present or Jan 2021 - Dec 2023"
-                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-[10px] font-mono text-black font-bold uppercase mb-1">
-                    Key Deliverables & Responsibilities
-                  </label>
-                  <textarea
-                    value={newExpDesc}
-                    onChange={(e) => setNewExpDesc(e.target.value)}
-                    placeholder="Briefly describe what you built, technologies used, and key accomplishments..."
-                    rows={2}
-                    className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
-                  />
-                </div>
-
+              {/* Custom Skill Input */}
+              <div className="flex items-center gap-2 pt-1">
+                <input
+                  type="text"
+                  value={customSkillInput}
+                  onChange={(e) => setCustomSkillInput(e.target.value)}
+                  onKeyDown={addCustomSkill}
+                  placeholder="Type custom skill and press Enter..."
+                  className="flex-1 px-3 py-1.5 border border-black text-xs font-mono bg-white focus:outline-hidden"
+                />
                 <button
                   type="button"
-                  onClick={handleAddExperience}
-                  className="px-4 py-2 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition cursor-pointer shadow-xs"
+                  onClick={addCustomSkill}
+                  className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold border border-black transition cursor-pointer"
                 >
-                  [ + SAVE EXPERIENCE TO PROFILE ]
+                  Add
                 </button>
               </div>
             </div>
-          )}
 
-          {/* STEP 5: PORTFOLIO & EXTERNAL LINKS */}
-          {currentStep === 5 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 05 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">Portfolio & Verified Links</h2>
-                <p className="text-xs text-slate-600 mt-0.5">Add project previews and external profile links.</p>
-              </div>
-
-              {/* Projects List */}
-              <div className="space-y-3">
-                <label className="block text-xs font-bold font-mono text-black uppercase">Projects & Showcase</label>
-                {portfolioList.map(item => (
-                  <div key={item.id} className="p-3 bg-slate-50 border-2 border-black flex items-center justify-between">
-                    <div>
-                      <div className="font-bold text-xs text-black">{item.title}</div>
-                      <div className="text-[10px] text-slate-500">{item.description}</div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setPortfolioList(prev => prev.filter(p => p.id !== item.id))}
-                      className="text-slate-400 hover:text-red-600 text-xs font-bold cursor-pointer"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-
-                {/* Add New Project Form */}
-                <div className="p-3 border-2 border-dashed border-black bg-orange-50/40 space-y-2.5">
-                  <div className="font-mono text-[11px] font-bold text-black uppercase flex items-center gap-1.5">
-                    <Plus className="w-3.5 h-3.5 text-[#e8622c]" />
-                    <span>Add Project To Showcase</span>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                    <div>
-                      <input
-                        type="text"
-                        value={newProjectTitle}
-                        onChange={(e) => { setNewProjectTitle(e.target.value); clearFieldError('newProjectTitle'); }}
-                        placeholder="Project Title (e.g. Real-time Payment Gateway)"
-                        className={`w-full p-2 bg-white border-2 text-xs font-medium focus:outline-hidden ${
-                          errors.newProjectTitle ? 'border-red-500' : 'border-black focus:border-[#e8622c]'
-                        }`}
-                      />
-                    </div>
-                    <div>
-                      <input
-                        type="url"
-                        value={newProjectUrl}
-                        onChange={(e) => setNewProjectUrl(e.target.value)}
-                        placeholder="Live URL / GitHub Repo (Optional)"
-                        className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <input
-                      type="text"
-                      value={newProjectDesc}
-                      onChange={(e) => setNewProjectDesc(e.target.value)}
-                      placeholder="Brief project description & technical highlights..."
-                      className="w-full p-2 bg-white border-2 border-black text-xs font-medium focus:outline-hidden focus:border-[#e8622c]"
-                    />
-                  </div>
-
-                  <button
-                    type="button"
-                    onClick={handleAddProject}
-                    className="px-3.5 py-1.5 bg-black text-white font-mono text-xs font-bold hover:bg-[#e8622c] transition cursor-pointer shadow-xs"
-                  >
-                    [ + SAVE PROJECT TO SHOWCASE ]
-                  </button>
-                </div>
-              </div>
-
-              {/* Smart External Professional Profiles Manager */}
-              <div className="pt-3 border-t-2 border-black/20">
-                <SmartExternalProfilesManager
-                  links={profileLinksList.map(l => ({
-                    id: l.id,
-                    platform: l.platform,
-                    url: l.url,
-                    displayOrder: l.displayOrder
-                  }))}
-                  onChange={(updated) => {
-                    const mapped = updated.map((u, i) => ({
-                      id: u.id || `ext-${Date.now()}-${i}`,
-                      platform: u.platform as ExternalPlatform,
-                      url: u.url,
-                      displayOrder: i
-                    }));
-                    setProfileLinksList(mapped);
-
-                    // Sync legacy externalLinks object
-                    const legacyObj: any = {};
-                    mapped.forEach(m => {
-                      legacyObj[m.platform] = m.url;
-                    });
-                    setExternalLinks(legacyObj);
-                  }}
+            {/* 5. Primary Portfolio / GitHub Link */}
+            <div>
+              <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                GitHub / Portfolio URL (Optional)
+              </label>
+              <div className="relative">
+                <Globe className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="url"
+                  value={primaryLink}
+                  onChange={(e) => setPrimaryLink(e.target.value)}
+                  placeholder="https://github.com/yourname or https://yourportfolio.com"
+                  className="w-full pl-9 pr-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
                 />
               </div>
             </div>
-          )}
 
-          {/* STEP 6: PRICING */}
-          {currentStep === 6 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 06 OF 07</span>
-                <div className="flex items-center gap-2">
-                  <h2 className="text-2xl font-black text-black tracking-tight">Set Your Pricing Model</h2>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1.5 py-0.5 bg-red-50 border border-red-200">
-                    REQUIRED
-                  </span>
-                </div>
-                <p className="text-xs text-slate-600 mt-0.5">Flexible pricing structure for direct client inquiries.</p>
-              </div>
-
-              <div className="grid grid-cols-3 gap-3">
-                {[
-                  { id: 'starting_from', label: 'Starting From' },
-                  { id: 'hourly', label: 'Hourly Rate' },
-                  { id: 'fixed', label: 'Fixed Price' }
-                ].map(model => (
-                  <button
-                    key={model.id}
-                    type="button"
-                    onClick={() => setPricingModel(model.id as any)}
-                    className={`p-3 border-2 text-xs font-mono font-bold transition cursor-pointer ${
-                      pricingModel === model.id ? 'bg-black text-white border-black' : 'bg-white text-slate-700 border-slate-300'
-                    }`}
-                  >
-                    {model.label}
-                  </button>
-                ))}
-              </div>
-
-              <div>
-                <div className="flex items-center gap-1.5 mb-1">
-                  <label className="block text-xs font-bold font-mono text-black uppercase">
-                    Base Rate ($ USD) <span className="text-red-500 font-bold">*</span>
-                  </label>
-                  <span className="text-[9px] font-mono font-bold text-red-500 uppercase px-1 py-0.2 bg-red-50 border border-red-200">
-                    REQUIRED ($1+)
-                  </span>
-                </div>
-                <div className="relative max-w-xs">
-                  <span className="absolute left-3 top-2.5 font-black text-sm">$</span>
-                  <input
-                    type="number"
-                    value={hourlyRate}
-                    onChange={(e) => { setHourlyRate(Number(e.target.value)); clearFieldError('hourlyRate'); }}
-                    className={`w-full pl-7 pr-3 py-2.5 bg-slate-50 border-2 text-sm font-black focus:outline-hidden ${
-                      errors.hourlyRate ? 'border-red-500 bg-red-50/30' : 'border-black focus:border-[#e8622c]'
-                    }`}
-                  />
-                </div>
-                {errors.hourlyRate && (
-                  <div className="text-[11px] text-red-600 font-bold font-mono mt-1 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {errors.hourlyRate}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 7: PREVIEW & PUBLISH */}
-          {currentStep === 7 && (
-            <div className="space-y-6 animate-fadeIn">
-              <div>
-                <span className="text-[11px] font-mono font-bold text-[#e8622c] uppercase">STEP 07 OF 07</span>
-                <h2 className="text-2xl font-black text-black tracking-tight">Public Profile Preview</h2>
-                <p className="text-xs text-slate-600 mt-0.5">Review how your profile card and services appear to clients.</p>
-              </div>
-
-              {/* Profile Card Mock Preview */}
-              <div className="p-5 bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <img
-                      src={avatar}
-                      alt={name}
-                      className="w-14 h-14 border-2 border-black object-cover bg-orange-100"
-                    />
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h3 className="text-lg font-black text-black">{name || 'Your Name'}</h3>
-                        <span className="px-1.5 py-0.2 bg-black text-white font-mono text-[9px] font-bold">
-                          PRO
-                        </span>
-                      </div>
-                      <div className="text-xs font-semibold text-slate-700">{headline || 'Professional Headline'}</div>
-                      <div className="text-[11px] font-mono text-slate-500">{location}</div>
-                    </div>
-                  </div>
-
-                  <div className="text-right">
-                    <div className="text-lg font-black text-black">${hourlyRate}/hr</div>
-                    <div className="text-[10px] font-mono text-emerald-600 font-bold">0% MARKETPLACE CUT</div>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-600">{bio}</p>
-
-                {/* Score & Services */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 p-3 bg-slate-50 border border-slate-200 text-center font-mono">
-                  <div>
-                    <div className="text-base font-black text-black">{computedProScore}/100</div>
-                    <div className="text-[10px] text-slate-400">PRO SCORE</div>
-                  </div>
-                  <div>
-                    <div className={`text-base font-black ${completenessPercent >= 90 ? 'text-emerald-600' : 'text-[#e8622c]'}`}>
-                      {completenessPercent}%
-                    </div>
-                    <div className="text-[10px] text-slate-400">COMPLETENESS (90% MIN)</div>
-                  </div>
-                  <div className="col-span-2 sm:col-span-1">
-                    <div className="text-base font-black text-black">{servicesList.length}</div>
-                    <div className="text-[10px] text-slate-400">SERVICES</div>
-                  </div>
-                </div>
-
-                {/* Completeness Status Warning */}
-                {completenessPercent < 90 ? (
-                  <div className="p-3 bg-amber-50 border-2 border-amber-400 text-xs text-amber-900 space-y-1">
-                    <div className="font-bold font-mono flex items-center gap-1.5 uppercase">
-                      <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
-                      <span>90% Profile Completeness Required for Public Search</span>
-                    </div>
-                    <p className="text-[11px] text-slate-700">
-                      Your profile is currently at <strong>{completenessPercent}%</strong>. You must reach at least <strong>90%</strong> for your profile to be publicly visible on RankLancr.lol.
-                    </p>
-                  </div>
+            {/* Submit Button */}
+            <div className="pt-4 border-t-2 border-black">
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full py-3.5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                    <span>Saving Profile...</span>
+                  </>
                 ) : (
-                  <div className="p-3 bg-emerald-50 border-2 border-emerald-400 text-xs text-emerald-900 flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span className="font-mono font-bold">✓ Ready for Public Search Indexing (90%+ Complete)</span>
-                  </div>
+                  <>
+                    <span>[ PUBLISH CREATOR PROFILE ]</span>
+                    <ArrowRight className="w-4 h-4" />
+                  </>
                 )}
-
-                {/* Services List Preview */}
-                <div className="space-y-2">
-                  <div className="text-xs font-bold font-mono text-black uppercase">Active Services ({servicesList.length})</div>
-                  {servicesList.map((s, i) => (
-                    <div key={i} className="p-2.5 bg-slate-50 border border-slate-200 flex justify-between text-xs">
-                      <span className="font-bold text-slate-800">{s.title}</span>
-                      <span className="font-mono text-[#e8622c] font-bold">${s.startingPrice}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Direct Marketplace Guarantee Banner */}
-              <div className="p-4 bg-slate-50 border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
-                <div className="flex items-center gap-2.5">
-                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-                  <div>
-                    <div className="font-bold text-xs text-black font-mono uppercase">100% Direct Client Dealing (0% Platform Cut)</div>
-                    <div className="text-[11px] text-slate-600 font-mono">Clients contact you directly via verified links. All earnings remain 100% yours.</div>
-                  </div>
-                </div>
-              </div>
+              </button>
             </div>
-          )}
 
-          {/* Wizard Footer Navigation Controls */}
-          <div className="mt-8 pt-4 border-t-2 border-black flex items-center justify-between">
-            {currentStep > 1 ? (
-              <button
-                type="button"
-                onClick={() => { setErrors({}); setCurrentStep(prev => prev - 1); }}
-                className="px-4 py-2 bg-white border-2 border-black font-mono text-xs font-bold hover:bg-slate-100 transition cursor-pointer"
-              >
-                [ PREVIOUS STEP ]
-              </button>
-            ) : <div />}
-
-            {currentStep < 7 ? (
-              <button
-                type="button"
-                onClick={handleNextStep}
-                className="px-6 py-2.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-              >
-                <span>NEXT STEP</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            ) : (
-              <button
-                type="button"
-                onClick={handlePublishProfile}
-                className="px-8 py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-              >
-                <CheckCircle2 className="w-4 h-4" />
-                <span>[ PUBLISH PROFESSIONAL PROFILE ]</span>
-              </button>
-            )}
-          </div>
+          </form>
 
         </div>
-
       </main>
 
-      {/* Footer */}
-      <footer className="border-t-2 border-black bg-white px-4 sm:px-8 py-3 text-center text-xs font-mono text-slate-500">
-        <span>© 2026 PRORANK • 0% COMMISSION DIRECT TALENT DISCOVERY</span>
+      {/* Footer Note */}
+      <footer className="py-4 border-t border-slate-200 text-center text-xs text-slate-500 font-mono">
+        RankLancr.lol • Challenge-First Skill Competition Platform
       </footer>
 
     </div>
