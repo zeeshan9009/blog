@@ -37,10 +37,10 @@ export const Footer: React.FC = () => {
 
           <div className="flex flex-wrap items-center gap-3">
             <Link
-              to="/developers"
-              className="px-6 py-3 bg-white hover:bg-orange-50 text-black font-bold text-xs transition shadow-md rounded-none cursor-pointer"
+              to="/arena"
+              className="px-6 py-3 bg-[#e8622c] hover:bg-white text-white hover:text-black font-bold text-xs transition shadow-md rounded-none cursor-pointer"
             >
-              Explore Talent
+              Enter Challenge Arena
             </Link>
             <button
               onClick={() => scrollTo('spotlight')}
@@ -54,17 +54,17 @@ export const Footer: React.FC = () => {
         {/* 4-Column Link Grid */}
         <div className="py-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10">
           
-          {/* Col 1: Marketplace */}
+          {/* Col 1: Explore */}
           <div className="space-y-4">
             <div className="text-xs font-bold uppercase tracking-wider text-white">
-              Talent Search
+              Explore RankLancr
             </div>
             <ul className="space-y-2.5 text-xs">
-              <li><Link to="/developers?category=Web+Development" className="hover:text-white transition">Web & App Developers</Link></li>
-              <li><Link to="/developers?category=UI%2FUX+Design" className="hover:text-white transition">UI/UX & Brand Designers</Link></li>
-              <li><Link to="/developers?category=Video+Editing" className="hover:text-white transition">Video Editors & Motion</Link></li>
-              <li><Link to="/developers?category=AI+Engineering" className="hover:text-white transition">AI & Machine Learning</Link></li>
-              <li><Link to="/developers?category=SEO+%26+Marketing" className="hover:text-white transition">Growth & Marketing</Link></li>
+              <li><Link to="/arena" className="hover:text-white transition text-amber-400 font-bold">🏆 Challenge Arena</Link></li>
+              <li><button onClick={() => scrollTo('spotlight')} className="hover:text-white transition text-left cursor-pointer">🔥 Outbid Spotlight Top 3</button></li>
+              <li><Link to="/create-profile" className="hover:text-white transition">Create Free Developer Profile</Link></li>
+              <li><a href="#features" className="hover:text-white transition">0% Commission Model</a></li>
+              <li><a href="#faq" className="hover:text-white transition">ProRank Deterministic Scoring</a></li>
             </ul>
           </div>
 

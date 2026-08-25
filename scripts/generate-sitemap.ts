@@ -21,26 +21,10 @@ interface SitemapEntry {
 
 const STATIC_ROUTES: SitemapEntry[] = [
   { loc: `${BASE_DOMAIN}/`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 1.0 },
-  { loc: `${BASE_DOMAIN}/developers`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'hourly', priority: 0.9 },
-  { loc: `${BASE_DOMAIN}/find-services`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'hourly', priority: 0.9 },
-  { loc: `${BASE_DOMAIN}/search`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'hourly', priority: 0.85 },
-  { loc: `${BASE_DOMAIN}/pricing`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'weekly', priority: 0.8 },
-  
-  // Category Hubs
-  { loc: `${BASE_DOMAIN}/developers?category=Development`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.8 },
-  { loc: `${BASE_DOMAIN}/developers?category=Design`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.8 },
-  { loc: `${BASE_DOMAIN}/developers?category=Marketing`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.8 },
-  { loc: `${BASE_DOMAIN}/developers?category=Video+%26+Animation`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.8 },
-  { loc: `${BASE_DOMAIN}/developers?category=AI+%26+ML`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.8 },
-
-  // Top Skill Landing Pages
-  { loc: `${BASE_DOMAIN}/developers?q=React`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.75 },
-  { loc: `${BASE_DOMAIN}/developers?q=Node.js`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.75 },
-  { loc: `${BASE_DOMAIN}/developers?q=Python`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.75 },
-  { loc: `${BASE_DOMAIN}/developers?q=UI%2FUX`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.75 },
-  { loc: `${BASE_DOMAIN}/developers?q=SEO`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'daily', priority: 0.75 },
-
-  // User Accounts
+  { loc: `${BASE_DOMAIN}/spotlight`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'hourly', priority: 0.95 },
+  { loc: `${BASE_DOMAIN}/arena`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'hourly', priority: 0.95 },
+  { loc: `${BASE_DOMAIN}/terms`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'monthly', priority: 0.5 },
+  { loc: `${BASE_DOMAIN}/rules`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'monthly', priority: 0.5 },
   { loc: `${BASE_DOMAIN}/create-profile`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'monthly', priority: 0.7 },
   { loc: `${BASE_DOMAIN}/register`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'monthly', priority: 0.6 },
   { loc: `${BASE_DOMAIN}/login`, lastmod: new Date().toISOString().split('T')[0], changefreq: 'monthly', priority: 0.5 }

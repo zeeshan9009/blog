@@ -5,12 +5,9 @@ import { Toaster } from "react-hot-toast";
 
 // Pages
 import PixelpushLanding from "./pages/PixelpushLanding";
-import DevelopersPage from "./pages/DevelopersPage";
 import AuthPage from "./pages/AuthPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import CreateProfilePage from "./pages/CreateProfilePage";
-import FindServicesPage from "./pages/FindServicesPage";
-import ServiceDetailPage from "./pages/ServiceDetailPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import PromotedRankingPage from "./pages/PromotedRankingPage";
@@ -35,15 +32,10 @@ export default function App() {
           {/* Onboarding Role Selection */}
           <Route path="/onboarding" element={<OnboardingPage />} />
 
-          {/* 7-Step Provider Profile & Services Creator */}
+          {/* Provider Profile Creator */}
           <Route path="/create-profile" element={<CreateProfilePage />} />
 
-          {/* Find Services & Marketplace */}
-          <Route path="/find-services" element={<FindServicesPage />} />
-          <Route path="/services" element={<FindServicesPage />} />
-          <Route path="/service/:serviceId" element={<ServiceDetailPage />} />
-
-          {/* Unified Dashboard (Buyer, Provider, Dual) */}
+          {/* Unified Dashboard */}
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/requests" element={<DashboardPage />} />
           <Route path="/dashboard/my-requests" element={<DashboardPage />} />
@@ -64,14 +56,7 @@ export default function App() {
           <Route path="/challenges" element={<ChallengeArenaPage />} />
           <Route path="/challenge/:id" element={<ChallengeArenaPage />} />
 
-          {/* Dedicated Developers & Ranking Directory */}
-          <Route path="/developers" element={<DevelopersPage />} />
-          <Route path="/talent" element={<DevelopersPage />} />
-          <Route path="/ranking" element={<DevelopersPage />} />
-          <Route path="/search" element={<FindServicesPage />} />
-          <Route path="/profile/:id" element={<DevelopersPage />} />
-
-          {/* Legal & Auction Rules */}
+          {/* Legal & Rules */}
           <Route path="/terms" element={<TermsPage />} />
           <Route path="/rules" element={<TermsPage />} />
 
