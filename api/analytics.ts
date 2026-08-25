@@ -115,7 +115,7 @@ export async function computeProfileAnalytics(profileId: string) {
     supabase.from("profile_clicks").select("id", { count: "exact", head: true }).eq("profile_id", profileId).gte("timestamp", sinceTime),
     supabase.from("profile_inquiries").select("id", { count: "exact", head: true }).eq("profile_id", profileId).gte("timestamp", sinceTime),
     supabase.from("profile_impressions").select("id", { count: "exact", head: true }).gte("timestamp", sinceTime),
-    supabase.from("promotions").select("id", { count: "exact", head: true }).eq("status", "active")
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("status", "published")
   ]);
 
   const impressions = impRes.count || 0;

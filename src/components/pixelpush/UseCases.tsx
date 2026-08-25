@@ -9,10 +9,10 @@ export const UseCases: React.FC = () => {
     {
       label: 'For Independent Talent',
       icon: <UserCheck className="w-9 h-9 text-[#e8622c]" strokeWidth={1.75} />,
-      headline: 'Get discovered by top clients with a $2 daily boost.',
-      description: 'Activate 24-hour sponsored visibility at the top of relevant search results and receive high-budget client inquiries with zero platform commission cuts.',
-      action: 'Promote Profile',
-      link: '/promote'
+      headline: 'Get discovered by top clients with 0% commission.',
+      description: 'Create your verified ProRank profile, link your authentic GitHub, LinkedIn, Upwork, or Portfolio, and receive direct inquiries without middleman cuts.',
+      action: 'Create Free Profile',
+      link: '/create-profile'
     },
     {
       label: 'For Startups & Hiring Teams',

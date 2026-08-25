@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type {
   Professional,
-  PromotionRecord,
   Inquiry,
   FilterState,
   Service,
@@ -18,12 +17,11 @@ import {
   fetchServiceRequestsFromDb,
   createServiceRequestInDb,
   updateServiceRequestStatusInDb,
-  activatePromotionInDb,
   recordProfileViewInDb
 } from '../services/supabase/dbService';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
-import { verifyProfilePromotionEligibility, validateImpressionEvent, validateClickEvent } from '../services/ranking/antiAbuse';
+import { validateImpressionEvent, validateClickEvent } from '../services/ranking/antiAbuse';
 import toast from 'react-hot-toast';
 
 interface TalentContextType {
@@ -31,7 +29,6 @@ interface TalentContextType {
   services: Service[];
   serviceRequests: ServiceRequest[];
   notifications: NotificationItem[];
-  promotions: PromotionRecord[];
   inquiries: Inquiry[];
   savedProfessionals: string[];
   currentProfile: Professional | null;
@@ -39,7 +36,6 @@ interface TalentContextType {
   setFilters: React.Dispatch<React.SetStateAction<FilterState>>;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
-  promoteProfile: (professionalId: string, paymentMethod?: string) => Promise<boolean>;
   recordImpression: (professionalId: string, visitorHash?: string) => void;
   recordClick: (professionalId: string, visitorHash?: string) => void;
   addProfessional: (profile: Omit<Professional, 'id' | 'score' | 'rating' | 'reviewCount' | 'viewsCount' | 'clicksCount' | 'inquiriesCount' | 'createdAt' | 'isPromoted'>) => Professional;
@@ -53,7 +49,6 @@ interface TalentContextType {
   toggleSaveProfessional: (id: string) => void;
   markNotificationRead: (id: string) => void;
   toggleVerified: (id: string) => void;
-  togglePromotedAdmin: (id: string) => void;
   setCurrentProfileId: (id: string) => void;
   resetFilters: () => void;
   refreshTalentData: () => Promise<void>;
@@ -84,7 +79,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [services, setServices] = useState<Service[]>([]);
   const [serviceRequests, setServiceRequests] = useState<ServiceRequest[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
-  const [promotions, setPromotions] = useState<PromotionRecord[]>([]);
   const [inquiries, setInquiries] = useState<Inquiry[]>([]);
 
   const [savedProfessionals, setSavedProfessionals] = useState<string[]>(() => {
@@ -100,7 +94,7 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [currentProfileId, setCurrentProfileId] = useState<string>('');
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
-  // 1. Initial Data Fetch from Supabase Database
+  // Fetch initial data from Supabase
   const refreshTalentData = useCallback(async () => {
     try {
       const [dbPros, dbServices] = await Promise.all([
@@ -115,86 +109,57 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       if (dbServices && dbServices.length > 0) {
         setServices(dbServices);
       }
-
-      if (user?.id) {
-        const userRequests = await fetchServiceRequestsFromDb(user.id);
-        if (userRequests && userRequests.length > 0) {
-          setServiceRequests(userRequests);
-        }
-      }
     } catch (err) {
-      console.warn('refreshTalentData network fallback:', err);
+      console.error('Failed to load talent data from Supabase:', err);
     }
-  }, [user?.id]);
+  }, []);
 
   useEffect(() => {
     refreshTalentData();
-  }, [refreshTalentData]);
 
-  // 2. Realtime Subscriptions via Supabase Channels
-  useEffect(() => {
-    const channel = supabase
-      .channel('prorank_realtime')
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'service_requests' },
-        (payload) => {
-          const newReq = payload.new as any;
-          toast.success(`🔔 New project inquiry received from ${newReq.buyer_name || 'a client'}!`, { duration: 5000 });
-          setNotifications(prev => [
-            {
-              id: `notif-${Date.now()}`,
-              userId: user?.id || 'anonymous',
-              title: 'New Service Request',
-              message: `${newReq.buyer_name} requested: ${newReq.project_description?.substring(0, 45)}...`,
-              createdAt: new Date().toISOString(),
-              read: false,
-              type: 'request'
-            },
-            ...prev
-          ]);
-          refreshTalentData();
-        }
-      )
+    // Supabase Realtime Channels for Live Updates
+    const profilesChannel = supabase
+      .channel('public:profiles_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        fetchProfilesFromDb().then(pros => {
+          if (pros.length > 0) setProfessionals(pros);
+        });
+      })
+      .subscribe();
+
+    const servicesChannel = supabase
+      .channel('public:services_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, () => {
+        fetchServicesFromDb().then(srvs => {
+          if (srvs.length > 0) setServices(srvs);
+        });
+      })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      supabase.removeChannel(profilesChannel);
+      supabase.removeChannel(servicesChannel);
     };
-  }, [refreshTalentData, user?.id]);
+  }, [refreshTalentData]);
 
-  // Save UI preferences to localStorage
+  // Load User Specific Service Requests & Inquiries
+  useEffect(() => {
+    if (user?.id) {
+      fetchServiceRequestsFromDb(user.id).then(reqs => setServiceRequests(reqs));
+    }
+  }, [user]);
+
+  // Sync Saved to localStorage
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_SAVED_KEY, JSON.stringify(savedProfessionals));
     } catch (e) {
-      console.error('Could not save saved pros', e);
+      console.error('Error saving to storage', e);
     }
   }, [savedProfessionals]);
 
-  // Check and update promotion expiration on mount & intervals
-  useEffect(() => {
-    const checkExpirations = () => {
-      const now = Date.now();
-      setProfessionals(prev =>
-        prev.map(p => {
-          if (p.isPromoted && p.promotionExpiresAt) {
-            const expTime = new Date(p.promotionExpiresAt).getTime();
-            if (expTime <= now) {
-              return { ...p, isPromoted: false };
-            }
-          }
-          return p;
-        })
-      );
-    };
-
-    checkExpirations();
-    const interval = setInterval(checkExpirations, 30000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const currentProfile = professionals.find(p => p.id === currentProfileId) || professionals[0] || null;
+  // Current logged in profile
+  const currentProfile = professionals.find(p => p.userId === user?.id || p.id === currentProfileId) || null;
 
   const setSearchQuery = (query: string) => {
     setFilters(prev => ({ ...prev, query }));
@@ -373,83 +338,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     updateServiceRequestStatusInDb(id, status);
   };
 
-  // Promote Profile for $2 / 24 Hours
-  const promoteProfile = async (professionalId: string, paymentMethod: string = 'stripe'): Promise<boolean> => {
-    const target = professionals.find(p => p.id === professionalId);
-    if (!target) {
-      toast.error('Professional profile not found.');
-      return false;
-    }
-
-    const eligibility = verifyProfilePromotionEligibility(target);
-    if (!eligibility.isEligible) {
-      toast.error(`Promotion failed: ${eligibility.reasons.join(', ')}`);
-      return false;
-    }
-
-    const durationMs = 24 * 60 * 60 * 1000;
-    const now = Date.now();
-    let startsAt = new Date(now).toISOString();
-    let endsAt = new Date(now + durationMs).toISOString();
-
-    if (target.isPromoted && target.promotionExpiresAt && new Date(target.promotionExpiresAt).getTime() > now) {
-      const currentEnd = new Date(target.promotionExpiresAt).getTime();
-      endsAt = new Date(currentEnd + durationMs).toISOString();
-    }
-
-    const paymentId = `pay_${Math.random().toString(36).substring(2, 12)}`;
-
-    // Update state
-    setProfessionals(prev =>
-      prev.map(p => {
-        if (p.id === professionalId) {
-          return {
-            ...p,
-            isPromoted: true,
-            promotionExpiresAt: endsAt,
-          };
-        }
-        return p;
-      })
-    );
-
-    const newPromotion: PromotionRecord = {
-      id: `promo-${Date.now()}`,
-      professionalId,
-      professionalName: target.name,
-      amount: 2.0,
-      durationHours: 24,
-      startedAt: startsAt,
-      expiresAt: endsAt,
-      status: 'active',
-      transactionId: paymentId,
-      impressions: 0,
-      clicks: 0,
-      contacts: 0,
-      paymentMethod
-    };
-
-    setPromotions(prev => [newPromotion, ...prev]);
-
-    // Persist to Supabase
-    activatePromotionInDb(professionalId, paymentId);
-
-    setNotifications(prev => [
-      {
-        id: `notif-${Date.now()}`,
-        userId: user?.id || 'anonymous',
-        title: '🔥 Sponsored Boost Activated!',
-        message: 'Your profile now has 24-hour sponsored placement across relevant searches.',
-        createdAt: new Date().toISOString(),
-        read: false,
-        type: 'promotion'
-      },
-      ...prev
-    ]);
-
-    return true;
-  };
-
   const sendInquiry = (inquiryData: Omit<Inquiry, 'id' | 'createdAt' | 'status'>) => {
     const newInquiry: Inquiry = {
       ...inquiryData,
@@ -486,12 +374,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     );
   };
 
-  const togglePromotedAdmin = (id: string) => {
-    setProfessionals(prev =>
-      prev.map(p => (p.id === id ? { ...p, isPromoted: !p.isPromoted } : p))
-    );
-  };
-
   return (
     <TalentContext.Provider
       value={{
@@ -499,7 +381,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         services,
         serviceRequests,
         notifications,
-        promotions,
         inquiries,
         savedProfessionals,
         currentProfile,
@@ -507,7 +388,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setFilters,
         searchQuery: filters.query,
         setSearchQuery,
-        promoteProfile,
         recordImpression,
         recordClick,
         addProfessional,
@@ -521,7 +401,6 @@ export const TalentProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         toggleSaveProfessional,
         markNotificationRead,
         toggleVerified,
-        togglePromotedAdmin,
         setCurrentProfileId,
         resetFilters,
         refreshTalentData

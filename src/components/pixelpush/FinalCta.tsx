@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
-import { ArrowRight, Zap } from 'lucide-react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { ArrowRight, UserPlus } from 'lucide-react';
 import PixelMosaic from './PixelMosaic';
-import { useTalent } from '../../context/TalentContext';
-import { PromoteModal } from '../modals/PromoteModal';
 
 export const FinalCta: React.FC = () => {
-  const { currentProfile } = useTalent();
-  const [isPromoteOpen, setIsPromoteOpen] = useState(false);
+  const navigate = useNavigate();
 
   const avatars = [
     'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=80&auto=format&fit=crop&q=80',
@@ -45,28 +43,25 @@ export const FinalCta: React.FC = () => {
 
         {/* Subtext */}
         <p className="text-slate-400 text-sm sm:text-lg max-w-xl mx-auto leading-relaxed">
-          Join thousands of fast-moving companies discovering top-tier verified talent or promote your profile for 24-hour sponsored placement.
+          Join thousands of fast-moving companies discovering top-tier verified talent with zero platform commission.
         </p>
 
         {/* Two CTAs: White filled & Outline Square Buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-3 pt-4">
+        <div className="flex flex-wrap items-center justify-center gap-3 pt-4 font-mono">
           <button
-            onClick={() => {
-              const el = document.getElementById('talent') || document.getElementById('discovery');
-              if (el) el.scrollIntoView({ behavior: 'smooth' });
-            }}
+            onClick={() => navigate('/developers')}
             className="px-8 py-4 bg-white hover:bg-orange-50 text-black font-black text-xs sm:text-sm transition-all shadow-xl flex items-center gap-2 cursor-pointer rounded-none"
           >
-            <span>Explore All Talent</span>
+            <span>[ EXPLORE ALL TALENT ]</span>
             <ArrowRight className="w-4 h-4 text-[#e8622c]" />
           </button>
 
           <button
-            onClick={() => setIsPromoteOpen(true)}
+            onClick={() => navigate('/create-profile')}
             className="px-8 py-4 bg-transparent hover:bg-white/10 text-white border-2 border-white/30 hover:border-white font-bold text-xs sm:text-sm transition-all cursor-pointer flex items-center gap-2 rounded-none"
           >
-            <Zap className="w-4 h-4 text-[#e8622c]" />
-            <span>Promote for $2</span>
+            <UserPlus className="w-4 h-4 text-[#e8622c]" />
+            <span>[ CREATE FREE PROFILE ]</span>
           </button>
         </div>
 
@@ -83,17 +78,11 @@ export const FinalCta: React.FC = () => {
             ))}
           </div>
           <span className="font-medium">
-            Join <strong className="text-white font-bold">180k+ professionals & teams</strong> on ProRank
+            Join <strong className="text-white font-bold">180k+ professionals & teams</strong> on RankLancr
           </span>
         </div>
 
       </div>
-
-      <PromoteModal
-        isOpen={isPromoteOpen}
-        onClose={() => setIsPromoteOpen(false)}
-        professional={currentProfile}
-      />
     </section>
   );
 };

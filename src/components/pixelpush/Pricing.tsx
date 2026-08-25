@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Check, Zap } from 'lucide-react';
-import { PromoteModal } from '../modals/PromoteModal';
-import { SPONSORED_BOOST_PRICE_USD, SPONSORED_BOOST_DURATION_HOURS } from '../../config/pricing';
+import { Check, Flame, ArrowRight } from 'lucide-react';
 
 export const Pricing: React.FC = () => {
   const navigate = useNavigate();
-  const [isPromoteOpen, setIsPromoteOpen] = useState(false);
+
+  const scrollToSpotlight = () => {
+    const el = document.getElementById('spotlight');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   return (
     <section id="pricing" className="py-24 sm:py-32 bg-white border-b border-slate-200">
@@ -23,23 +27,23 @@ export const Pricing: React.FC = () => {
             Transparent plans for talent & clients
           </h2>
           <p className="text-slate-500 text-sm sm:text-base mt-3">
-            No hidden subscription fees. Free organic discovery or {SPONSORED_BOOST_DURATION_HOURS}-hour sponsored visibility for ${SPONSORED_BOOST_PRICE_USD}.
+            No hidden subscription fees. Free organic discovery or competitive Outbid Spotlight Top 3 placement.
           </p>
         </div>
 
-        {/* 2-Column Balanced Square Pricing Grid (Free vs $2 Boost) */}
+        {/* 2-Column Balanced Square Pricing Grid (Free vs Outbid Spotlight) */}
         <div className="grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-8 items-stretch">
           
           {/* 1. Starter (Free Discovery) */}
           <div className="p-8 sm:p-10 bg-[#fafafa] border-2 border-slate-200 flex flex-col justify-between space-y-8 rounded-none">
             <div className="space-y-6">
               <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                  Free Discovery
+                <div className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono">
+                  Organic Discovery
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl sm:text-5xl font-black text-black tracking-tight">$0</span>
-                  <span className="text-xs text-slate-500 font-semibold">/ forever</span>
+                  <span className="text-4xl sm:text-5xl font-black text-black tracking-tight font-mono">$0</span>
+                  <span className="text-xs text-slate-500 font-semibold font-mono">/ forever</span>
                 </div>
                 <p className="text-xs text-slate-500 mt-2 leading-relaxed">
                   Everything you need to search talent or create your free portfolio profile.
@@ -57,11 +61,11 @@ export const Pricing: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Direct client contact links</span>
+                  <span>Direct client contact links (LinkedIn, Upwork, Fiverr, GitHub)</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Standard organic search ranking</span>
+                  <span>Standard ProRank organic search ranking</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
@@ -73,75 +77,70 @@ export const Pricing: React.FC = () => {
             <div className="pixel-btn-outline-wrapper w-full">
               <button
                 onClick={() => navigate('/create-profile')}
-                className="pixel-btn-outline-inner w-full py-3.5 font-bold text-xs text-center cursor-pointer"
+                className="pixel-btn-outline-inner w-full py-3.5 font-bold text-xs text-center cursor-pointer font-mono"
               >
-                Create Free Profile
+                [ CREATE FREE PROFILE ]
               </button>
             </div>
           </div>
 
-          {/* 2. Pro (Dark Square Card - $2/24 hours - Featured Boost) */}
+          {/* 2. Spotlight Leaderboard (Ascending Auction) */}
           <div className="relative p-8 sm:p-10 bg-black text-white flex flex-col justify-between space-y-8 shadow-2xl border-2 border-[#e8622c] rounded-none">
             {/* Top Badge */}
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-[#e8622c] text-white font-black text-[10px] uppercase tracking-wider shadow-md rounded-none">
-              Most Popular Boost
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-0.5 bg-[#e8622c] text-white font-black text-[10px] uppercase tracking-wider shadow-md font-mono rounded-none">
+              Premium Placement
             </div>
 
             <div className="space-y-6">
               <div>
-                <div className="text-xs font-bold uppercase tracking-wider text-orange-400">
-                  24h Sponsored Boost
+                <div className="text-xs font-bold uppercase tracking-wider text-orange-400 font-mono">
+                  Outbid Spotlight Leaderboard
                 </div>
                 <div className="flex items-baseline gap-1 mt-2">
-                  <span className="text-4xl sm:text-5xl font-black text-white tracking-tight">${SPONSORED_BOOST_PRICE_USD}</span>
-                  <span className="text-xs text-slate-400 font-semibold">/ {SPONSORED_BOOST_DURATION_HOURS} hours</span>
+                  <span className="text-4xl sm:text-5xl font-black text-white tracking-tight font-mono">From $5</span>
+                  <span className="text-xs text-slate-400 font-semibold font-mono">/ 72h hold</span>
                 </div>
                 <p className="text-xs text-slate-300 mt-2 leading-relaxed">
-                  {SPONSORED_BOOST_DURATION_HOURS}-Hour Sponsored Visibility at the top of ProRank relevant talent searches.
+                  Claim exclusive Top 3 placement at the top of RankLancr homepage and category pages.
                 </p>
               </div>
 
               <div className="pt-6 border-t border-slate-800 space-y-3.5 text-xs sm:text-sm text-slate-200">
                 <div className="flex items-center gap-2.5 text-orange-300 font-bold">
-                  <Zap className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Pinned in Top Sponsored Results</span>
+                  <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c] shrink-0" />
+                  <span>Top 3 Ascending Outbid Slots</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Promoted badge on profile card</span>
+                  <span>72-Hour Guaranteed Hold Window</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Instant 24-hour activation timer</span>
+                  <span>Direct click-through to your external profiles</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Real-time search click analytics</span>
+                  <span>Quality Gate Protected (Rating ≥ 4.0 or grace period)</span>
                 </div>
                 <div className="flex items-center gap-2.5">
                   <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                  <span>Zero subscription lock-in</span>
+                  <span>Live leaderboard outbid alerts</span>
                 </div>
               </div>
             </div>
 
             <button
-              onClick={() => setIsPromoteOpen(true)}
-              className="w-full py-3.5 bg-[#e8622c] hover:bg-orange-500 text-white font-black text-xs text-center transition-colors shadow-lg cursor-pointer flex items-center justify-center gap-2 rounded-none"
+              onClick={scrollToSpotlight}
+              className="w-full py-3.5 bg-[#e8622c] hover:bg-orange-500 text-white font-black text-xs text-center transition-colors shadow-lg cursor-pointer flex items-center justify-center gap-2 font-mono rounded-none"
             >
-              <Zap className="w-4 h-4" />
-              <span>Promote Profile for ${SPONSORED_BOOST_PRICE_USD}</span>
+              <Flame className="w-4 h-4 fill-white" />
+              <span>[ VIEW & CLAIM SPOTLIGHT SLOTS ]</span>
             </button>
           </div>
 
         </div>
 
       </div>
-
-      <PromoteModal
-        isOpen={isPromoteOpen}
-        onClose={() => setIsPromoteOpen(false)}
-      />
     </section>
   );
 };

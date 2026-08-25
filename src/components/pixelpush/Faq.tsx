@@ -8,24 +8,24 @@ export const Faq: React.FC = () => {
 
   const faqItems = [
     {
-      q: 'What does the $2 promotion actually do?',
-      a: 'Paying $2 activates a full 24-hour Sponsored Placement on ProRank. Your profile card is prominently featured at the top of relevant talent searches with a prominent Promoted badge for exactly 24 hours.'
+      q: 'How does the Outbid Spotlight Leaderboard work?',
+      a: 'The Outbid Spotlight is an ascending-auction placement system for the Top 3 positions. When you claim a slot, you secure up to a 72-hour exclusive visibility hold on the RankLancr homepage and category pages. Other talent can outbid you at +5% or +$1.00 min increment.'
     },
     {
-      q: 'Does ProRank take any commission on freelance gigs?',
-      a: 'Zero percent. ProRank is a direct talent discovery engine. Clients and talent connect directly with zero fees or commission cuts taken from either party.'
+      q: 'Does RankLancr take any commission on freelance gigs?',
+      a: 'Zero percent. RankLancr operates with a strict 0% platform commission policy. Clients and talent connect directly with verified links without middleman fees.'
     },
     {
       q: 'How is the 0-100 ProRank score calculated?',
       a: 'The ProRank score is computed algorithmically based on portfolio completeness, verified experience, external repository links (GitHub, LinkedIn, Figma), and direct client review ratings.'
     },
     {
-      q: 'Does ProRank control rankings on third-party platforms like Fiverr or Upwork?',
-      a: 'No. ProRank operates an independent talent discovery and scoring system. ProRank does not influence, alter, or claim control over third-party platforms.'
+      q: 'Does RankLancr control rankings on third-party platforms like Fiverr or Upwork?',
+      a: 'No. RankLancr operates an independent talent discovery and scoring index. RankLancr does not influence, alter, or claim control over third-party platforms.'
     },
     {
-      q: 'Can I extend or renew my $2 promotion anytime?',
-      a: 'Yes! From your Professional Dashboard, you can track the exact remaining time on your active 24-hour promotion and extend or renew it anytime with a single click.'
+      q: 'Does paying for Spotlight placement affect my organic ProRank score?',
+      a: 'No. Organic ProRank scores are strictly independent and unaffected by paid promotions. Spotlight is a separate premium leaderboard.'
     },
     {
       q: 'How do client inquiries work?',

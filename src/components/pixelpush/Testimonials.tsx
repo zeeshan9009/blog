@@ -24,7 +24,7 @@ export const Testimonials: React.FC = () => {
       company: 'Studio Nine',
       role: 'Creative Director',
       img: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=200&auto=format&fit=crop&q=80',
-      quote: '“The $2 for 24-hour sponsored visibility paid for itself 500x over. Two enterprise clients reached out directly within our first promotional boost.”'
+      quote: '“Claiming the #1 Outbid Spotlight slot gave our design agency massive direct visibility. Enterprise clients reached out directly via our verified portfolio link.”'
     },
     {
       name: "Liam O'Connor",

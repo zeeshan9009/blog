@@ -11,10 +11,6 @@
       "destination": "/api/spotlight?route=:path*"
     },
     {
-      "source": "/api/promotions/:path*",
-      "destination": "/api/promotions?route=:path*"
-    },
-    {
       "source": "/api/analytics/:path*",
       "destination": "/api/analytics?route=:path*"
     },

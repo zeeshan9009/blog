@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import {
   Flame,
@@ -13,20 +13,13 @@ import {
   Layers,
   ShieldCheck,
   Eye,
-  Sliders,
   Check
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTalent } from '../context/TalentContext';
 import { calculateProfileQualityScore } from '../services/ranking/profileQualityScore';
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
-import { calculateFairnessScore } from '../services/ranking/fairnessScore';
-import { calculateFreshnessScore } from '../services/ranking/freshnessScore';
-import { calculateRotationFactor } from '../services/ranking/rotation';
-import { calculateRelevanceScore } from '../services/ranking/relevanceScore';
-import { PromoteModal } from '../components/modals/PromoteModal';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
-import { useBoostAnalytics } from '../hooks/useBoostAnalytics.js';
 import type { Professional, ServiceRequest } from '../types/talent';
 import toast from 'react-hot-toast';
 
@@ -51,20 +44,16 @@ export const DashboardPage: React.FC = () => {
   // Active sub-tab from path or state
   const isRequestsRoute = location.pathname.includes('/requests');
   const isMyRequestsRoute = location.pathname.includes('/my-requests');
-  const isPromoRoute = location.pathname.includes('/promotion');
 
   const [activeRoleView, setActiveRoleView] = useState<'provider' | 'buyer'>(
     hasProvider ? 'provider' : 'buyer'
   );
   
-  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'requests' | 'my-requests' | 'services' | 'promotion'>(
-    isRequestsRoute ? 'requests' : isMyRequestsRoute ? 'my-requests' : isPromoRoute ? 'promotion' : 'overview'
+  const [activeSubTab, setActiveSubTab] = useState<'overview' | 'requests' | 'my-requests' | 'services'>(
+    isRequestsRoute ? 'requests' : isMyRequestsRoute ? 'my-requests' : 'overview'
   );
 
   const [requestFilter, setRequestFilter] = useState<'all' | 'pending' | 'accepted' | 'completed' | 'declined'>('all');
-  const [promoteModalOpen, setPromoteModalOpen] = useState(false);
-  const [testQuery, setTestQuery] = useState('Full Stack');
-  const [currentMicroRotation, setCurrentMicroRotation] = useState<number>(0);
 
   // Target provider profile with real metrics (0 if not recorded)
   const myProfile = useMemo<Professional>(() => {
@@ -78,10 +67,9 @@ export const DashboardPage: React.FC = () => {
       };
     }
     return {
-      id: user?.id || 'guest',
-      userId: user?.id || 'guest',
-      name: user?.name || 'Professional Specialist',
-      title: 'Independent Specialist',
+      id: user?.id || 'demo-provider',
+      name: user?.name || 'Talent Member',
+      title: 'Full Stack Developer',
       category: 'Web Development',
       location: 'Global',
       country: 'Global',
@@ -89,7 +77,7 @@ export const DashboardPage: React.FC = () => {
       bio: '',
       hourlyRate: 50,
       experienceYears: 0,
-      score: 50,
+      score: 80,
       rating: 5.0,
       reviewCount: 0,
       skills: [],
@@ -127,62 +115,13 @@ export const DashboardPage: React.FC = () => {
     return serviceRequests;
   }, [serviceRequests]);
 
-  // ==========================================
-  // LIVE ALGORITHMIC METRICS & TELEMETRY
-  // ==========================================
-  const { analytics: boostAnalytics, isRealTimeActive } = useBoostAnalytics(myProfile?.id);
-
+  // Algorithmic metrics
   const qualityScoreNorm = useMemo(() => calculateProfileQualityScore(myProfile), [myProfile]);
   const completenessPercent = Math.round(qualityScoreNorm * 100);
   const isProfilePubliclyVisible = completenessPercent >= 90;
   
   const proScoreResult = useMemo(() => calculateProfessionalScore(myProfile), [myProfile]);
   const proScore = proScoreResult.displayScore;
-
-  const fairnessFactor = useMemo(() => {
-    return calculateFairnessScore(myProfile, professionals.length || 1, professionals);
-  }, [myProfile, professionals]);
-
-  const freshnessFactor = useMemo(() => {
-    return calculateFreshnessScore(myProfile.promotionExpiresAt || myProfile.createdAt);
-  }, [myProfile.promotionExpiresAt, myProfile.createdAt]);
-
-  useEffect(() => {
-    const rot = calculateRotationFactor(myProfile.id);
-    setCurrentMicroRotation(rot);
-    const interval = setInterval(() => {
-      setCurrentMicroRotation(calculateRotationFactor(myProfile.id));
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [myProfile.id]);
-
-  // Test simulation for live algorithm query
-  const testRelevance = useMemo(() => {
-    return calculateRelevanceScore(myProfile, testQuery);
-  }, [myProfile, testQuery]);
-
-  const simulatedOrganicScore = useMemo(() => {
-    // 0.50 * R + 0.35 * S_pro + 0.15 * S_quality
-    const val = (0.50 * testRelevance.score) + (0.35 * (proScore / 100)) + (0.15 * qualityScoreNorm);
-    return Math.round(val * 100);
-  }, [testRelevance, proScore, qualityScoreNorm]);
-
-  const simulatedSponsoredScore = useMemo(() => {
-    // 0.40 * R + 0.35 * S_pro + 0.15 * F + 0.10 * (rotation / 0.03)
-    const rotNorm = currentMicroRotation / 0.03;
-    const val = (0.40 * testRelevance.score) + (0.35 * (proScore / 100)) + (0.15 * fairnessFactor) + (0.10 * rotNorm);
-    return Math.round(val * 100);
-  }, [testRelevance, proScore, fairnessFactor, currentMicroRotation]);
-
-  // Countdown timer for promotion
-  const promoTimeRemaining = useMemo(() => {
-    if (!myProfile.isPromoted || !myProfile.promotionExpiresAt) return null;
-    const diff = new Date(myProfile.promotionExpiresAt).getTime() - Date.now();
-    if (diff <= 0) return 'Expired';
-    const hours = Math.floor(diff / (1000 * 60 * 60));
-    const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `${hours}h ${mins}m remaining`;
-  }, [myProfile]);
 
   const handleStatusChange = (requestId: string, status: ServiceRequest['status']) => {
     updateServiceRequestStatus(requestId, status);
@@ -204,88 +143,74 @@ export const DashboardPage: React.FC = () => {
           </div>
 
           {/* Quick Dual Role Switcher */}
-          {hasBoth && (
-            <div className="hidden sm:flex items-center bg-slate-100 p-1 border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-              <button
-                onClick={() => { setActiveRoleView('provider'); setActiveSubTab('overview'); }}
-                className={`px-3 py-1 text-xs font-mono font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                  activeRoleView === 'provider' ? 'bg-black text-white shadow-xs' : 'text-slate-600 hover:text-black'
-                }`}
-              >
-                <Cpu className="w-3 h-3 text-[#e8622c]" />
-                <span>PROVIDER (SELLER)</span>
-              </button>
-              <button
-                onClick={() => { setActiveRoleView('buyer'); setActiveSubTab('my-requests'); }}
-                className={`px-3 py-1 text-xs font-mono font-bold transition cursor-pointer flex items-center gap-1.5 ${
-                  activeRoleView === 'buyer' ? 'bg-black text-white shadow-xs' : 'text-slate-600 hover:text-black'
-                }`}
-              >
-                <Briefcase className="w-3 h-3 text-emerald-400" />
-                <span>BUYER (CLIENT)</span>
-              </button>
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {hasBoth && (
+              <div className="flex items-center bg-slate-100 p-1 border-2 border-black">
+                <button
+                  onClick={() => setActiveRoleView('provider')}
+                  className={`px-3 py-1 text-xs font-mono font-bold transition uppercase cursor-pointer ${
+                    activeRoleView === 'provider'
+                      ? 'bg-black text-white shadow-xs'
+                      : 'text-slate-600 hover:text-black'
+                  }`}
+                >
+                  [ PROVIDER ]
+                </button>
+                <button
+                  onClick={() => setActiveRoleView('buyer')}
+                  className={`px-3 py-1 text-xs font-mono font-bold transition uppercase cursor-pointer ${
+                    activeRoleView === 'buyer'
+                      ? 'bg-black text-white shadow-xs'
+                      : 'text-slate-600 hover:text-black'
+                  }`}
+                >
+                  [ CLIENT / BUYER ]
+                </button>
+              </div>
+            )}
 
-          <div className="flex items-center gap-2.5">
             <button
               onClick={() => navigate('/settings')}
-              className="p-1.5 bg-white hover:bg-slate-100 border-2 border-black transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none cursor-pointer"
-              title="Role Settings"
+              className="p-2 border-2 border-black hover:bg-slate-100 transition cursor-pointer"
+              title="Settings & Switch Roles"
             >
-              <Settings className="w-4 h-4 text-slate-800" />
+              <Settings className="w-4 h-4 text-black" />
             </button>
-
-            <Link
-              to="/find-services"
-              className="px-3.5 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:shadow-none flex items-center gap-1.5"
-            >
-              <Search className="w-3.5 h-3.5" />
-              <span>[ EXPLORE MARKETPLACE ]</span>
-            </Link>
           </div>
 
         </div>
       </header>
 
-      {/* 2. DASHBOARD HERO BANNER WITH LIVE STATUS */}
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-8">
-        
-        <div className="bg-black text-white p-6 sm:p-8 border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden">
+      {/* 2. COMMAND HERO BAR */}
+      <div className="bg-black text-white border-b-2 border-black py-8 px-4 sm:px-8">
+        <div className="max-w-[1440px] mx-auto">
           
-          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 relative z-10">
+          <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
             
-            <div className="flex items-start gap-4">
+            {/* Identity & Status */}
+            <div className="flex items-center gap-4">
               <img
                 src={myProfile.avatar}
                 alt={myProfile.name}
-                className="w-16 h-16 sm:w-20 sm:h-20 border-2 border-white object-cover bg-orange-100 shrink-0"
+                className="w-16 h-16 object-cover border-2 border-[#e8622c] shadow-[3px_3px_0px_0px_#ffffff] shrink-0"
               />
 
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  {isProfilePubliclyVisible ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono text-[9px] font-bold uppercase">
-                      <CheckCircle2 className="w-3 h-3" />
-                      <span>PUBLIC SEARCH VISIBILITY: ACTIVE (≥90%)</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-500/20 text-amber-400 border border-amber-500/40 font-mono text-[9px] font-bold uppercase">
-                      <AlertCircle className="w-3 h-3" />
-                      <span>SEARCH VISIBILITY: DRAFT (NEEDS ≥90% COMPLETENESS)</span>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="px-2 py-0.5 bg-[#e8622c] text-white font-mono text-[9px] font-bold uppercase">
+                    {activeRoleView === 'provider' ? 'FREELANCE TALENT' : 'CLIENT ACCOUNT'}
+                  </span>
+
+                  {myProfile.isVerified && (
+                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-500/20 text-blue-300 border border-blue-500/40 font-mono text-[9px] font-bold uppercase">
+                      <ShieldCheck className="w-3 h-3 text-blue-400" />
+                      <span>VERIFIED</span>
                     </span>
                   )}
 
-                  {myProfile.isPromoted ? (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-mono text-[9px] font-bold uppercase">
-                      <Flame className="w-3 h-3 fill-emerald-400" />
-                      <span>$2 BOOST ACTIVE</span>
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/10 text-slate-300 font-mono text-[9px] font-bold uppercase">
-                      <span>ORGANIC RANKING</span>
-                    </span>
-                  )}
+                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-white/10 text-slate-300 font-mono text-[9px] font-bold uppercase">
+                    <span>ORGANIC PRORANK</span>
+                  </span>
 
                   <span className="px-2 py-0.5 bg-white/10 text-slate-300 font-mono text-[9px] font-bold uppercase">
                     0% PLATFORM FEE
@@ -307,11 +232,11 @@ export const DashboardPage: React.FC = () => {
               {activeRoleView === 'provider' ? (
                 <>
                   <button
-                    onClick={() => setPromoteModalOpen(true)}
+                    onClick={() => navigate('/spotlight')}
                     className="flex-1 sm:flex-initial px-4 py-2.5 bg-[#e8622c] hover:bg-orange-600 text-white font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 shadow-[3px_3px_0px_0px_#ffffff] cursor-pointer"
                   >
                     <Flame className="w-4 h-4 fill-white" />
-                    <span>[ 🔥 BOOST RANK ($2) ]</span>
+                    <span>[ 🔥 OUTBID SPOTLIGHT ]</span>
                   </button>
 
                   <button
@@ -339,7 +264,7 @@ export const DashboardPage: React.FC = () => {
 
       </div>
 
-      {/* 3. NAVIGATION SUB-TABS (EXPANSIVE & DETAILED) */}
+      {/* 3. NAVIGATION SUB-TABS */}
       <div className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-6">
         <div className="flex flex-wrap items-center gap-2 border-b-2 border-black pb-2 font-mono text-xs font-bold">
           
@@ -383,18 +308,6 @@ export const DashboardPage: React.FC = () => {
                 <Layers className="w-3.5 h-3.5" />
                 <span>[ 3. MY SERVICES ({myServices.length}) ]</span>
               </button>
-
-              <button
-                onClick={() => setActiveSubTab('promotion')}
-                className={`px-3.5 py-2 border-2 transition flex items-center gap-1.5 cursor-pointer ${
-                  activeSubTab === 'promotion'
-                    ? 'bg-black text-white border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]'
-                    : 'bg-white text-slate-700 border-black hover:bg-slate-100'
-                }`}
-              >
-                <Flame className="w-3.5 h-3.5 text-[#e8622c]" />
-                <span>[ 4. 24H BOOST ANALYTICS ]</span>
-              </button>
             </>
           )}
 
@@ -420,13 +333,11 @@ export const DashboardPage: React.FC = () => {
       {/* 4. MAIN BODY CONTENT */}
       <main className="max-w-[1440px] mx-auto px-4 sm:px-8 pt-6">
         
-        {/* ========================================================= */}
         {/* TAB 1: PROVIDER LIVE OVERVIEW */}
-        {/* ========================================================= */}
         {activeRoleView === 'provider' && activeSubTab === 'overview' && (
           <div className="space-y-8 animate-fadeIn">
 
-            {/* Strict 90% Profile Completeness Visibility Banner */}
+            {/* Profile Completeness Banner */}
             {!isProfilePubliclyVisible ? (
               <div className="p-5 bg-amber-50 border-2 border-black shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-3">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
@@ -439,7 +350,7 @@ export const DashboardPage: React.FC = () => {
                   </span>
                 </div>
                 <p className="text-xs text-slate-700 leading-relaxed">
-                  Your profile and services are currently <strong>hidden from public client search results</strong>. RankLancr requires at least <strong>90% profile completeness</strong> (Bio, Skills, Published Services, Portfolio) before profiles are indexed in the public algorithm.
+                  Your profile and services are currently <strong>hidden from public client search results</strong>. RankLancr requires at least <strong>90% profile completeness</strong> before profiles are indexed in the public ProRank algorithm.
                 </p>
                 <button
                   onClick={() => navigate('/create-profile')}
@@ -464,7 +375,7 @@ export const DashboardPage: React.FC = () => {
               </div>
             )}
             
-            {/* 4 Live KPI Cards (Real numbers without mock fallback) */}
+            {/* KPI Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -501,35 +412,34 @@ export const DashboardPage: React.FC = () => {
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 font-bold uppercase">
-                  <span>Search Impressions & Clicks (24H)</span>
+                  <span>Search Impressions & Clicks</span>
                   <Eye className="w-4 h-4 text-slate-700" />
                 </div>
                 <div className="text-3xl font-black text-black mt-2">
-                  {boostAnalytics.impressions}
-                  <span className="text-xs font-mono font-normal text-slate-500 ml-1">/ {boostAnalytics.clicks} clicks</span>
+                  {myProfile.viewsCount || 0}
+                  <span className="text-xs font-mono font-normal text-slate-500 ml-1">/ {myProfile.clicksCount || 0} clicks</span>
                 </div>
                 <div className="text-[11px] font-mono text-[#e8622c] mt-1 font-bold">
-                  CTR: {boostAnalytics.ctrPercent}%
+                  Direct client discovery
                 </div>
               </div>
 
               <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
                 <div className="flex items-center justify-between text-[11px] font-mono text-slate-500 font-bold uppercase">
-                  <span>Sponsored Placement</span>
-                  <Flame className="w-4 h-4 text-[#e8622c]" />
+                  <span>Direct Inquiries</span>
+                  <Briefcase className="w-4 h-4 text-[#e8622c]" />
                 </div>
-                <div className="text-xl font-black text-[#e8622c] mt-3 flex items-center gap-1.5">
-                  <Flame className="w-4 h-4 fill-[#e8622c]" />
-                  <span>{myProfile.isPromoted ? 'ACTIVE (24H)' : 'INACTIVE'}</span>
+                <div className="text-3xl font-black text-black mt-2">
+                  {incomingRequests.length}
                 </div>
                 <div className="text-[10px] font-mono text-slate-500 mt-1">
-                  {promoTimeRemaining || '$2 for 24 hours boost'}
+                  0% platform commission
                 </div>
               </div>
 
             </div>
 
-            {/* Live Profile Quality Factors & Dynamic Real Status Checklist */}
+            {/* Profile Quality Checklist */}
             <div className="p-5 bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
                 <div>
@@ -550,7 +460,7 @@ export const DashboardPage: React.FC = () => {
                 </button>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1">
                 {/* 1. Bio Check */}
                 <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
                   <div className="flex items-center gap-1.5 font-bold text-black">
@@ -593,17 +503,6 @@ export const DashboardPage: React.FC = () => {
                   </div>
                   <div className={`text-[10px] font-mono mt-0.5 ${myServices.length >= 1 ? 'text-emerald-700 font-bold' : 'text-amber-700 font-bold'}`}>
                     {myServices.length >= 1 ? '✓ Ready for Direct Hire' : '⚠️ 1+ Service Required'}
-                  </div>
-                </div>
-
-                {/* 4. Rotation Engine Check */}
-                <div className="p-2.5 bg-slate-50 border border-slate-200 text-xs">
-                  <div className="flex items-center gap-1.5 font-bold text-black">
-                    <Check className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Fair Rotation Engine</span>
-                  </div>
-                  <div className="text-[10px] font-mono text-emerald-700 mt-0.5 font-bold">
-                    ✓ 5-Min Micro-Rotation
                   </div>
                 </div>
               </div>
@@ -669,12 +568,12 @@ export const DashboardPage: React.FC = () => {
                 ) : (
                   <div className="p-8 text-center bg-slate-50 border border-dashed border-slate-300 space-y-2">
                     <p className="text-xs font-mono text-slate-600 font-bold">No client inquiries received yet.</p>
-                    <p className="text-[11px] text-slate-500">Promote your profile or add more services to receive direct contracts.</p>
+                    <p className="text-[11px] text-slate-500">Complete your profile or explore Outbid Spotlight to boost your visibility.</p>
                     <button
-                      onClick={() => setPromoteModalOpen(true)}
-                      className="mt-2 px-3 py-1.5 bg-[#e8622c] text-white font-mono text-xs font-bold"
+                      onClick={() => navigate('/spotlight')}
+                      className="mt-2 px-3 py-1.5 bg-[#e8622c] text-white font-mono text-xs font-bold cursor-pointer"
                     >
-                      [ 🔥 BOOST VISIBILITY ]
+                      [ 🔥 VIEW SPOTLIGHT LEADERBOARD ]
                     </button>
                   </div>
                 )}
@@ -732,9 +631,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* ========================================================= */}
         {/* TAB 2: INCOMING SERVICE REQUESTS PIPELINE */}
-        {/* ========================================================= */}
         {activeRoleView === 'provider' && activeSubTab === 'requests' && (
           <div className="space-y-6 animate-fadeIn">
             
@@ -755,139 +652,120 @@ export const DashboardPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Requests List */}
-            {filteredIncomingRequests.length > 0 ? (
-              <div className="space-y-4">
-                {filteredIncomingRequests.map(req => (
-                  <div key={req.id} className="bg-white border-2 border-black p-6 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
+            {/* List */}
+            <div className="space-y-4">
+              {filteredIncomingRequests.length === 0 ? (
+                <div className="p-12 text-center bg-white border-2 border-dashed border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                  <Briefcase className="w-8 h-8 text-slate-400 mx-auto mb-2" />
+                  <div className="font-mono text-sm font-bold text-black uppercase">No {requestFilter} requests found</div>
+                  <p className="text-xs text-slate-500 mt-1 font-mono">Incoming direct client contracts and inquiries will appear here.</p>
+                </div>
+              ) : (
+                filteredIncomingRequests.map(req => (
+                  <div key={req.id} className="bg-white border-2 border-black p-6 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200 pb-3">
                       <div>
                         <div className="flex items-center gap-2">
-                          <span className="font-black text-base text-black">{req.buyerName}</span>
-                          <span className="text-xs font-mono text-slate-500">({req.buyerEmail})</span>
+                          <span className="font-bold text-base text-black">{req.buyerName}</span>
+                          <span className="text-xs font-mono text-slate-400">• {req.buyerEmail}</span>
                         </div>
-                        <div className="text-xs font-mono text-[#e8622c] mt-0.5">
-                          Service: <strong>{req.serviceTitle || 'Custom Milestone Contract'}</strong>
+                        <div className="text-xs font-mono text-[#e8622c] font-bold mt-0.5">
+                          Gig: {req.serviceTitle || 'Custom Engagement'}
                         </div>
                       </div>
 
-                      <span className={`px-3 py-1 font-mono text-xs font-bold uppercase border-2 border-black shadow-xs ${
-                        req.status === 'accepted' ? 'bg-emerald-100 text-emerald-800' :
-                        req.status === 'declined' ? 'bg-red-100 text-red-800' :
-                        req.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                        'bg-amber-100 text-amber-800'
+                      <span className={`px-2.5 py-1 font-mono text-[10px] font-bold uppercase border ${
+                        req.status === 'accepted' ? 'bg-emerald-100 text-emerald-800 border-emerald-300' :
+                        req.status === 'declined' ? 'bg-red-100 text-red-800 border-red-300' :
+                        req.status === 'completed' ? 'bg-blue-100 text-blue-800 border-blue-300' :
+                        'bg-amber-100 text-amber-800 border-amber-300'
                       }`}>
-                        STATUS: {req.status}
+                        {req.status}
                       </span>
                     </div>
 
-                    <p className="text-xs sm:text-sm text-slate-700 whitespace-pre-line bg-slate-50 p-4 border border-slate-200 font-normal">
-                      {req.projectDescription}
-                    </p>
+                    <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-sans">{req.projectDescription}</p>
 
-                    <div className="flex flex-wrap items-center justify-between gap-4 pt-2 font-mono text-xs">
+                    <div className="flex flex-wrap items-center justify-between gap-4 pt-3 border-t border-slate-100 text-xs font-mono">
                       <div className="flex items-center gap-4 text-slate-600">
-                        <span>Offered Budget: <strong className="text-black font-bold">{req.budget}</strong></span>
-                        <span>•</span>
-                        <span>Timeline: <strong>{req.deadline}</strong></span>
-                        <span>•</span>
-                        <span>Date: {new Date(req.createdAt).toLocaleDateString()}</span>
+                        <span>Budget: <strong className="text-black">{req.budget}</strong></span>
+                        <span>Deadline: <strong className="text-black">{req.deadline}</strong></span>
                       </div>
 
-                      {/* Action buttons based on status */}
                       <div className="flex items-center gap-2">
                         {req.status === 'pending' && (
                           <>
                             <button
                               onClick={() => handleStatusChange(req.id, 'accepted')}
-                              className="px-4 py-1.5 bg-black hover:bg-emerald-600 text-white font-mono text-xs font-bold transition cursor-pointer"
+                              className="px-4 py-1.5 bg-black text-white font-mono text-xs font-bold hover:bg-emerald-600 transition cursor-pointer"
                             >
-                              [ ACCEPT CONTRACT ]
+                              [ ACCEPT ]
                             </button>
                             <button
                               onClick={() => handleStatusChange(req.id, 'declined')}
-                              className="px-4 py-1.5 bg-white border border-slate-400 hover:bg-red-50 text-slate-700 font-mono text-xs font-bold transition cursor-pointer"
+                              className="px-4 py-1.5 bg-white border border-slate-400 font-mono text-xs font-bold hover:bg-red-50 text-slate-700 transition cursor-pointer"
                             >
                               [ DECLINE ]
                             </button>
                           </>
                         )}
-
                         {req.status === 'accepted' && (
                           <button
                             onClick={() => handleStatusChange(req.id, 'completed')}
-                            className="px-4 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-mono text-xs font-bold transition cursor-pointer"
+                            className="px-4 py-1.5 bg-emerald-600 text-white font-mono text-xs font-bold hover:bg-emerald-700 transition cursor-pointer"
                           >
-                            [ ✓ MARK AS COMPLETED ]
+                            [ MARK COMPLETED ]
                           </button>
                         )}
                       </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            ) : (
-              <div className="bg-white border-2 border-black p-12 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
-                <Briefcase className="w-8 h-8 text-slate-400 mx-auto" />
-                <h3 className="font-bold text-sm text-black">No requests found under filter: {requestFilter.toUpperCase()}</h3>
-                <p className="text-xs text-slate-500">Incoming requests from direct clients will appear here in real time.</p>
-              </div>
-            )}
+                ))
+              )}
+            </div>
 
           </div>
         )}
 
-        {/* ========================================================= */}
-        {/* TAB 4: MY SERVICES HUB */}
-        {/* ========================================================= */}
+        {/* TAB 3: SERVICES HUB */}
         {activeRoleView === 'provider' && activeSubTab === 'services' && (
           <div className="space-y-6 animate-fadeIn">
-            
-            <div className="flex items-center justify-between bg-white border-2 border-black p-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center justify-between">
               <div>
-                <h3 className="font-mono text-xs font-bold uppercase text-black">Published Services Catalog</h3>
-                <p className="text-xs text-slate-600">Clients can directly hire you or send contract proposals for these gigs.</p>
+                <h2 className="font-mono text-base font-bold text-black uppercase">My Published Gigs & Services</h2>
+                <p className="text-xs text-slate-500 font-mono">Manage your direct offerings with clear pricing and delivery timelines.</p>
               </div>
 
               <button
                 onClick={() => navigate('/create-profile')}
-                className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition shadow-xs cursor-pointer"
+                className="px-4 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-1.5 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
-                [ + ADD NEW SERVICE ]
+                <Plus className="w-4 h-4" />
+                <span>[ + CREATE NEW GIG ]</span>
               </button>
             </div>
 
             {myServices.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {myServices.map(srv => (
-                  <div key={srv.id} className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-4">
-                    <div>
-                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-500 uppercase border-b border-slate-200 pb-2">
-                        <span className="font-bold text-[#e8622c]">{srv.category}</span>
-                        <span>{srv.deliveryTime} Delivery</span>
-                      </div>
-
-                      <h4 className="font-black text-sm text-black mt-2">{srv.title}</h4>
-                      <p className="text-xs text-slate-600 mt-1 line-clamp-3">{srv.description}</p>
-
-                      <div className="flex flex-wrap gap-1 mt-3">
-                        {srv.skills.map((skill, i) => (
-                          <span key={i} className="px-1.5 py-0.5 bg-slate-100 text-black font-mono text-[9px] border border-slate-200">
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
+                  <div key={srv.id} className="bg-white border-2 border-black p-5 shadow-[5px_5px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-4">
+                    <div className="space-y-2">
+                      <span className="px-2 py-0.5 bg-slate-100 border border-slate-300 font-mono text-[9px] font-bold uppercase text-slate-700">
+                        {srv.category}
+                      </span>
+                      <h3 className="font-bold text-sm text-black line-clamp-2">{srv.title}</h3>
+                      <p className="text-xs text-slate-600 line-clamp-3">{srv.description}</p>
                     </div>
 
-                    <div className="flex items-center justify-between pt-3 border-t border-slate-200">
+                    <div className="pt-3 border-t border-slate-200 flex items-center justify-between font-mono text-xs">
                       <div>
-                        <div className="text-[10px] font-mono text-slate-500 uppercase">Starting Price</div>
-                        <div className="font-black text-base text-black">${srv.startingPrice}</div>
+                        <span className="text-slate-400 text-[10px]">PRICE</span>
+                        <div className="font-black text-black">${srv.startingPrice}</div>
                       </div>
 
                       <Link
                         to={`/service/${srv.id}`}
-                        className="px-3 py-1.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition"
+                        className="px-3 py-1.5 bg-black text-white font-bold text-[10px] hover:bg-[#e8622c] transition"
                       >
                         [ VIEW GIG → ]
                       </Link>
@@ -896,13 +774,13 @@ export const DashboardPage: React.FC = () => {
                 ))}
               </div>
             ) : (
-              <div className="bg-white border-2 border-black p-12 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-3">
+              <div className="p-12 text-center bg-white border-2 border-dashed border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
                 <Layers className="w-8 h-8 text-slate-400 mx-auto" />
-                <h3 className="font-bold text-sm text-black">No services published yet</h3>
-                <p className="text-xs text-slate-500">Create your first gig to start receiving orders on RankLancr.</p>
+                <div className="font-mono text-sm font-bold uppercase">No published services yet</div>
+                <p className="text-xs text-slate-500 font-mono max-w-sm mx-auto">Create defined gigs so buyers can book you directly with clear scope.</p>
                 <button
                   onClick={() => navigate('/create-profile')}
-                  className="mt-2 px-4 py-2 bg-black text-white font-mono text-xs font-bold"
+                  className="px-4 py-2 bg-black text-white font-mono text-xs font-bold"
                 >
                   [ + CREATE SERVICE GIG ]
                 </button>
@@ -912,83 +790,7 @@ export const DashboardPage: React.FC = () => {
           </div>
         )}
 
-        {/* ========================================================= */}
-        {/* TAB 5: 24H BOOST ANALYTICS */}
-        {/* ========================================================= */}
-        {activeRoleView === 'provider' && activeSubTab === 'promotion' && (
-          <div className="space-y-6 animate-fadeIn">
-            
-            <div className="p-6 bg-orange-50/50 border-2 border-[#e8622c] shadow-[6px_6px_0px_0px_#e8622c] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <Flame className="w-5 h-5 fill-[#e8622c] text-[#e8622c]" />
-                  <h3 className="font-black text-lg text-black">24-Hour Sponsored Placement Engine</h3>
-                </div>
-                <p className="text-xs text-slate-600 mt-1 max-w-xl">
-                  $2 activates instant top placement in all relevant search queries. Fair rotation prevents monopoly and ensures balanced impression distribution.
-                </p>
-              </div>
-
-              <button
-                onClick={() => setPromoteModalOpen(true)}
-                className="px-5 py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition shrink-0 shadow-xs cursor-pointer"
-              >
-                [ 🔥 BOOST FOR $2 / 24H ]
-              </button>
-            </div>
-
-            {/* Live Telemetry Header */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className={`w-2.5 h-2.5 rounded-full ${isRealTimeActive ? 'bg-emerald-500 animate-pulse shadow-[0_0_8px_#10b981]' : 'bg-blue-500'}`} />
-                <span className="font-mono text-[10px] font-bold uppercase tracking-wider text-slate-700">
-                  {isRealTimeActive ? 'LIVE REAL-TIME TELEMETRY (24H ACTIVE)' : '24H TELEMETRY (15S HEARTBEAT)'}
-                </span>
-              </div>
-              <span className="font-mono text-[10px] text-slate-400">
-                Last updated: {new Date(boostAnalytics.lastUpdated).toLocaleTimeString()}
-              </span>
-            </div>
-
-            {/* Performance Metrics (Live Telemetry) */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Total Impressions</div>
-                <div className="text-3xl font-black text-black mt-1">{boostAnalytics.impressions}</div>
-                <div className="text-[10px] font-mono text-emerald-600">
-                  {boostAnalytics.sponsoredImpressions > 0 ? `${boostAnalytics.sponsoredImpressions} sponsored search placements` : 'Search placements'}
-                </div>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Profile Clicks</div>
-                <div className="text-3xl font-black text-black mt-1">{boostAnalytics.clicks}</div>
-                <div className="text-[10px] font-mono text-[#e8622c] font-bold">CTR: {boostAnalytics.ctrPercent}%</div>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Direct Inquiries</div>
-                <div className="text-3xl font-black text-black mt-1">{boostAnalytics.inquiries}</div>
-                <div className="text-[10px] font-mono text-emerald-600 font-bold">Conversion: {boostAnalytics.conversionPercent}%</div>
-              </div>
-
-              <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-                <div className="text-[11px] font-mono text-slate-500 font-bold uppercase">Fair Rotation Status</div>
-                <div className={`text-xl font-black mt-2 ${boostAnalytics.fairRotation.isDamped ? 'text-amber-600' : 'text-emerald-600'}`}>
-                  {boostAnalytics.fairRotation.status}
-                </div>
-                <div className="text-[10px] font-mono text-slate-500">
-                  {boostAnalytics.fairRotation.description}
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {/* ========================================================= */}
         {/* BUYER VIEW */}
-        {/* ========================================================= */}
         {activeRoleView === 'buyer' && (
           <div className="space-y-8 animate-fadeIn">
             
@@ -1055,15 +857,6 @@ export const DashboardPage: React.FC = () => {
         )}
 
       </main>
-
-      {/* Promotion Modal */}
-      {promoteModalOpen && (
-        <PromoteModal
-          isOpen={promoteModalOpen}
-          onClose={() => setPromoteModalOpen(false)}
-          professional={myProfile}
-        />
-      )}
 
     </div>
   );

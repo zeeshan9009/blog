@@ -1,5 +1,4 @@
 import type { Professional } from '../../types/talent.js';
-import { rankSponsoredProfiles, type RankedSponsoredProfile } from './promotionRanker.js';
 import { rankOrganicProfiles, type RankedOrganicProfile } from './organicRanker.js';
 import { calculateProfileQualityScore } from './profileQualityScore.js';
 
@@ -17,7 +16,7 @@ export interface SearchOptions {
 
 export interface SearchEngineResponse {
   query: string;
-  sponsored: RankedSponsoredProfile[];
+  sponsored: any[];
   organic: RankedOrganicProfile[];
   meta: {
     total: number;
@@ -29,7 +28,8 @@ export interface SearchEngineResponse {
 }
 
 /**
- * Main Search Engine Orchestrator
+ * Main ProRank Search Engine Orchestrator
+ * Pure organic relevance, quality, and skill ranking without legacy boost bias.
  */
 export function executeProRankSearch(
   allProfiles: Professional[],
@@ -66,25 +66,20 @@ export function executeProRankSearch(
 
   const filterContext = { category, location, isMobile };
 
-  // 2. Compute Sponsored Section (Gated by minimum relevance >= 0.35)
-  const sponsored = rankSponsoredProfiles(candidates, query, filterContext);
-  const sponsoredIds = new Set(sponsored.map(s => s.profile.id));
+  // 2. Pure Organic ProRank ranking
+  const organic = rankOrganicProfiles(candidates, query, filterContext);
 
-  // 3. Compute Organic Section (Excluding profiles already shown in sponsored to avoid duplicate cards on the same page)
-  const organicCandidates = candidates.filter(p => !sponsoredIds.has(p.id));
-  const organic = rankOrganicProfiles(organicCandidates, query, filterContext);
-
-  // 4. Pagination
+  // 3. Pagination
   const startIndex = (page - 1) * limit;
   const paginatedOrganic = organic.slice(startIndex, startIndex + limit);
 
   return {
     query,
-    sponsored,
+    sponsored: [],
     organic: paginatedOrganic,
     meta: {
-      total: sponsored.length + organic.length,
-      sponsoredCount: sponsored.length,
+      total: organic.length,
+      sponsoredCount: 0,
       organicCount: organic.length,
       page,
       limit,

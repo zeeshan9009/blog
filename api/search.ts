@@ -125,17 +125,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       const { data: dbProfiles, error: dbError } = await queryBuilder;
 
       if (!dbError && dbProfiles && dbProfiles.length > 0) {
-        // Fetch active promotions with single indexed lookup
-        const nowIso = new Date().toISOString();
-        const { data: promotions } = await supabase
-          .from("promotions")
-          .select("profile_id")
-          .eq("status", "active")
-          .lte("starts_at", nowIso)
-          .gt("ends_at", nowIso);
-
-        const promotedIds = new Set((promotions || []).map(p => p.profile_id));
-
         candidateProfiles = dbProfiles.map(row => ({
           id: row.id,
           name: row.name,
@@ -158,7 +147,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
           reviews: Array.isArray(row.reviews) ? row.reviews : [],
           externalLinks: row.external_links || {},
           isVerified: Boolean(row.is_verified),
-          isPromoted: promotedIds.has(row.id),
+          isPromoted: false,
           viewsCount: Number(row.views_count || 0),
           clicksCount: Number(row.clicks_count || 0),
           inquiriesCount: Number(row.inquiries_count || 0),
@@ -183,18 +172,6 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     try {
       const ipHash = visitorIp ? String(Buffer.from(visitorIp).toString("base64").substring(0, 16)) : "anon";
       const impressionBatch: any[] = [];
-      
-      for (const item of searchResults.sponsored) {
-        if (item.profile?.id) {
-          impressionBatch.push({
-            profile_id: item.profile.id,
-            search_query: query || null,
-            was_sponsored: true,
-            visitor_ip_hash: ipHash,
-            created_at: new Date().toISOString()
-          });
-        }
-      }
 
       for (const item of searchResults.organic) {
         if (item.profile?.id) {

@@ -35,11 +35,11 @@ export const TermsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Section 2: Outbid Spotlight & Ascending Auction No-Refund Policy */}
+        {/* Section 2: Outbid Spotlight & Ascending Auction Policy */}
         <div className="bg-amber-50/80 border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
             <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c]" />
-            <span>2. Outbid Spotlight & Sponsored Auction Policy (Strict No-Refund Policy)</span>
+            <span>2. Outbid Spotlight Ascending Auction Policy (Strict No-Refund Policy)</span>
           </div>
           
           <div className="p-3.5 bg-white border border-amber-300 text-xs text-amber-950 space-y-2">
@@ -48,13 +48,17 @@ export const TermsPage: React.FC = () => {
               <span>ASCENDING AUCTION DISPLACEMENT POLICY:</span>
             </div>
             <p className="leading-relaxed">
-              When you submit a paid bid to claim a <strong>Top 3 Spotlight Leaderboard Slot</strong> or <strong>Sponsored Boost Placement</strong>, your payment purchases visibility for up to <strong>72 hours</strong> (Spotlight) or <strong>24 hours</strong> (Boost).
+              When you submit a paid bid to claim a <strong>Top 3 Spotlight Leaderboard Slot</strong>, your payment purchases visibility for up to <strong>72 hours</strong>.
             </p>
             <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-800 pt-1">
-              <li><strong>Displacement Without Refund:</strong> If another freelancer places a higher qualifying bid (+5% or +$1.00 min increment), they immediately assume that slot, displacing the prior holder. <strong>All auction bids are final and non-refundable</strong> (mirroring standard competitive outbid mechanics).</li>
+              <li><strong>Displacement Without Refund:</strong> If another freelancer places a higher qualifying bid (+5% or +$1.00 min increment), they immediately assume that slot, displacing the prior holder. <strong>All auction bids are final and non-refundable</strong>.</li>
               <li><strong>Decay & Reset:</strong> If an active slot reaches the end of its 72-hour hold period without new competing bids, the slot reverts to open status and price decays toward the base floor ($5.00).</li>
-              <li><strong>Fairness Exemption:</strong> Spotlight leaderboard slots are pure paid auctions and are explicitly exempt from impression equalizers.</li>
+              <li><strong>Fairness Exemption:</strong> Spotlight leaderboard slots are pure paid auctions and are explicitly exempt from organic impression equalizers.</li>
             </ul>
+          </div>
+
+          <div className="p-3 bg-slate-100 border border-slate-300 text-[11px] text-slate-600">
+            <strong>Legacy System Notice:</strong> The legacy $2 / 24h Sponsored Boost feature was formally discontinued as of August 2026 in preparation for Challenge Arena. Historic terms and conditions applied to prior purchases made before retirement.
           </div>
         </div>
 

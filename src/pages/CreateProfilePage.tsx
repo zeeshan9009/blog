@@ -16,7 +16,6 @@ import { useAuth } from '../context/AuthContext';
 import { calculateProfileQualityScore } from '../services/ranking/profileQualityScore';
 import { calculateProfessionalScore } from '../services/ranking/professionalScore';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
-import { PromoteModal } from '../components/modals/PromoteModal';
 import { SmartExternalProfilesManager } from '../components/profile/SmartExternalProfilesManager';
 import { validateExternalProfileUrl, type ExternalPlatform } from '../services/validation/externalProfileValidator';
 import type { Professional, ExperienceItem, PortfolioItem, ExternalLinks, ExternalProfileLink } from '../types/talent';
@@ -45,7 +44,6 @@ export const CreateProfilePage: React.FC = () => {
   const { user, setHasProfile } = useAuth();
 
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [promoteModalOpen, setPromoteModalOpen] = useState<boolean>(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // Step 1: Basic Info
@@ -1420,22 +1418,15 @@ export const CreateProfilePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Optional Promotion Banner */}
-              <div className="p-4 bg-orange-50 border-2 border-[#e8622c] flex flex-col sm:flex-row items-center justify-between gap-3">
+              {/* Direct Marketplace Guarantee Banner */}
+              <div className="p-4 bg-slate-50 border-2 border-black flex flex-col sm:flex-row items-center justify-between gap-3 shadow-xs">
                 <div className="flex items-center gap-2.5">
-                  <Zap className="w-5 h-5 text-[#e8622c] shrink-0" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
                   <div>
-                    <div className="font-bold text-xs text-black">Want Sponsored Visibility?</div>
-                    <div className="text-[11px] text-slate-600">Promote your profile for $2 to gain 24 hours of top search placement.</div>
+                    <div className="font-bold text-xs text-black font-mono uppercase">100% Direct Client Dealing (0% Platform Cut)</div>
+                    <div className="text-[11px] text-slate-600 font-mono">Clients contact you directly via verified links. All earnings remain 100% yours.</div>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setPromoteModalOpen(true)}
-                  className="px-4 py-2 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition shrink-0 cursor-pointer"
-                >
-                  [ 🔥 PROMOTE FOR $2 ]
-                </button>
               </div>
             </div>
           )}
@@ -1476,15 +1467,6 @@ export const CreateProfilePage: React.FC = () => {
         </div>
 
       </main>
-
-      {/* Promotion Modal */}
-      {promoteModalOpen && (
-        <PromoteModal
-          isOpen={promoteModalOpen}
-          onClose={() => setPromoteModalOpen(false)}
-          professional={candidateMockPro}
-        />
-      )}
 
       {/* Footer */}
       <footer className="border-t-2 border-black bg-white px-4 sm:px-8 py-3 text-center text-xs font-mono text-slate-500">

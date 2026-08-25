@@ -2,8 +2,6 @@ import React from 'react';
 import Navbar from '../components/pixelpush/Navbar';
 import Hero from '../components/pixelpush/Hero';
 import { SpotlightSection } from '../components/pixelpush/SpotlightSection';
-import PromotedTalentSection from '../components/pixelpush/PromotedTalentSection';
-import { PromotedRankingShowcase } from '../components/pixelpush/PromotedRankingShowcase';
 import FeatureGrid from '../components/pixelpush/FeatureGrid';
 import BenchmarkChart from '../components/pixelpush/BenchmarkChart';
 import Pricing from '../components/pixelpush/Pricing';
@@ -20,7 +18,7 @@ export const PixelpushLanding: React.FC = () => {
       {/* Main Content Landmark with Accessibility Anchor */}
       <main id="main-content">
         
-        {/* 1. Live Promoted Ranking & Boost Auction Hero */}
+        {/* 1. Direct Marketplace Hero */}
         <div id="hero">
           <Hero />
         </div>
@@ -28,11 +26,6 @@ export const PixelpushLanding: React.FC = () => {
         {/* 2. Outbid Spotlight Ascending Auction Top 3 Slots */}
         <div id="spotlight">
           <SpotlightSection />
-        </div>
-
-        {/* 3. Featured $2 Sponsored Talent Section in Square UI */}
-        <div id="talent">
-          <PromotedTalentSection />
         </div>
 
         {/* 3. Feature Grid */}
@@ -50,19 +43,19 @@ export const PixelpushLanding: React.FC = () => {
           <Pricing />
         </div>
 
-        {/* 9. FAQ Section */}
+        {/* 6. FAQ Section */}
         <div id="faq">
           <Faq />
         </div>
 
-        {/* 10. Final CTA Section */}
+        {/* 7. Final CTA Section */}
         <div id="cta">
           <FinalCta />
         </div>
 
       </main>
 
-      {/* 11. Footer (Black background, 4-column links, newsletter subscription box) */}
+      {/* 8. Footer */}
       <Footer />
     </div>
   );

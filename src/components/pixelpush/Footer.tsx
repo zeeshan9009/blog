@@ -36,17 +36,17 @@ export const Footer: React.FC = () => {
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
-            <button
-              onClick={() => scrollTo('talent')}
+            <Link
+              to="/developers"
               className="px-6 py-3 bg-white hover:bg-orange-50 text-black font-bold text-xs transition shadow-md rounded-none cursor-pointer"
             >
               Explore Talent
-            </button>
+            </Link>
             <button
-              onClick={() => scrollTo('pricing')}
+              onClick={() => scrollTo('spotlight')}
               className="px-6 py-3 bg-transparent hover:bg-white/10 text-white border border-slate-700 hover:border-white font-bold text-xs transition rounded-none cursor-pointer"
             >
-              Promote for $2
+              Outbid Spotlight
             </button>
           </div>
         </div>
@@ -60,11 +60,11 @@ export const Footer: React.FC = () => {
               Talent Search
             </div>
             <ul className="space-y-2.5 text-xs">
-              <li><button onClick={() => scrollTo('talent')} className="hover:text-white transition cursor-pointer">Web & App Developers</button></li>
-              <li><button onClick={() => scrollTo('talent')} className="hover:text-white transition cursor-pointer">UI/UX & Brand Designers</button></li>
-              <li><button onClick={() => scrollTo('talent')} className="hover:text-white transition cursor-pointer">Video Editors & Motion</button></li>
-              <li><button onClick={() => scrollTo('talent')} className="hover:text-white transition cursor-pointer">AI & Machine Learning</button></li>
-              <li><button onClick={() => scrollTo('talent')} className="hover:text-white transition cursor-pointer">Growth & Marketing</button></li>
+              <li><Link to="/developers?category=Web+Development" className="hover:text-white transition">Web & App Developers</Link></li>
+              <li><Link to="/developers?category=UI%2FUX+Design" className="hover:text-white transition">UI/UX & Brand Designers</Link></li>
+              <li><Link to="/developers?category=Video+Editing" className="hover:text-white transition">Video Editors & Motion</Link></li>
+              <li><Link to="/developers?category=AI+Engineering" className="hover:text-white transition">AI & Machine Learning</Link></li>
+              <li><Link to="/developers?category=SEO+%26+Marketing" className="hover:text-white transition">Growth & Marketing</Link></li>
             </ul>
           </div>
 
@@ -75,8 +75,8 @@ export const Footer: React.FC = () => {
             </div>
             <ul className="space-y-2.5 text-xs">
               <li><a href="#features" className="hover:text-white transition">How ProRank Works</a></li>
-              <li><a href="#pricing" className="hover:text-white transition">24h $2 Sponsored Boost</a></li>
-              <li><button onClick={() => scrollTo('cta')} className="hover:text-white transition cursor-pointer">Create Free Profile</button></li>
+              <li><a href="#spotlight" className="hover:text-white transition">Outbid Spotlight Top 3</a></li>
+              <li><Link to="/create-profile" className="hover:text-white transition">Create Free Profile</Link></li>
               <li><a href="#faq" className="hover:text-white transition">ProRank 0-100 Scoring</a></li>
               <li><a href="#faq" className="hover:text-white transition">Zero Commission Model</a></li>
             </ul>

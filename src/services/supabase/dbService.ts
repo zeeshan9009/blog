@@ -1,10 +1,5 @@
 import { supabase } from '../../lib/supabase';
 import type { Professional, Service, ServiceRequest, UserRole } from '../../types/talent';
-import {
-  SPONSORED_BOOST_PRICE_CENTS,
-  SPONSORED_BOOST_CURRENCY,
-  SPONSORED_BOOST_DURATION_HOURS
-} from '../../config/pricing';
 
 // Map database row to Professional interface
 export function mapRowToProfessional(row: any): Professional {
@@ -31,7 +26,7 @@ export function mapRowToProfessional(row: any): Professional {
     reviews: Array.isArray(row.reviews) ? row.reviews : [],
     externalLinks: row.external_links || {},
     isVerified: Boolean(row.is_verified),
-    isPromoted: false, // Updated with promotions join
+    isPromoted: false,
     viewsCount: Number(row.views_count || 0),
     clicksCount: Number(row.clicks_count || 0),
     inquiriesCount: Number(row.inquiries_count || 0),
@@ -108,22 +103,7 @@ export async function fetchProfilesFromDb(): Promise<Professional[]> {
       return [];
     }
 
-    // Check active promotions
-    const nowIso = new Date().toISOString();
-    const { data: promotionsData } = await supabase
-      .from('promotions')
-      .select('profile_id, starts_at, ends_at, status')
-      .eq('status', 'active')
-      .lte('starts_at', nowIso)
-      .gt('ends_at', nowIso);
-
-    const activePromotedIds = new Set((promotionsData || []).map(pr => pr.profile_id));
-
-    return profilesData.map(row => {
-      const pro = mapRowToProfessional(row);
-      pro.isPromoted = activePromotedIds.has(pro.id);
-      return pro;
-    });
+    return profilesData.map(row => mapRowToProfessional(row));
   } catch (err) {
     console.error('fetchProfilesFromDb error:', err);
     return [];
@@ -402,37 +382,8 @@ export async function updateServiceRequestStatusInDb(requestId: string, status: 
 }
 
 // -------------------------------------------------------------
-// 5. PROMOTION & ANALYTICS DB OPERATIONS
+// 5. ANALYTICS & TELEMETRY DB OPERATIONS
 // -------------------------------------------------------------
-export async function activatePromotionInDb(profileId: string, paymentId: string): Promise<boolean> {
-  try {
-    const now = new Date();
-    const durationMs = (SPONSORED_BOOST_DURATION_HOURS || 24) * 60 * 60 * 1000;
-    const endsAt = new Date(now.getTime() + durationMs);
-
-    const { error } = await supabase
-      .from('promotions')
-      .insert([{
-        profile_id: profileId,
-        payment_id: paymentId,
-        status: 'active',
-        amount_cents: SPONSORED_BOOST_PRICE_CENTS,
-        currency: SPONSORED_BOOST_CURRENCY,
-        starts_at: now.toISOString(),
-        ends_at: endsAt.toISOString()
-      }]);
-
-    if (error) {
-      console.error('activatePromotionInDb error:', error);
-      return false;
-    }
-    return true;
-  } catch (err) {
-    console.error('activatePromotionInDb exception:', err);
-    return false;
-  }
-}
-
 export async function recordProfileViewInDb(profileId: string, visitorHash: string, source: string = 'direct') {
   try {
     await supabase.from('profile_views').insert([{

@@ -14,7 +14,6 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import PromotedRankingPage from "./pages/PromotedRankingPage";
-import { ManagePromotionPage } from "./pages/ManagePromotionPage";
 import TermsPage from "./pages/TermsPage";
 
 export default function App() {
@@ -47,20 +46,17 @@ export default function App() {
           <Route path="/dashboard" element={<DashboardPage />} />
           <Route path="/dashboard/requests" element={<DashboardPage />} />
           <Route path="/dashboard/my-requests" element={<DashboardPage />} />
-          <Route path="/dashboard/promotion" element={<DashboardPage />} />
           <Route path="/dashboard/contacts" element={<DashboardPage />} />
 
           {/* Settings & Role Management */}
           <Route path="/settings" element={<SettingsPage />} />
 
-          {/* Dedicated Promoted Ranking & Boost Auction */}
+          {/* Dedicated Outbid Spotlight Leaderboard */}
+          <Route path="/spotlight" element={<PromotedRankingPage />} />
           <Route path="/promote" element={<PromotedRankingPage />} />
           <Route path="/promoted" element={<PromotedRankingPage />} />
           <Route path="/promoted-ranking" element={<PromotedRankingPage />} />
           <Route path="/boost" element={<PromotedRankingPage />} />
-
-          {/* Guest Magic Link Promotion Management */}
-          <Route path="/manage-promotion/:token" element={<ManagePromotionPage />} />
 
           {/* Dedicated Developers & Ranking Directory */}
           <Route path="/developers" element={<DevelopersPage />} />

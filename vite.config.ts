@@ -8,8 +8,8 @@ function localApiPlugin(): Plugin {
         configureServer(server) {
             server.middlewares.use(async (req, res, next) => {
                 const url = req.url || "";
-                if (url.startsWith("/api/promotions")) {
-                    const { default: handler } = await import("./api/promotions.js");
+                if (url.startsWith("/api/spotlight")) {
+                    const { default: handler } = await import("./api/spotlight.js");
                     return handler(req, res);
                 }
                 if (url.startsWith("/api/analytics")) {

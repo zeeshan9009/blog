@@ -174,13 +174,17 @@ export const Navbar: React.FC = () => {
                   <span>Professionals</span>
                 </Link>
 
-                <Link
-                  to="/promoted-ranking"
-                  className="hover:text-[#e8622c] transition py-1.5 px-2 flex items-center gap-1 text-[#e8622c] font-black"
+                <button
+                  onClick={() => {
+                    const el = document.getElementById('spotlight');
+                    if (el) el.scrollIntoView({ behavior: 'smooth' });
+                    else goToPage('/#spotlight');
+                  }}
+                  className="hover:text-[#e8622c] transition py-1.5 px-2 flex items-center gap-1 text-[#e8622c] font-black cursor-pointer"
                 >
                   <Flame className="w-3.5 h-3.5 fill-[#e8622c]" />
-                  <span>Promoted Ranking</span>
-                </Link>
+                  <span>Spotlight</span>
+                </button>
 
                 <a href="#features" onClick={() => setActiveMenu(null)} className="hover:text-black transition py-1.5 px-2">
                   How It Works
@@ -288,30 +292,13 @@ export const Navbar: React.FC = () => {
                             <span>Service Requests</span>
                           </button>
 
-                          {/* If already promoted, show Active Boost status instead of promote purchase prompt */}
-                          {currentProfile?.isPromoted ? (
-                            <button
-                              onClick={() => goToPage('/dashboard/promotion')}
-                              className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-1.5">
-                                <Flame className="w-3.5 h-3.5 fill-[#e8622c] text-[#e8622c]" />
-                                <span>Boost Active</span>
-                              </span>
-                              <span className="font-mono text-[9px] px-1.5 py-0.2 bg-orange-100 text-[#e8622c] font-bold">24H ACTIVE</span>
-                            </button>
-                          ) : (
-                            <button
-                              onClick={() => goToPage('/promote')}
-                              className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-orange-50/50 flex items-center justify-between transition cursor-pointer"
-                            >
-                              <span className="flex items-center gap-1.5">
-                                <Zap className="w-3.5 h-3.5 text-[#e8622c]" />
-                                <span>$2 Boost Placement</span>
-                              </span>
-                              <span className="font-mono text-[10px] text-[#e8622c]">$2/day</span>
-                            </button>
-                          )}
+                          <button
+                            onClick={() => goToPage('/dashboard')}
+                            className="w-full text-left px-2.5 py-1.5 text-xs font-bold text-slate-700 hover:text-black hover:bg-slate-100 flex items-center gap-2 transition cursor-pointer"
+                          >
+                            <LayoutDashboard className="w-3.5 h-3.5 text-slate-500" />
+                            <span>My Dashboard</span>
+                          </button>
 
                           <button
                             onClick={() => goToPage('/settings')}
@@ -616,18 +603,23 @@ export const Navbar: React.FC = () => {
                     </button>
 
                     <button
-                      onClick={() => goToPage('/promote')}
+                      onClick={() => {
+                        setActiveMenu(null);
+                        const el = document.getElementById('spotlight');
+                        if (el) el.scrollIntoView({ behavior: 'smooth' });
+                        else goToPage('/#spotlight');
+                      }}
                       className="text-left p-3.5 border-2 border-[#e8622c]/50 bg-orange-50/30 hover:border-black hover:bg-orange-50 transition cursor-pointer group flex items-start gap-3"
                     >
                       <div className="p-2 bg-[#e8622c] text-white shrink-0 mt-0.5">
-                        <Zap className="w-4 h-4 text-white" />
+                        <Flame className="w-4 h-4 text-white fill-white" />
                       </div>
                       <div>
                         <div className="font-bold text-xs text-black group-hover:text-[#e8622c] transition flex items-center justify-between">
-                          <span>$2 / 24h Sponsored Boost</span>
-                          <span className="px-1.5 py-0.5 bg-[#e8622c] text-white text-[9px] font-mono font-bold">$2/DAY</span>
+                          <span>Outbid Spotlight Top 3</span>
+                          <span className="px-1.5 py-0.5 bg-[#e8622c] text-white text-[9px] font-mono font-bold">TOP 3 SLOTS</span>
                         </div>
-                        <div className="text-[11px] text-slate-500 mt-1">Instant top search rank for 24 hours. Zero subscription lock-in.</div>
+                        <div className="text-[11px] text-slate-500 mt-1">Ascending auction leaderboard with 72-hour exclusive visibility holds.</div>
                       </div>
                     </button>
 
@@ -772,21 +764,17 @@ export const Navbar: React.FC = () => {
               >
                 📊 Professional Dashboard
               </button>
-              {currentProfile?.isPromoted ? (
-                <button
-                  onClick={() => goToPage('/dashboard/promotion')}
-                  className="block w-full text-left px-3 py-1.5 font-bold text-xs text-[#e8622c] hover:bg-orange-50"
-                >
-                  🔥 24h Sponsored Boost (ACTIVE)
-                </button>
-              ) : (
-                <button
-                  onClick={() => goToPage('/promote')}
-                  className="block w-full text-left px-3 py-1.5 font-bold text-xs text-slate-800 hover:bg-slate-50"
-                >
-                  ⚡ $2 / 24h Sponsored Boost
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  const el = document.getElementById('spotlight');
+                  if (el) el.scrollIntoView({ behavior: 'smooth' });
+                  else goToPage('/#spotlight');
+                }}
+                className="block w-full text-left px-3 py-1.5 font-bold text-xs text-[#e8622c] hover:bg-orange-50"
+              >
+                🔥 Outbid Spotlight Top 3
+              </button>
             </div>
 
             <div className="flex gap-2 pt-1">
