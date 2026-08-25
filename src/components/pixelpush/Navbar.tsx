@@ -204,17 +204,9 @@ export const Navbar: React.FC = () => {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => navigate('/login')}
-                    className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-black transition cursor-pointer"
+                    className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
                   >
                     Sign in
-                  </button>
-
-                  <button
-                    onClick={() => navigate('/create-profile')}
-                    className="px-3.5 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition cursor-pointer shadow-[2px_2px_0px_0px_#e8622c] flex items-center gap-1.5"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Become a Professional</span>
                   </button>
                 </div>
               )}
@@ -289,20 +281,12 @@ export const Navbar: React.FC = () => {
                   </button>
                 </>
               ) : (
-                <>
-                  <button
-                    onClick={() => goToPage('/login')}
-                    className="w-full py-2 px-3 font-bold text-xs text-slate-800 hover:bg-slate-50 text-left"
-                  >
-                    Sign in
-                  </button>
-                  <button
-                    onClick={() => goToPage('/create-profile')}
-                    className="w-full py-2.5 px-3 bg-[#e8622c] text-white font-mono text-xs font-bold text-center"
-                  >
-                    + Become a Professional
-                  </button>
-                </>
+                <button
+                  onClick={() => goToPage('/login')}
+                  className="w-full py-2.5 px-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold text-center"
+                >
+                  Sign in
+                </button>
               )}
             </div>
           </div>
