@@ -1,6 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Trophy, Sparkles, Heart, ShieldCheck, Building2, Vote, Clock, ArrowLeft, CheckCircle2, Lock, ExternalLink, Loader2, Award, Flame } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import {
+  Trophy,
+  Sparkles,
+  Heart,
+  ShieldCheck,
+  Building2,
+  Vote,
+  Clock,
+  ArrowLeft,
+  CheckCircle2,
+  Lock,
+  ExternalLink,
+  Loader2,
+  Award,
+  Flame
+} from 'lucide-react';
+import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
 import { TopDeveloperRail } from '../components/challenges/TopDeveloperRail';
@@ -14,8 +29,9 @@ import type { Challenge, ChallengeSubmission, ChallengeSponsorship } from '../ty
 import toast from 'react-hot-toast';
 
 export const ChallengeArenaPage: React.FC = () => {
+  const { slug, id } = useParams<{ slug?: string; id?: string }>();
   const [searchParams] = useSearchParams();
-  const challengeIdParam = searchParams.get('challenge') || searchParams.get('id');
+  const challengeIdParam = slug || id || searchParams.get('challenge') || searchParams.get('id');
   const actionParam = searchParams.get('action');
 
   const { user } = useAuth();
@@ -48,7 +64,7 @@ export const ChallengeArenaPage: React.FC = () => {
         if (listRes.ok) {
           const listData = await listRes.json();
           if (listData.challenges && listData.challenges.length > 0) {
-            targetId = listData.challenges[0].id;
+            targetId = listData.challenges[0].slug || listData.challenges[0].id;
           }
         }
       }

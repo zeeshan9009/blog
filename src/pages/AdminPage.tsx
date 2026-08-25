@@ -21,10 +21,12 @@ import {
   Calendar,
   Layers,
   ChevronRight,
-  TrendingUp
+  TrendingUp,
+  Link2
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
+import { AdminChallengeLinksTab } from '../components/admin/AdminChallengeLinksTab';
 import toast from 'react-hot-toast';
 
 interface AdminStats {
@@ -54,7 +56,7 @@ export const AdminPage: React.FC = () => {
   const [passkey, setPasskey] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminToken, setAdminToken] = useState('');
-  const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'submissions' | 'sponsorships' | 'users'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'submissions' | 'sponsorships' | 'users' | 'links'>('overview');
 
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<AdminStats | null>(null);
@@ -401,9 +403,10 @@ export const AdminPage: React.FC = () => {
         {[
           { id: 'overview', label: '1. Executive Overview', icon: Layers },
           { id: 'challenges', label: '2. Challenge Manager', icon: Trophy },
-          { id: 'submissions', label: '3. Submissions & Anti-Abuse', icon: ShieldAlert },
-          { id: 'sponsorships', label: '4. Sponsorships & Spotlight', icon: Flame },
-          { id: 'users', label: '5. Talent & Badges', icon: Users }
+          { id: 'links', label: '3. Submission Links', icon: Link2 },
+          { id: 'submissions', label: '4. Submissions & Anti-Abuse', icon: ShieldAlert },
+          { id: 'sponsorships', label: '5. Sponsorships & Spotlight', icon: Flame },
+          { id: 'users', label: '6. Talent & Badges', icon: Users }
         ].map((t) => {
           const Icon = t.icon;
           return (
@@ -891,6 +894,13 @@ export const AdminPage: React.FC = () => {
               </table>
             </div>
           </div>
+        )}
+
+        {/* =================================================================== */}
+        {/* TAB 3: AUTO-GENERATED SUBMISSION LINKS */}
+        {/* =================================================================== */}
+        {activeTab === 'links' && (
+          <AdminChallengeLinksTab adminKey={adminToken} />
         )}
 
       </main>

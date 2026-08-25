@@ -90,10 +90,11 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `http://${host}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`);
     const route = parsedUrl.searchParams.get("route") || "";
     const idParam = parsedUrl.searchParams.get("id") || "";
+    const slugParam = parsedUrl.searchParams.get("slug") || "";
     const statusParam = parsedUrl.searchParams.get("status") || "";
 
     // 1. GET /api/challenges — List challenges
-    if (req.method === "GET" && !idParam && !route) {
+    if (req.method === "GET" && !idParam && !slugParam && !route) {
       res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=120, max-age=10");
 
       try {
@@ -107,6 +108,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         if (!error && data) {
           const mapped = data.map(row => ({
             id: row.id,
+            slug: row.slug || row.id,
             category: row.category || "Development",
             title: row.title,
             prompt: row.prompt,
@@ -132,22 +134,35 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
       return;
     }
 
-    // 2. GET /api/challenges?id=:id — Challenge Details
-    if (req.method === "GET" && idParam && !route) {
+    // 2. GET /api/challenges?id=:id OR ?slug=:slug — Challenge Details
+    if (req.method === "GET" && (idParam || slugParam) && !route) {
       try {
-        const [chRes, subRes, entRes, sponRes, slotRes, bidsRes] = await Promise.all([
-          supabase.from("challenges").select("*").eq("id", idParam).single(),
-          supabase.from("challenge_submissions").select("*, profiles(*)").eq("challenge_id", idParam).order("vote_count", { ascending: false }),
-          supabase.from("challenge_entries").select("*").eq("challenge_id", idParam).eq("status", "succeeded"),
-          supabase.from("challenge_sponsorships").select("*").eq("challenge_id", idParam).eq("status", "succeeded"),
-          supabase.from("challenge_sponsorship_slots").select("*").eq("challenge_id", idParam).maybeSingle(),
-          supabase.from("challenge_sponsorship_bids").select("*").eq("challenge_id", idParam).eq("status", "succeeded").order("created_at", { ascending: false }).limit(10)
-        ]);
-
+        const lookup = slugParam || idParam;
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(lookup);
+        
+        let challengeQuery = supabase.from("challenges").select("*");
+        if (isUUID) {
+          challengeQuery = challengeQuery.eq("id", lookup);
+        } else {
+          challengeQuery = challengeQuery.eq("slug", lookup);
+        }
+        
+        const chRes = await challengeQuery.maybeSingle();
         if (chRes.data) {
           const row = chRes.data;
+          const challengeId = row.id;
+
+          const [subRes, entRes, sponRes, slotRes, bidsRes] = await Promise.all([
+            supabase.from("challenge_submissions").select("*, profiles(*)").eq("challenge_id", challengeId).order("vote_count", { ascending: false }),
+            supabase.from("challenge_entries").select("*").eq("challenge_id", challengeId).eq("status", "succeeded"),
+            supabase.from("challenge_sponsorships").select("*").eq("challenge_id", challengeId).eq("status", "succeeded"),
+            supabase.from("challenge_sponsorship_slots").select("*").eq("challenge_id", challengeId).maybeSingle(),
+            supabase.from("challenge_sponsorship_bids").select("*").eq("challenge_id", challengeId).eq("status", "succeeded").order("created_at", { ascending: false }).limit(10)
+          ]);
+
           const challenge: Challenge = {
             id: row.id,
+            slug: row.slug || row.id,
             category: row.category || "Development",
             title: row.title,
             prompt: row.prompt,

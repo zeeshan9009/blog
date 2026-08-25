@@ -4,6 +4,7 @@ export type SponsorshipTier = 'bronze' | 'silver' | 'gold';
 
 export interface Challenge {
   id: string;
+  slug?: string;
   title: string;
   prompt: string;
   category: string;
