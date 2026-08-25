@@ -85,9 +85,15 @@ export const ChallengeArenaPage: React.FC = () => {
         setSponsorships(data.sponsorships || []);
         setStats(data.stats);
 
-        if (userProfile && data.entries) {
-          const entered = data.entries.some((e: any) => e.profileId === userProfile.id);
-          setHasEntered(entered);
+        const currentUserId = user?.id || userProfile?.id;
+        const isPaidInStorage = currentUserId && localStorage.getItem(`ranklancr_paid_${data.challenge.id}_${currentUserId}`) === 'true';
+        const isPaidInDB = Boolean(data.entries && currentUserId && data.entries.some((e: any) => e.profileId === currentUserId || e.profileId === userProfile?.id || e.profileId === user?.id));
+
+        if (isPaidInDB || isPaidInStorage) {
+          setHasEntered(true);
+          if (currentUserId) {
+            localStorage.setItem(`ranklancr_paid_${data.challenge.id}_${currentUserId}`, 'true');
+          }
         }
       } else {
         setActiveChallenge(null);
@@ -102,7 +108,7 @@ export const ChallengeArenaPage: React.FC = () => {
 
   useEffect(() => {
     fetchChallengeDetail();
-  }, [challengeIdParam]);
+  }, [challengeIdParam, user, userProfile]);
 
   useEffect(() => {
     if (actionParam === 'enter' && activeChallenge?.status === 'open_entry') {
@@ -119,6 +125,8 @@ export const ChallengeArenaPage: React.FC = () => {
       return;
     }
 
+    const currentUserId = user?.id || userProfile?.id;
+
     setIsEntering(true);
     try {
       await openRankLancrCheckout({
@@ -126,10 +134,24 @@ export const ChallengeArenaPage: React.FC = () => {
         customerEmail: user?.email || undefined,
         customData: {
           challengeId: activeChallenge.id,
-          profileId: userProfile?.id || user?.id
+          profileId: currentUserId
         },
-        successUrl: `${window.location.origin}/welcome`
+        successUrl: `${window.location.origin}/challenges/${activeChallenge.slug || activeChallenge.id}/submit?status=paid`
       });
+
+      if (currentUserId) {
+        localStorage.setItem(`ranklancr_paid_${activeChallenge.id}_${currentUserId}`, 'true');
+        setHasEntered(true);
+        fetch('/api/challenges?route=enter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            challengeId: activeChallenge.id,
+            profileId: currentUserId,
+            paddleTransactionId: 'paddle_modal_success'
+          })
+        }).catch(() => {});
+      }
     } catch (err: any) {
       toast.error('Failed to open checkout: ' + (err.message || 'Error'));
     } finally {

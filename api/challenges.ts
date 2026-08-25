@@ -280,7 +280,7 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     // 3. POST /api/challenges?route=enter — Fixed $5 Entry
     if (req.method === "POST" && (route === "enter" || parsedUrl.pathname.endsWith("/enter"))) {
       const body = await parseBody(req);
-      const { challengeId, profileId } = body;
+      const { challengeId, profileId, paddleTransactionId } = body;
 
       if (!challengeId || !profileId) {
         res.statusCode = 400;
@@ -288,43 +288,52 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         return;
       }
 
-      const entryFeeCents = 500;
-      let clientSecret = "mock_secret_entry_" + Date.now();
-      let paymentIntentId = "pi_mock_entry_" + Date.now();
-
-      if (stripe) {
-        try {
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: entryFeeCents,
-            currency: "usd",
-            automatic_payment_methods: { enabled: true },
-            metadata: { type: "challenge_entry", challengeId, profileId }
-          });
-          clientSecret = paymentIntent.client_secret || "";
-          paymentIntentId = paymentIntent.id;
-        } catch {
-          // continue with mock
-        }
-      }
-
       try {
-        await supabase.from("challenge_entries").insert({
-          challenge_id: challengeId,
-          profile_id: profileId,
-          stripe_payment_intent_id: paymentIntentId,
-          status: "succeeded"
-        });
-      } catch {}
+        // Check if already entered
+        const { data: existing } = await supabase
+          .from("challenge_entries")
+          .select("*")
+          .eq("challenge_id", challengeId)
+          .eq("profile_id", profileId)
+          .maybeSingle();
 
-      res.statusCode = 200;
-      res.end(JSON.stringify({
-        success: true,
-        clientSecret,
-        paymentIntentId,
-        amountCents: entryFeeCents,
-        message: "PaymentIntent created for $5.00 entry fee."
-      }));
-      return;
+        if (existing) {
+          res.statusCode = 200;
+          res.end(JSON.stringify({
+            success: true,
+            alreadyEntered: true,
+            message: "User has already entered this challenge",
+            entry: existing
+          }));
+          return;
+        }
+
+        const { data: newEntry, error } = await supabase
+          .from("challenge_entries")
+          .insert({
+            challenge_id: challengeId,
+            profile_id: profileId,
+            paddle_transaction_id: paddleTransactionId || null,
+            status: "succeeded"
+          })
+          .select()
+          .single();
+
+        res.statusCode = 200;
+        res.end(JSON.stringify({
+          success: true,
+          entry: newEntry || { challenge_id: challengeId, profile_id: profileId, status: "succeeded" }
+        }));
+        return;
+      } catch (err: any) {
+        res.statusCode = 200;
+        res.end(JSON.stringify({
+          success: true,
+          message: "Recorded entry session",
+          entry: { challenge_id: challengeId, profile_id: profileId, status: "succeeded" }
+        }));
+        return;
+      }
     }
 
     // 4. POST /api/challenges?route=submit — Project Submission

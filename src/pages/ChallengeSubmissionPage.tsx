@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   Trophy,
   Sparkles,
@@ -12,7 +12,8 @@ import {
   Flame,
   Clock,
   Vote,
-  AlertCircle
+  AlertCircle,
+  Share2
 } from 'lucide-react';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
@@ -25,6 +26,7 @@ import toast from 'react-hot-toast';
 
 export const ChallengeSubmissionPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { user } = useAuth();
   const { professionals } = useTalent();
@@ -35,13 +37,15 @@ export const ChallengeSubmissionPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [hasEntered, setHasEntered] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
+  const [mySubmission, setMySubmission] = useState<ChallengeSubmission | null>(null);
 
   // Form submission state
   const [title, setTitle] = useState('');
   const [submissionUrl, setSubmissionUrl] = useState('');
   const [submissionText, setSubmissionText] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submittedSuccess, setSubmittedSuccess] = useState(false);
+
+  const currentUserId = user?.id || userProfile?.id;
 
   // Fetch challenge by slug
   const fetchChallenge = async () => {
@@ -51,12 +55,41 @@ export const ChallengeSubmissionPage: React.FC = () => {
       const res = await fetch(`/api/challenges?slug=${encodeURIComponent(slug)}`);
       if (res.ok) {
         const data = await res.json();
-        setChallenge(data.challenge);
-        setSubmissions(data.submissions || []);
+        const ch = data.challenge;
+        setChallenge(ch);
+        const subList: ChallengeSubmission[] = data.submissions || [];
+        setSubmissions(subList);
 
-        if (userProfile && data.entries) {
-          const entered = data.entries.some((e: any) => e.profileId === userProfile.id);
-          setHasEntered(entered);
+        // Check if user has already entered
+        const isPaidInStorage = ch && currentUserId && localStorage.getItem(`ranklancr_paid_${ch.id}_${currentUserId}`) === 'true';
+        const isPaidInDB = Boolean(data.entries && currentUserId && data.entries.some((e: any) => e.profileId === currentUserId || e.profileId === user?.id || e.profileId === userProfile?.id));
+        const isReturnFromCheckout = searchParams.get('status') === 'paid' || searchParams.get('checkout') === 'completed';
+
+        if (isPaidInDB || isPaidInStorage || isReturnFromCheckout) {
+          setHasEntered(true);
+          if (ch && currentUserId) {
+            localStorage.setItem(`ranklancr_paid_${ch.id}_${currentUserId}`, 'true');
+            // If returning from checkout, register in DB
+            if (isReturnFromCheckout) {
+              fetch('/api/challenges?route=enter', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  challengeId: ch.id,
+                  profileId: currentUserId,
+                  paddleTransactionId: searchParams.get('transaction_id') || 'paddle_live'
+                })
+              }).catch(() => {});
+            }
+          }
+        }
+
+        // Check if user already submitted work
+        if (currentUserId) {
+          const userSub = subList.find(s => s.profileId === currentUserId || s.profileId === user?.id || s.profileId === userProfile?.id);
+          if (userSub) {
+            setMySubmission(userSub);
+          }
         }
       } else {
         setChallenge(null);
@@ -71,7 +104,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
 
   useEffect(() => {
     fetchChallenge();
-  }, [slug, userProfile]);
+  }, [slug, user, userProfile]);
 
   // Handle $5 Entry Fee Payment
   const handleEnterChallenge = async () => {
@@ -95,10 +128,25 @@ export const ChallengeSubmissionPage: React.FC = () => {
         customerEmail: user.email || undefined,
         customData: {
           challengeId: challenge.id,
-          profileId: userProfile?.id || user.id
+          profileId: currentUserId
         },
         successUrl: `${window.location.origin}/challenges/${challenge.slug || challenge.id}/submit?status=paid`
       });
+
+      // Record locally and persist entry
+      if (currentUserId) {
+        localStorage.setItem(`ranklancr_paid_${challenge.id}_${currentUserId}`, 'true');
+        setHasEntered(true);
+        await fetch('/api/challenges?route=enter', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            challengeId: challenge.id,
+            profileId: currentUserId,
+            paddleTransactionId: 'paddle_modal_success'
+          })
+        });
+      }
     } catch (err: any) {
       toast.error('Checkout error: ' + (err.message || 'Payment could not be initialized'));
     } finally {
@@ -123,7 +171,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           challengeId: challenge.id,
-          profileId: userProfile?.id || user?.id,
+          profileId: currentUserId,
           title: title.trim(),
           submissionUrl: submissionUrl.trim(),
           submissionText: submissionText.trim()
@@ -131,8 +179,23 @@ export const ChallengeSubmissionPage: React.FC = () => {
       });
 
       if (res.ok) {
+        const data = await res.json();
         toast.success('🎉 Project submitted successfully! Your entry is now in the Arena.');
-        setSubmittedSuccess(true);
+        setMySubmission(data.submission || {
+          id: `sub_${Date.now()}`,
+          challengeId: challenge.id,
+          profileId: currentUserId,
+          title: title.trim(),
+          submissionUrl: submissionUrl.trim(),
+          submissionText: submissionText.trim(),
+          voteCount: 0,
+          authorName: user?.name || 'Creator',
+          authorAvatar: '',
+          authorTitle: 'Developer',
+          authorScore: 80,
+          authorVerified: true,
+          createdAt: new Date().toISOString()
+        });
       } else {
         const err = await res.json();
         toast.error(err.error || 'Failed to submit work');
@@ -151,7 +214,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
         <div className="flex-1 flex items-center justify-center p-8">
           <div className="text-center font-mono space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#e8622c] mx-auto" />
-            <p className="text-xs text-slate-600 font-bold uppercase">Loading challenge submission...</p>
+            <p className="text-xs text-slate-600 font-bold uppercase">Verifying entry & loading challenge...</p>
           </div>
         </div>
         <Footer />
@@ -265,27 +328,75 @@ export const ChallengeSubmissionPage: React.FC = () => {
           </div>
         )}
 
-        {/* State 2: Already Submitted Success Message */}
-        {submittedSuccess && (
-          <div className="bg-emerald-50 border-2 border-emerald-500 p-8 sm:p-10 text-center shadow-[6px_6px_0px_0px_rgba(16,185,129,0.3)] space-y-4 font-mono">
-            <CheckCircle2 className="w-12 h-12 text-emerald-600 mx-auto" />
-            <h2 className="text-2xl font-black text-emerald-950 uppercase">Submission Received!</h2>
-            <p className="text-xs sm:text-sm text-emerald-800 max-w-md mx-auto leading-relaxed">
-              Your project has been recorded in the Challenge Arena. Community voting and scoring are now live!
-            </p>
-            <div className="pt-2">
+        {/* State 2: ALREADY SUBMITTED WORK (Prevents duplicate entries and duplicate payments) */}
+        {mySubmission && (
+          <div className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6 font-mono">
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 border-2 border-black flex items-center justify-center shadow-xs">
+                  <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-black text-black uppercase">Your Project is Live in the Arena</h2>
+                  <p className="text-xs text-slate-600">You have already submitted your work for this challenge.</p>
+                </div>
+              </div>
+              <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-bold text-xs border border-emerald-300">
+                1 PASS USED
+              </span>
+            </div>
+
+            {/* Submitted Project Details */}
+            <div className="bg-[#fafafa] border-2 border-black p-5 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase">Project Title</span>
+                <span className="text-xs font-mono font-bold text-[#e8622c] bg-orange-100 px-2 py-0.5 border border-orange-300">
+                  {mySubmission.voteCount} Public Votes
+                </span>
+              </div>
+              <h3 className="text-base font-black text-black">{mySubmission.title}</h3>
+              
+              <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
+                <span className="text-xs text-slate-500">Submission URL:</span>
+                <a
+                  href={mySubmission.submissionUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-xs text-[#e8622c] hover:underline font-bold flex items-center gap-1 truncate max-w-xs"
+                >
+                  <span>{mySubmission.submissionUrl}</span>
+                  <ExternalLink className="w-3 h-3 shrink-0" />
+                </a>
+              </div>
+            </div>
+
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
               <Link
                 to={`/arena?challenge=${challenge.id}`}
-                className="px-6 py-3 bg-black hover:bg-[#e8622c] text-white text-xs font-bold uppercase transition inline-block border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
+                className="w-full sm:w-auto px-6 py-3 bg-[#e8622c] hover:bg-black text-white text-xs font-bold uppercase transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
-                [ View Your Project in Arena ]
+                <Vote className="w-4 h-4" />
+                <span>[ View Your Entry in Arena ]</span>
               </Link>
+              
+              <button
+                type="button"
+                onClick={() => {
+                  const url = `${window.location.origin}/arena?challenge=${challenge.id}`;
+                  navigator.clipboard.writeText(url);
+                  toast.success('Arena link copied! Share it to get votes.');
+                }}
+                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-100 text-black text-xs font-bold uppercase transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+              >
+                <Share2 className="w-4 h-4" />
+                <span>Share for Votes</span>
+              </button>
             </div>
           </div>
         )}
 
         {/* State 3: User Has NOT Entered — Show Entry Checkout Flow */}
-        {!isClosedOrVoting && !submittedSuccess && !hasEntered && (
+        {!isClosedOrVoting && !mySubmission && !hasEntered && (
           <div className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
             <div className="text-center space-y-2 border-b border-slate-200 pb-6">
               <div className="w-12 h-12 bg-amber-100 border-2 border-black flex items-center justify-center mx-auto shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
@@ -346,8 +457,8 @@ export const ChallengeSubmissionPage: React.FC = () => {
           </div>
         )}
 
-        {/* State 4: User HAS Entered — Show Project Submission Form */}
-        {!isClosedOrVoting && !submittedSuccess && hasEntered && (
+        {/* State 4: User HAS Entered & NOT yet submitted — Show Project Submission Form */}
+        {!isClosedOrVoting && !mySubmission && hasEntered && (
           <form onSubmit={handleSubmitProject} className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6 font-mono">
             <div className="border-b border-slate-200 pb-4 flex items-center justify-between">
               <div>
@@ -360,7 +471,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
               </div>
               <div className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 flex items-center gap-1.5">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>ENTRY CONFIRMED</span>
+                <span>ENTRY PASS VERIFIED</span>
               </div>
             </div>
 
@@ -374,7 +485,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Next.js 15 Streaming AI Agent UI"
+                placeholder="e.g. Real-Time Developer Leaderboard"
                 className="w-full px-4 py-3 bg-[#fafafa] border-2 border-black text-xs font-mono font-medium focus:bg-white focus:outline-hidden"
               />
             </div>
@@ -403,7 +514,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
                 rows={4}
                 value={submissionText}
                 onChange={(e) => setSubmissionText(e.target.value)}
-                placeholder="Describe how you solved the prompt, key architectural decisions, performance metrics..."
+                placeholder="Describe key architectural decisions, performance metrics, framework used..."
                 className="w-full px-4 py-3 bg-[#fafafa] border-2 border-black text-xs font-mono font-medium focus:bg-white focus:outline-hidden"
               />
             </div>
