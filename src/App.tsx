@@ -13,6 +13,7 @@ import SettingsPage from "./pages/SettingsPage";
 import PromotedRankingPage from "./pages/PromotedRankingPage";
 import { ChallengeArenaPage } from "./pages/ChallengeArenaPage";
 import TermsPage from "./pages/TermsPage";
+import AdminPage from "./pages/AdminPage";
 
 export default function App() {
   const isDashboardSubdomain = typeof window !== 'undefined' && window.location.hostname.startsWith('dashboard.');
@@ -30,6 +31,9 @@ export default function App() {
           <Route path="/signin" element={<AuthPage />} />
           <Route path="/register" element={<AuthPage />} />
           <Route path="/signup" element={<AuthPage />} />
+
+          {/* Admin Command Console */}
+          <Route path="/admin" element={<AdminPage />} />
 
           {/* Onboarding Role Selection */}
           <Route path="/onboarding" element={<OnboardingPage />} />

@@ -10,7 +10,8 @@ import {
   Flame,
   Trophy,
   Settings,
-  ChevronDown
+  ChevronDown,
+  ShieldAlert
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RankLancrLogo } from '../brand/RankLancrLogo';
@@ -151,6 +152,15 @@ export const Navbar: React.FC = () => {
                       >
                         <Settings className="w-3.5 h-3.5 text-slate-500" />
                         <span>Settings</span>
+                      </Link>
+
+                      <Link
+                        to="/admin"
+                        onClick={() => setUserDropdownOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2 text-xs font-bold text-[#e8622c] hover:bg-orange-50 transition font-mono"
+                      >
+                        <ShieldAlert className="w-3.5 h-3.5 text-[#e8622c]" />
+                        <span>Admin Console</span>
                       </Link>
 
                       <button
