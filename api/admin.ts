@@ -149,23 +149,46 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     // 3. POST create-challenge
     if (req.method === "POST" && action === "create-challenge") {
       const { title, prompt, category, bannerImage, entryFeeDollars } = body;
+      if (!title || !prompt) {
+        res.statusCode = 400;
+        res.end(JSON.stringify({ success: false, error: "Title and prompt are required" }));
+        return;
+      }
+
       const now = Date.now();
+      const baseSlug = title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '');
+
+      const payload = {
+        title: title.trim(),
+        slug: baseSlug || `challenge-${now}`,
+        prompt: prompt.trim(),
+        category: category || "Development",
+        banner_image: bannerImage || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=80",
+        entry_fee_cents: Math.round((Number(entryFeeDollars) || 5) * 100),
+        status: "open_entry",
+        entry_deadline: new Date(now + 2 * 86400000).toISOString(),
+        submission_deadline: new Date(now + 5 * 86400000).toISOString(),
+        voting_deadline: new Date(now + 8 * 86400000).toISOString()
+      };
 
       const { data, error } = await supabase
         .from("challenges")
-        .insert({
-          title: title.trim(),
-          prompt: prompt.trim(),
-          category: category || "Development",
-          banner_image: bannerImage || "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&auto=format&fit=crop&q=80",
-          entry_fee_cents: Math.round((Number(entryFeeDollars) || 5) * 100),
-          status: "open_entry",
-          entry_deadline: new Date(now + 2 * 86400000).toISOString(),
-          submission_deadline: new Date(now + 5 * 86400000).toISOString(),
-          voting_deadline: new Date(now + 8 * 86400000).toISOString()
-        })
+        .insert(payload)
         .select()
         .single();
+
+      if (error) {
+        console.error("Supabase insert challenge error:", error);
+        res.statusCode = 500;
+        res.end(JSON.stringify({ 
+          success: false, 
+          error: `Database table not found or query failed (${error.message}). Please make sure Migration 015 has been run in your Supabase SQL Editor.` 
+        }));
+        return;
+      }
 
       res.statusCode = 200;
       res.end(JSON.stringify({ success: true, challenge: data }));
@@ -181,6 +204,12 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
         .eq("id", challengeId)
         .select()
         .single();
+
+      if (error) {
+        res.statusCode = 500;
+        res.end(JSON.stringify({ success: false, error: error.message }));
+        return;
+      }
 
       res.statusCode = 200;
       res.end(JSON.stringify({ success: true, challenge: data }));
