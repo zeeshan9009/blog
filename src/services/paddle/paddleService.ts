@@ -96,3 +96,27 @@ export async function openRankLancrCheckout(options: {
     customData: options.customData || { platform: 'RankLancr' }
   });
 }
+
+/**
+ * Mint and redirect to Paddle-hosted Customer Portal
+ */
+export async function openCustomerPortal(userId?: string, email?: string) {
+  try {
+    const res = await fetch('/api/paddle-portal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, email })
+    });
+
+    const data = await res.json();
+    if (!res.ok || data.error || !data.url) {
+      throw new Error(data.error || 'Failed to open customer portal');
+    }
+
+    // Redirect to Paddle Customer Portal
+    window.location.href = data.url;
+  } catch (err: any) {
+    console.error('Customer Portal Error:', err);
+    throw err;
+  }
+}

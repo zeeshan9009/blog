@@ -10,10 +10,13 @@ import {
   Flame,
   Trophy,
   Settings,
-  ChevronDown
+  ChevronDown,
+  Receipt
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { RankLancrLogo } from '../brand/RankLancrLogo';
+import { openCustomerPortal } from '../../services/paddle/paddleService';
+import toast from 'react-hot-toast';
 
 export const Navbar: React.FC = () => {
   const navigate = useNavigate();
@@ -168,6 +171,21 @@ export const Navbar: React.FC = () => {
                         <Settings className="w-3.5 h-3.5 text-slate-500" />
                         <span>Settings</span>
                       </Link>
+
+                      <button
+                        onClick={async () => {
+                          setUserDropdownOpen(false);
+                          try {
+                            await openCustomerPortal(user?.id, user?.email || undefined);
+                          } catch (err: any) {
+                            toast.error(err.message || 'No active billing profile yet');
+                          }
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-orange-50 transition text-left cursor-pointer"
+                      >
+                        <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Billing & Receipts</span>
+                      </button>
 
                       <button
                         onClick={() => {
