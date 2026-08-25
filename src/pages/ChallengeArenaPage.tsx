@@ -8,6 +8,8 @@ import { ChallengeSubmitModal } from '../components/challenges/ChallengeSubmitMo
 import { SponsorChallengeModal } from '../components/challenges/SponsorChallengeModal';
 import { useAuth } from '../context/AuthContext';
 import { useTalent } from '../context/TalentContext';
+import { RANKLANCR_PADDLE_PRODUCTS } from '../config/paddleProducts';
+import { openRankLancrCheckout } from '../services/paddle/paddleService';
 import type { Challenge, ChallengeSubmission, ChallengeSponsorship } from '../types/challenge';
 import toast from 'react-hot-toast';
 
@@ -81,13 +83,9 @@ export const ChallengeArenaPage: React.FC = () => {
     }
   }, [actionParam, activeChallenge]);
 
-  // Handle $5 Entry Fee
+  // Handle $5 Entry Fee via Paddle
   const handleEnterChallenge = async () => {
     if (!activeChallenge) return;
-    if (!userProfile) {
-      toast.error('Please create or sign into your profile to enter.');
-      return;
-    }
 
     if (hasEntered) {
       toast.success('You have already entered this challenge!');
@@ -96,25 +94,17 @@ export const ChallengeArenaPage: React.FC = () => {
 
     setIsEntering(true);
     try {
-      const res = await fetch('/api/challenges?route=enter', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      await openRankLancrCheckout({
+        priceId: RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId,
+        customerEmail: user?.email || undefined,
+        customData: {
           challengeId: activeChallenge.id,
-          profileId: userProfile.id
-        })
+          profileId: userProfile?.id || user?.id
+        },
+        successUrl: `${window.location.origin}/welcome`
       });
-
-      const data = await res.json();
-      if (!res.ok || data.error) {
-        throw new Error(data.error || 'Failed to enter challenge.');
-      }
-
-      setHasEntered(true);
-      toast.success('Successfully entered challenge ($5.00 fixed entry)! You can submit your project when the submission window opens.');
-      fetchChallengeDetail();
     } catch (err: any) {
-      toast.error(err.message || 'Error entering challenge.');
+      toast.error('Failed to open checkout: ' + (err.message || 'Error'));
     } finally {
       setIsEntering(false);
     }

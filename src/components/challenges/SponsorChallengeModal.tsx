@@ -13,7 +13,8 @@ import {
   History,
   Crown
 } from 'lucide-react';
-import { SPONSORSHIP_PRICING } from '../../services/challenges/sponsorshipService';
+import { RANKLANCR_PADDLE_PRODUCTS } from '../../config/paddleProducts';
+import { openRankLancrCheckout } from '../../services/paddle/paddleService';
 import { calculateMinNextSponsorshipBid } from '../../services/challenges/sponsorshipAuctionEngine';
 import type { SponsorshipTier, ChallengeSponsorshipAuction } from '../../types/challenge';
 import toast from 'react-hot-toast';
@@ -110,27 +111,24 @@ export const SponsorChallengeModal: React.FC<SponsorChallengeModalProps> = ({
 
         toast.success(`Outbid placed! ${companyName} is now the leading sponsor at $${customBidDollars}!`);
       } else {
-        // Fixed Tier Checkout (Bronze or Silver)
-        const res = await fetch('/api/challenges?route=sponsor', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+        // Fixed Tier Checkout (Bronze or Silver) via Paddle
+        const priceId = selectedTier === 'bronze' 
+          ? RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId 
+          : RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId;
+
+        await openRankLancrCheckout({
+          priceId,
+          customData: {
             challengeId,
             tier: selectedTier,
             companyName: companyName.trim(),
             companyLogoUrl: companyLogoUrl.trim() || undefined,
             companyLink: companyLink.trim() || undefined
-          })
+          },
+          successUrl: `${window.location.origin}/welcome`
         });
 
-        const data = await res.json();
-        if (!res.ok || data.error) {
-          setErrorMsg(data.error || 'Failed to initiate sponsorship checkout.');
-          toast.error(data.error || 'Tier unavailable or checkout failed.');
-          return;
-        }
-
-        toast.success(`Sponsorship claimed! Thank you, ${companyName}!`);
+        toast.success(`Opening Paddle Checkout for ${companyName}!`);
       }
 
       if (onSuccess) onSuccess();
@@ -413,7 +411,7 @@ export const SponsorChallengeModal: React.FC<SponsorChallengeModalProps> = ({
               </>
             ) : (
               <>
-                <span>[ CLAIM {selectedTier.toUpperCase()} — ${(SPONSORSHIP_PRICING[selectedTier].amountCents / 100).toFixed(2)} USD ]</span>
+                <span>[ CLAIM {selectedTier.toUpperCase()} — {selectedTier === 'bronze' ? '$50.00' : '$150.00'} USD ]</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}

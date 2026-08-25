@@ -1,10 +1,59 @@
-import React from 'react';
-import { Trophy, Flame, Building2, Check, ArrowRight, ShieldCheck, HelpCircle, ArrowLeft, DollarSign } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Trophy, Flame, Building2, Check, ArrowRight, ShieldCheck, ArrowLeft, Loader2, Lock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
+import { useAuth } from '../context/AuthContext';
+import { RANKLANCR_PADDLE_PRODUCTS } from '../config/paddleProducts';
+import { openRankLancrCheckout, getLocalizedPricePreviews } from '../services/paddle/paddleService';
+import toast from 'react-hot-toast';
 
 export const PricingPage: React.FC = () => {
+  const { user } = useAuth();
+
+  const [localizedPrices, setLocalizedPrices] = useState<Record<string, string>>({
+    [RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId]: '$5.00',
+    [RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId]: '$50.00',
+    [RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId]: '$150.00',
+    [RANKLANCR_PADDLE_PRODUCTS.goldSponsorship.priceId]: '$100.00'
+  });
+
+  const [loadingCheckoutPriceId, setLoadingCheckoutPriceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function loadPrices() {
+      const priceIds = [
+        RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId,
+        RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId,
+        RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId,
+        RANKLANCR_PADDLE_PRODUCTS.goldSponsorship.priceId
+      ];
+      const preview = await getLocalizedPricePreviews(priceIds);
+      if (Object.keys(preview).length > 0) {
+        setLocalizedPrices(prev => ({ ...prev, ...preview }));
+      }
+    }
+    loadPrices();
+  }, []);
+
+  const handleCheckout = async (priceId: string, customData?: Record<string, any>) => {
+    setLoadingCheckoutPriceId(priceId);
+    try {
+      await openRankLancrCheckout({
+        priceId,
+        customerEmail: user?.email || undefined,
+        customData: {
+          ...customData,
+          userId: user?.id
+        }
+      });
+    } catch (err: any) {
+      toast.error('Failed to open checkout: ' + (err.message || 'Error'));
+    } finally {
+      setLoadingCheckoutPriceId(null);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans selection:bg-[#e8622c] selection:text-white flex flex-col justify-between">
       <Navbar />
@@ -22,20 +71,20 @@ export const PricingPage: React.FC = () => {
           </Link>
 
           <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white font-mono text-xs font-bold uppercase">
-            <DollarSign className="w-3.5 h-3.5 text-emerald-400" />
-            <span>TRANSPARENT PRICING & FEE BREAKDOWN</span>
+            <Trophy className="w-3.5 h-3.5 text-amber-400" />
+            <span>TRANSPARENT ONE-OFF PRICING</span>
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-black">
-            Simple, Transparent Pricing.
+            Challenge Entries & Brand Sponsorships
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-600 font-medium">
-            Clear fees for creator skill competitions, brand advertising sponsorships, and Outbid Spotlight visibility. Zero hidden charges.
+            Pay a simple $5 fee to enter skill challenges, or sponsor arenas to promote your developer tools and brand. Zero subscriptions or hidden cuts.
           </p>
         </div>
 
-        {/* Pricing Cards Grid */}
+        {/* 3-Column Pricing Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
           
           {/* Card 1: Challenge Entry Fee ($5) */}
@@ -46,21 +95,22 @@ export const PricingPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="text-xl font-black text-black">Skill Challenge Entry</h3>
-                <p className="text-xs text-slate-600 mt-1">Per-challenge entry fee to compete for 72h Top Developer Rail visibility.</p>
+                <p className="text-xs text-slate-600 mt-1">Per-challenge entry ticket to submit your project and compete for 72h visibility.</p>
               </div>
 
               <div className="text-4xl font-black text-black font-mono">
-                $5.00 <span className="text-xs font-normal text-slate-500 font-sans">USD / entry</span>
+                {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId] || '$5.00'}{' '}
+                <span className="text-xs font-normal text-slate-500 font-sans">/ entry</span>
               </div>
 
               <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-200">
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Right to submit 1 project entry</span>
+                  <span>Right to submit 1 project repo/demo</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>100% Public community merit voting</span>
+                  <span>100% public community merit voting</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -68,17 +118,25 @@ export const PricingPage: React.FC = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Permanent winner badge on profile</span>
+                  <span>Permanent verified badge on creator profile</span>
                 </li>
               </ul>
             </div>
 
-            <Link
-              to="/arena"
-              className="w-full py-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+            <button
+              onClick={() => handleCheckout(RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId, { type: 'challenge_entry' })}
+              disabled={loadingCheckoutPriceId === RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId}
+              className="w-full py-3.5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
             >
-              [ BROWSE CHALLENGES ]
-            </Link>
+              {loadingCheckoutPriceId === RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <>
+                  <span>[ ENTER CHALLENGE ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId] || '$5.00'}) ]</span>
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
+            </button>
           </div>
 
           {/* Card 2: Fixed Brand Sponsorship ($50 - $150) */}
@@ -93,17 +151,18 @@ export const PricingPage: React.FC = () => {
               </div>
 
               <div className="text-4xl font-black text-black font-mono">
-                $50 — $150 <span className="text-xs font-normal text-slate-500 font-sans">USD</span>
+                {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId] || '$50.00'}{' '}
+                <span className="text-xs font-normal text-slate-500 font-sans">— {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId] || '$150.00'}</span>
               </div>
 
               <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-200">
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span><strong>Bronze ($50):</strong> Arena page banner badge</span>
+                  <span><strong>Bronze ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId] || '$50'}):</strong> Arena banner badge</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span><strong>Silver ($150):</strong> Homepage card logo & arena callout</span>
+                  <span><strong>Silver ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId] || '$150'}):</strong> Homepage card logo</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -111,17 +170,25 @@ export const PricingPage: React.FC = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Click-through destination tracking</span>
+                  <span>Zero influence over judging or results</span>
                 </li>
               </ul>
             </div>
 
-            <Link
-              to="/arena"
-              className="w-full py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
-            >
-              [ SPONSOR AN ARENA ]
-            </Link>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                onClick={() => handleCheckout(RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId, { tier: 'bronze' })}
+                className="py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-[11px] font-bold uppercase transition text-center border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+              >
+                Bronze ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId] || '$50'})
+              </button>
+              <button
+                onClick={() => handleCheckout(RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId, { tier: 'silver' })}
+                className="py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-[11px] font-bold uppercase transition text-center border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+              >
+                Silver ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId] || '$150'})
+              </button>
+            </div>
           </div>
 
           {/* Card 3: Gold Flagship Outbid Auction ($100+) */}
@@ -136,13 +203,14 @@ export const PricingPage: React.FC = () => {
               </div>
 
               <div className="text-4xl font-black text-black font-mono">
-                $100.00+ <span className="text-xs font-normal text-slate-500 font-sans">USD Floor</span>
+                {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.goldSponsorship.priceId] || '$100.00'}+{' '}
+                <span className="text-xs font-normal text-slate-500 font-sans">Floor</span>
               </div>
 
               <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-orange-200">
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span><strong>48h Top Developer Rail:</strong> Promoted alongside winner</span>
+                  <span><strong>48h Top Developer Rail:</strong> Promoted with winner</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
@@ -161,9 +229,10 @@ export const PricingPage: React.FC = () => {
 
             <Link
               to="/arena"
-              className="w-full py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+              className="w-full py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
             >
-              [ ENTER GOLD AUCTION ]
+              <span>[ ENTER GOLD AUCTION ]</span>
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -173,16 +242,16 @@ export const PricingPage: React.FC = () => {
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <h3 className="text-sm font-black text-black font-mono uppercase flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Merchant Billing & Currency Disclosures</span>
+            <span>Paddle Merchant of Record & Checkout Disclosures</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-700 leading-relaxed">
             <div>
-              <p><strong>Currency:</strong> All fees are billed in United States Dollars (USD).</p>
-              <p className="mt-1"><strong>Payment Merchant:</strong> Our orders are processed by our Merchant of Record, <strong>Paddle.com</strong> (supporting Cards, PayPal, Apple Pay, Wire).</p>
+              <p><strong>Currency & Taxes:</strong> Prices are displayed in your local currency with automatic tax calculation via Paddle.com.</p>
+              <p className="mt-1"><strong>Payment Methods:</strong> Visa, MasterCard, AMEX, Discover, PayPal, and Apple Pay.</p>
             </div>
             <div>
-              <p><strong>Delivery:</strong> Digital submission rights and advertising placements are activated immediately upon transaction authorization.</p>
-              <p className="mt-1"><strong>Billing Inquiries:</strong> Contact <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklanrc@gmail.com</a>.</p>
+              <p><strong>Delivery:</strong> Digital submission access and brand visibility placements activate immediately upon transaction completion.</p>
+              <p className="mt-1"><strong>Official Support:</strong> <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklanrc@gmail.com</a></p>
             </div>
           </div>
         </div>

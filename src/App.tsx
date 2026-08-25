@@ -18,6 +18,7 @@ import PrivacyPage from "./pages/PrivacyPage";
 import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
 import PricingPage from "./pages/PricingPage";
+import WelcomePage from "./pages/WelcomePage";
 
 export default function App() {
   const isDashboardSubdomain = typeof window !== 'undefined' && window.location.hostname.startsWith('dashboard.');
@@ -29,6 +30,9 @@ export default function App() {
         <Routes>
           {/* Main Landing Page (or Direct Dashboard on dashboard. subdomain) */}
           <Route path="/" element={isDashboardSubdomain ? <DashboardPage /> : <PixelpushLanding />} />
+
+          {/* Post-Checkout Welcome Confirmation */}
+          <Route path="/welcome" element={<WelcomePage />} />
 
           {/* Dedicated Full Page Sign In & Register */}
           <Route path="/login" element={<AuthPage />} />
