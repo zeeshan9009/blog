@@ -25,6 +25,7 @@ import {
   Users,
   Plus,
   Flame,
+  Trophy,
   Settings
 } from 'lucide-react';
 import { useTalent } from '../../context/TalentContext';
@@ -184,6 +185,14 @@ export const Navbar: React.FC = () => {
                 >
                   <Flame className="w-3.5 h-3.5 fill-[#e8622c]" />
                   <span>Spotlight</span>
+                </button>
+
+                <button
+                  onClick={() => goToPage('/arena')}
+                  className="hover:text-[#e8622c] transition py-1.5 px-2 flex items-center gap-1 text-amber-700 font-bold cursor-pointer"
+                >
+                  <Trophy className="w-3.5 h-3.5 text-amber-600 fill-amber-400" />
+                  <span>Arena</span>
                 </button>
 
                 <a href="#features" onClick={() => setActiveMenu(null)} className="hover:text-black transition py-1.5 px-2">

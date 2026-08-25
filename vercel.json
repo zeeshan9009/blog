@@ -3,9 +3,17 @@
     {
       "path": "/api/spotlight/cron-decay",
       "schedule": "*/15 * * * *"
+    },
+    {
+      "path": "/api/challenges/cron-winner-selection",
+      "schedule": "*/5 * * * *"
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/challenges/:path*",
+      "destination": "/api/challenges?route=:path*"
+    },
     {
       "source": "/api/spotlight/:path*",
       "destination": "/api/spotlight?route=:path*"

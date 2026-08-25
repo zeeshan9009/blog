@@ -14,6 +14,7 @@ import ServiceDetailPage from "./pages/ServiceDetailPage";
 import DashboardPage from "./pages/DashboardPage";
 import SettingsPage from "./pages/SettingsPage";
 import PromotedRankingPage from "./pages/PromotedRankingPage";
+import { ChallengeArenaPage } from "./pages/ChallengeArenaPage";
 import TermsPage from "./pages/TermsPage";
 
 export default function App() {
@@ -57,6 +58,11 @@ export default function App() {
           <Route path="/promoted" element={<PromotedRankingPage />} />
           <Route path="/promoted-ranking" element={<PromotedRankingPage />} />
           <Route path="/boost" element={<PromotedRankingPage />} />
+
+          {/* Challenge Arena */}
+          <Route path="/arena" element={<ChallengeArenaPage />} />
+          <Route path="/challenges" element={<ChallengeArenaPage />} />
+          <Route path="/challenge/:id" element={<ChallengeArenaPage />} />
 
           {/* Dedicated Developers & Ranking Directory */}
           <Route path="/developers" element={<DevelopersPage />} />

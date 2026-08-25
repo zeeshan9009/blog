@@ -2,6 +2,7 @@ import React from 'react';
 import Navbar from '../components/pixelpush/Navbar';
 import Hero from '../components/pixelpush/Hero';
 import { SpotlightSection } from '../components/pixelpush/SpotlightSection';
+import { ChallengeSection } from '../components/challenges/ChallengeSection';
 import FeatureGrid from '../components/pixelpush/FeatureGrid';
 import BenchmarkChart from '../components/pixelpush/BenchmarkChart';
 import Pricing from '../components/pixelpush/Pricing';
@@ -28,7 +29,12 @@ export const PixelpushLanding: React.FC = () => {
           <SpotlightSection />
         </div>
 
-        {/* 3. Feature Grid */}
+        {/* 3. Challenge Arena (Weekly skill challenges + fixed-$2 bid pool) */}
+        <div id="arena">
+          <ChallengeSection />
+        </div>
+
+        {/* 4. Feature Grid */}
         <div id="features">
           <FeatureGrid />
         </div>

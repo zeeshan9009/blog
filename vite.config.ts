@@ -7,7 +7,10 @@ function localApiPlugin(): Plugin {
         name: "local-api-handlers",
         configureServer(server) {
             server.middlewares.use(async (req, res, next) => {
-                const url = req.url || "";
+                if (url.startsWith("/api/challenges")) {
+                    const { default: handler } = await import("./api/challenges.js");
+                    return handler(req, res);
+                }
                 if (url.startsWith("/api/spotlight")) {
                     const { default: handler } = await import("./api/spotlight.js");
                     return handler(req, res);
