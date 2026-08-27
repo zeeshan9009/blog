@@ -1,6 +1,37 @@
 export type ChallengeStatus = 'draft' | 'open_entry' | 'submission_window' | 'voting_window' | 'closed';
 
+export type SubmissionStatus =
+  | 'draft'
+  | 'payment_pending'
+  | 'paid'
+  | 'submission_pending'
+  | 'submitted'
+  | 'approved'
+  | 'rejected';
+
+export type PaymentStatus =
+  | 'unpaid'
+  | 'pending'
+  | 'paid'
+  | 'failed'
+  | 'refunded';
+
 export type SponsorshipTier = 'bronze' | 'silver' | 'gold';
+
+export interface ChallengeVotingSettings {
+  challengeId: string;
+  maxVotesPerVoter: number;
+  allowOncePerParticipant: boolean;
+  requireAuth: boolean;
+  isPublic: boolean;
+  minVotes?: number;
+  maxVotes?: number;
+  votingStartAt?: string;
+  votingEndAt?: string;
+  voteStatus: 'upcoming' | 'active' | 'ended';
+  createdAt?: string;
+  updatedAt?: string;
+}
 
 export interface Challenge {
   id: string;
@@ -25,6 +56,7 @@ export interface Challenge {
   submissionCount?: number;
   entryCount?: number;
   voteCount?: number;
+  votingSettings?: ChallengeVotingSettings;
   sponsorships?: ChallengeSponsorship[];
   createdAt: string;
 }
@@ -33,7 +65,8 @@ export interface ChallengeEntry {
   id: string;
   challengeId: string;
   profileId: string;
-  stripePaymentIntentId: string;
+  paddleTransactionId?: string;
+  stripePaymentIntentId?: string;
   status: 'succeeded' | 'failed';
   createdAt: string;
 }
@@ -41,8 +74,10 @@ export interface ChallengeEntry {
 export interface ChallengeSubmission {
   id: string;
   challengeId: string;
+  challengeTitle?: string;
   profileId: string;
   authorName: string;
+  authorEmail?: string;
   authorAvatar: string;
   authorTitle: string;
   authorScore: number;
@@ -50,17 +85,49 @@ export interface ChallengeSubmission {
   title?: string;
   submissionUrl: string;
   submissionText: string;
+  status: SubmissionStatus;
+  paymentStatus: PaymentStatus;
+  paymentTransactionId?: string;
+  reviewFeedback?: string;
   voteCount: number;
   finalRank?: number | null;
+  percentageOfVotes?: number;
   lockedAt?: string;
+  lastVotedAt?: string;
   createdAt: string;
+  updatedAt?: string;
 }
 
 export interface ChallengeVote {
   id: string;
   submissionId: string;
+  challengeId?: string;
   voterFingerprint: string;
   voterProfileId?: string | null;
+  createdAt: string;
+}
+
+export interface VoteAuditLog {
+  id: string;
+  submissionId: string;
+  challengeId: string;
+  voterIdentifier: string;
+  voterProfileId?: string | null;
+  ipAddress?: string;
+  userAgent?: string;
+  clientFingerprint?: string;
+  status: 'valid' | 'flagged_suspicious' | 'rejected';
+  reason?: string;
+  createdAt: string;
+}
+
+export interface SuspiciousActivityRecord {
+  id: string;
+  challengeId?: string;
+  submissionId?: string;
+  voterIdentifier?: string;
+  activityType: string;
+  details?: any;
   createdAt: string;
 }
 
@@ -72,7 +139,8 @@ export interface ChallengeSponsorship {
   companyLink?: string;
   tier: SponsorshipTier;
   amountCents: number; // 5000, 15000, 30000
-  stripePaymentIntentId: string;
+  stripePaymentIntentId?: string;
+  paddleTransactionId?: string;
   status: 'succeeded' | 'failed';
   createdAt: string;
 }
@@ -145,6 +213,8 @@ export interface ChallengeDetailResponse {
   submissions: ChallengeSubmission[];
   entries: ChallengeEntry[];
   sponsorships: ChallengeSponsorship[];
+  sponsorshipAuction?: ChallengeSponsorshipAuction | null;
+  votingSettings?: ChallengeVotingSettings;
   userHasEntered?: boolean;
   userSubmission?: ChallengeSubmission | null;
   stats: {

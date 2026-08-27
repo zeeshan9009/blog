@@ -114,12 +114,12 @@ export const RefundPolicyPage: React.FC = () => {
             <span>5. Dispute Resolution & Refund Requests</span>
           </h2>
           <p className="text-xs text-slate-700 leading-relaxed">
-            Our order process is conducted by our online reseller & Merchant of Record <strong>Paddle.com</strong>. If you experience a billing anomaly or duplicate charge, <strong>please contact our support team before initiating a bank chargeback</strong>. We review and resolve all legitimate billing inquiries within <strong>24 to 48 business hours</strong>.
+            Our order process is conducted by our online reseller & Merchant of Record <strong>Lemon Squeezy</strong>. If you experience a billing anomaly or duplicate charge, <strong>please contact our support team before initiating a bank chargeback</strong>. We review and resolve all legitimate billing inquiries within <strong>24 to 48 business hours</strong>.
           </p>
           <div className="p-3 bg-white border border-black font-mono text-xs text-black space-y-1">
             <div><strong>Official Support Email:</strong> <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold">ranklanrc@gmail.com</a></div>
-            <div><strong>Subject Line:</strong> Refund Request — [Your Email / Paddle Order ID]</div>
-            <div><strong>Merchant of Record:</strong> Paddle.com Market Ltd.</div>
+            <div><strong>Subject Line:</strong> Refund Request — [Your Email / Order ID]</div>
+            <div><strong>Merchant of Record:</strong> Lemon Squeezy Inc.</div>
             <div><strong>SLA:</strong> 24 Hours Response Guarantee</div>
           </div>
         </div>

@@ -331,6 +331,14 @@ export const ChallengeArenaPage: React.FC = () => {
                     </button>
                   )}
 
+                  <Link
+                    to={`/challenges/${activeChallenge.slug || activeChallenge.id}/vote`}
+                    className="py-3 px-4 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                  >
+                    <Vote className="w-4 h-4" />
+                    <span>[ PUBLIC VOTING ↗ ]</span>
+                  </Link>
+
                   <button
                     onClick={() => setIsSponsorModalOpen(true)}
                     className="py-3 px-4 bg-white hover:bg-slate-100 text-black font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"

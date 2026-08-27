@@ -9,11 +9,14 @@ import {
   Lock,
   ExternalLink,
   Loader2,
-  Flame,
   Clock,
   Vote,
   AlertCircle,
-  Share2
+  Share2,
+  XCircle,
+  Edit3,
+  Check,
+  CreditCard
 } from 'lucide-react';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
@@ -38,6 +41,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
   const [hasEntered, setHasEntered] = useState(false);
   const [isEntering, setIsEntering] = useState(false);
   const [mySubmission, setMySubmission] = useState<ChallengeSubmission | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   // Form submission state
   const [title, setTitle] = useState('');
@@ -47,7 +51,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
 
   const currentUserId = user?.id || userProfile?.id;
 
-  // Fetch challenge by slug
+  // Fetch challenge by slug or ID
   const fetchChallenge = async () => {
     if (!slug) return;
     try {
@@ -89,13 +93,19 @@ export const ChallengeSubmissionPage: React.FC = () => {
           const userSub = subList.find(s => s.profileId === currentUserId || s.profileId === user?.id || s.profileId === userProfile?.id);
           if (userSub) {
             setMySubmission(userSub);
+            setTitle(userSub.title || '');
+            setSubmissionUrl(userSub.submissionUrl || '');
+            setSubmissionText(userSub.submissionText || '');
+            if (userSub.status === 'submission_pending') {
+              setIsEditing(true);
+            }
           }
         }
       } else {
         setChallenge(null);
       }
     } catch (e) {
-      console.warn('Failed to load challenge by slug:', e);
+      console.warn('Failed to load challenge:', e);
       setChallenge(null);
     } finally {
       setIsLoading(false);
@@ -154,7 +164,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
     }
   };
 
-  // Handle Work Submission
+  // Handle Work Submission & Updates
   const handleSubmitProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!challenge) return;
@@ -180,7 +190,8 @@ export const ChallengeSubmissionPage: React.FC = () => {
 
       if (res.ok) {
         const data = await res.json();
-        toast.success('🎉 Project submitted successfully! Your entry is now in the Arena.');
+        toast.success('🎉 Project submitted successfully! Your submission is now in review.');
+        setIsEditing(false);
         setMySubmission(data.submission || {
           id: `sub_${Date.now()}`,
           challengeId: challenge.id,
@@ -188,6 +199,8 @@ export const ChallengeSubmissionPage: React.FC = () => {
           title: title.trim(),
           submissionUrl: submissionUrl.trim(),
           submissionText: submissionText.trim(),
+          status: 'submitted',
+          paymentStatus: 'paid',
           voteCount: 0,
           authorName: user?.name || 'Creator',
           authorAvatar: '',
@@ -209,10 +222,10 @@ export const ChallengeSubmissionPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-[#fafafa] flex flex-col justify-between">
+      <div className="min-h-screen bg-[#fafafa] flex flex-col justify-between font-mono">
         <Navbar />
         <div className="flex-1 flex items-center justify-center p-8">
-          <div className="text-center font-mono space-y-3">
+          <div className="text-center space-y-3">
             <Loader2 className="w-8 h-8 animate-spin text-[#e8622c] mx-auto" />
             <p className="text-xs text-slate-600 font-bold uppercase">Verifying entry & loading challenge...</p>
           </div>
@@ -249,7 +262,8 @@ export const ChallengeSubmissionPage: React.FC = () => {
     );
   }
 
-  const isClosedOrVoting = challenge.status === 'voting_window' || challenge.status === 'closed';
+  const isClosed = challenge.status === 'closed';
+  const isVotingWindow = challenge.status === 'voting_window';
 
   return (
     <div className="min-h-screen bg-[#faf8f5] text-slate-900 font-sans flex flex-col justify-between selection:bg-[#e8622c] selection:text-white">
@@ -263,7 +277,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
           <span>/</span>
           <span className="text-black truncate max-w-xs">{challenge.title}</span>
           <span>/</span>
-          <span className="text-[#e8622c]">Submit</span>
+          <span className="text-[#e8622c]">Submit Project</span>
         </div>
 
         {/* Challenge Header Card */}
@@ -273,9 +287,11 @@ export const ChallengeSubmissionPage: React.FC = () => {
               <span className={`px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase border border-black ${
                 challenge.status === 'open_entry' || challenge.status === 'submission_window'
                   ? 'bg-amber-400 text-black'
+                  : challenge.status === 'voting_window'
+                  ? 'bg-blue-600 text-white'
                   : 'bg-slate-200 text-slate-800'
               }`}>
-                {challenge.status.replace('_', ' ').toUpperCase()}
+                PHASE: {challenge.status.replace('_', ' ').toUpperCase()}
               </span>
               <span className="text-xs font-mono font-bold text-slate-500 uppercase">
                 {challenge.category}
@@ -285,7 +301,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
             <div className="inline-flex items-center gap-1.5 text-xs font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 border border-slate-300">
               <Clock className="w-3.5 h-3.5 text-[#e8622c]" />
               <span>
-                {challenge.status === 'open_entry' ? 'Entry Open' : 'Submissions Open'}
+                {challenge.status === 'open_entry' ? 'Entry Open' : challenge.status === 'voting_window' ? 'Voting Live' : 'Submissions Active'}
               </span>
             </div>
           </div>
@@ -299,7 +315,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Reward Flagship Callout */}
+          {/* Winner Reward */}
           <div className="p-3 bg-amber-50 border-2 border-amber-400 font-mono text-xs text-amber-950 flex items-center gap-2.5">
             <Trophy className="w-4 h-4 text-amber-600 shrink-0" />
             <span>
@@ -308,45 +324,92 @@ export const ChallengeSubmissionPage: React.FC = () => {
           </div>
         </div>
 
-        {/* State 1: Submissions Closed / Voting in Progress */}
-        {isClosedOrVoting && (
+        {/* State 1: Submissions Closed */}
+        {isClosed && (
           <div className="bg-white border-2 border-black p-8 sm:p-10 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4">
             <Lock className="w-10 h-10 text-slate-500 mx-auto" />
-            <h2 className="text-xl font-black font-mono text-black uppercase">Submissions Are Closed for this Arena</h2>
+            <h2 className="text-xl font-black font-mono text-black uppercase">Arena Closed</h2>
             <p className="text-xs sm:text-sm font-mono text-slate-600 max-w-md mx-auto leading-relaxed">
-              The submission deadline has passed and community voting is now active.
+              This challenge has ended and final results have been calculated.
             </p>
             <div className="pt-2">
               <Link
-                to={`/arena?challenge=${challenge.id}`}
+                to={`/challenges/${challenge.slug || challenge.id}/vote`}
                 className="px-5 py-2.5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase transition inline-flex items-center gap-2 border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
               >
                 <Vote className="w-4 h-4" />
-                <span>[ View & Vote on Projects ]</span>
+                <span>[ View Final Leaderboard ]</span>
               </Link>
             </div>
           </div>
         )}
 
-        {/* State 2: ALREADY SUBMITTED WORK (Prevents duplicate entries and duplicate payments) */}
-        {mySubmission && (
+        {/* State 2: SUBMITTED WORK RECORD */}
+        {mySubmission && !isEditing && (
           <div className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6 font-mono">
-            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-100 border-2 border-black flex items-center justify-center shadow-xs">
-                  <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                <div className={`w-10 h-10 border-2 border-black flex items-center justify-center shadow-xs ${
+                  mySubmission.status === 'approved'
+                    ? 'bg-emerald-100'
+                    : mySubmission.status === 'rejected'
+                    ? 'bg-red-100'
+                    : 'bg-amber-100'
+                }`}>
+                  {mySubmission.status === 'approved' ? (
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                  ) : mySubmission.status === 'rejected' ? (
+                    <XCircle className="w-6 h-6 text-red-600" />
+                  ) : (
+                    <Clock className="w-6 h-6 text-amber-600" />
+                  )}
                 </div>
                 <div>
-                  <h2 className="text-xl font-black text-black uppercase">Your Project is Live in the Arena</h2>
-                  <p className="text-xs text-slate-600">You have already submitted your work for this challenge.</p>
+                  <h2 className="text-xl font-black text-black uppercase">
+                    {mySubmission.status === 'approved'
+                      ? 'Project Approved & Live in Arena'
+                      : mySubmission.status === 'rejected'
+                      ? 'Submission Status: Rejected'
+                      : mySubmission.status === 'submission_pending'
+                      ? 'Action Required: Changes Requested'
+                      : 'Submission Received (In Review)'}
+                  </h2>
+                  <p className="text-xs text-slate-600">
+                    {mySubmission.status === 'approved'
+                      ? 'Your entry is officially approved and collecting public votes!'
+                      : mySubmission.status === 'rejected'
+                      ? 'Your submission was reviewed and rejected by the moderators.'
+                      : 'Your project is currently awaiting admin approval.'}
+                  </p>
                 </div>
               </div>
-              <span className="px-3 py-1 bg-emerald-50 text-emerald-800 font-bold text-xs border border-emerald-300">
-                1 PASS USED
-              </span>
+
+              <div className="flex items-center gap-2">
+                <span className={`px-3 py-1 text-xs font-bold border ${
+                  mySubmission.status === 'approved'
+                    ? 'bg-emerald-100 text-emerald-800 border-emerald-300'
+                    : mySubmission.status === 'rejected'
+                    ? 'bg-red-100 text-red-800 border-red-300'
+                    : 'bg-amber-100 text-amber-900 border-amber-300'
+                }`}>
+                  STATUS: {mySubmission.status.replace('_', ' ').toUpperCase()}
+                </span>
+              </div>
             </div>
 
-            {/* Submitted Project Details */}
+            {/* Review Feedback if present */}
+            {mySubmission.reviewFeedback && (
+              <div className={`p-4 border-2 font-mono text-xs space-y-1 ${
+                mySubmission.status === 'rejected'
+                  ? 'bg-red-50 border-red-300 text-red-900'
+                  : 'bg-amber-50 border-amber-300 text-amber-950'
+              }`}>
+                <strong>Moderator Feedback:</strong>
+                <p>{mySubmission.reviewFeedback}</p>
+              </div>
+            )}
+
+            {/* Project Details Box */}
             <div className="bg-[#fafafa] border-2 border-black p-5 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-500 uppercase">Project Title</span>
@@ -355,9 +418,12 @@ export const ChallengeSubmissionPage: React.FC = () => {
                 </span>
               </div>
               <h3 className="text-base font-black text-black">{mySubmission.title}</h3>
+              {mySubmission.submissionText && (
+                <p className="text-xs text-slate-700 whitespace-pre-wrap">{mySubmission.submissionText}</p>
+              )}
               
               <div className="pt-2 border-t border-slate-200 flex items-center justify-between">
-                <span className="text-xs text-slate-500">Submission URL:</span>
+                <span className="text-xs text-slate-500">Repository / Demo URL:</span>
                 <a
                   href={mySubmission.submissionUrl}
                   target="_blank"
@@ -370,48 +436,60 @@ export const ChallengeSubmissionPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+            {/* Action Buttons */}
+            <div className="pt-2 flex flex-wrap items-center gap-3">
               <Link
-                to={`/arena?challenge=${challenge.id}`}
-                className="w-full sm:w-auto px-6 py-3 bg-[#e8622c] hover:bg-black text-white text-xs font-bold uppercase transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
+                to={`/challenges/${challenge.slug || challenge.id}/vote`}
+                className="px-6 py-3 bg-[#e8622c] hover:bg-black text-white text-xs font-bold uppercase transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]"
               >
                 <Vote className="w-4 h-4" />
-                <span>[ View Your Entry in Arena ]</span>
+                <span>[ View on Public Voting Page ]</span>
               </Link>
               
               <button
                 type="button"
                 onClick={() => {
-                  const url = `${window.location.origin}/arena?challenge=${challenge.id}`;
+                  const url = `${window.location.origin}/challenges/${challenge.slug || challenge.id}/vote`;
                   navigator.clipboard.writeText(url);
-                  toast.success('Arena link copied! Share it to get votes.');
+                  toast.success('Public voting link copied! Share to earn votes.');
                 }}
-                className="w-full sm:w-auto px-5 py-3 bg-white hover:bg-slate-100 text-black text-xs font-bold uppercase transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+                className="px-5 py-3 bg-white hover:bg-slate-100 text-black text-xs font-bold uppercase transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
               >
                 <Share2 className="w-4 h-4" />
                 <span>Share for Votes</span>
               </button>
+
+              {(mySubmission.status === 'submission_pending' || mySubmission.status === 'submitted') && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold uppercase transition flex items-center gap-1.5 border border-black cursor-pointer"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  <span>Edit Submission</span>
+                </button>
+              )}
             </div>
           </div>
         )}
 
         {/* State 3: User Has NOT Entered — Show Entry Checkout Flow */}
-        {!isClosedOrVoting && !mySubmission && !hasEntered && (
-          <div className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6">
+        {!isClosed && !mySubmission && !hasEntered && (
+          <div className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6 font-mono">
             <div className="text-center space-y-2 border-b border-slate-200 pb-6">
               <div className="w-12 h-12 bg-amber-100 border-2 border-black flex items-center justify-center mx-auto shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
                 <Trophy className="w-6 h-6 text-amber-600" />
               </div>
-              <h2 className="text-2xl font-black font-mono text-black uppercase">
+              <h2 className="text-2xl font-black text-black uppercase">
                 Step 1: Secure Challenge Entry Pass
               </h2>
-              <p className="text-xs sm:text-sm font-mono text-slate-600 max-w-lg mx-auto leading-relaxed">
-                Pay the fixed $5 entry fee to register your spot. Once confirmed, you will instantly unlock the project submission form below.
+              <p className="text-xs sm:text-sm text-slate-600 max-w-lg mx-auto leading-relaxed">
+                Pay the fixed $5 entry fee to register your spot. Once confirmed, you will instantly unlock the project submission form.
               </p>
             </div>
 
             {/* $5 Entry Ticket Benefits */}
-            <div className="bg-[#fafafa] border-2 border-black p-5 space-y-3 font-mono text-xs">
+            <div className="bg-[#fafafa] border-2 border-black p-5 space-y-3 text-xs">
               <div className="flex items-center justify-between font-bold border-b border-slate-200 pb-2">
                 <span className="text-black uppercase">Arena Entry Fee</span>
                 <span className="text-xl font-black text-black">$5.00 USD</span>
@@ -438,17 +516,17 @@ export const ChallengeSubmissionPage: React.FC = () => {
                 type="button"
                 onClick={handleEnterChallenge}
                 disabled={isEntering}
-                className="w-full py-4 bg-[#e8622c] hover:bg-black text-white font-mono text-sm font-black uppercase tracking-wider transition flex items-center justify-center gap-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
+                className="w-full py-4 bg-[#e8622c] hover:bg-black text-white text-sm font-black uppercase tracking-wider transition flex items-center justify-center gap-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
               >
                 {isEntering ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Opening Paddle Checkout...</span>
+                    <span>Opening Secure Checkout...</span>
                   </>
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>[ ENTER CHALLENGE WITH PADDLE — $5.00 ]</span>
+                    <span>[ ENTER CHALLENGE — $5.00 ]</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -457,19 +535,19 @@ export const ChallengeSubmissionPage: React.FC = () => {
           </div>
         )}
 
-        {/* State 4: User HAS Entered & NOT yet submitted — Show Project Submission Form */}
-        {!isClosedOrVoting && !mySubmission && hasEntered && (
+        {/* State 4: User HAS Entered & (NOT yet submitted OR is editing) — Show Form */}
+        {!isClosed && (hasEntered || mySubmission) && (!mySubmission || isEditing) && (
           <form onSubmit={handleSubmitProject} className="bg-white border-2 border-black p-8 sm:p-10 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] space-y-6 font-mono">
-            <div className="border-b border-slate-200 pb-4 flex items-center justify-between">
+            <div className="border-b border-slate-200 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h2 className="text-xl sm:text-2xl font-black text-black uppercase">
-                  Submit Your Project
+                  {isEditing ? 'Edit Your Project Submission' : 'Submit Your Project'}
                 </h2>
                 <p className="text-xs text-slate-600 mt-1">
-                  Enter pass confirmed ($5 paid). Fill out your project details for public voting.
+                  Entry pass confirmed ($5 paid). Fill out your project details for public voting.
                 </p>
               </div>
-              <div className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 flex items-center gap-1.5">
+              <div className="px-3 py-1 bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-300 flex items-center gap-1.5 w-fit">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
                 <span>ENTRY PASS VERIFIED</span>
               </div>
@@ -520,11 +598,21 @@ export const ChallengeSubmissionPage: React.FC = () => {
             </div>
 
             {/* Submit Button */}
-            <div className="pt-2">
+            <div className="pt-2 flex items-center gap-3">
+              {isEditing && (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                  className="py-4 px-6 bg-slate-100 hover:bg-slate-200 text-black text-xs font-bold uppercase transition border-2 border-black cursor-pointer"
+                >
+                  Cancel
+                </button>
+              )}
+
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-black hover:bg-[#e8622c] text-white text-xs sm:text-sm font-black uppercase tracking-wider transition flex items-center justify-center gap-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
+                className="flex-1 py-4 bg-black hover:bg-[#e8622c] text-white text-xs sm:text-sm font-black uppercase tracking-wider transition flex items-center justify-center gap-2 border-2 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] cursor-pointer disabled:opacity-50"
               >
                 {isSubmitting ? (
                   <>
@@ -534,7 +622,7 @@ export const ChallengeSubmissionPage: React.FC = () => {
                 ) : (
                   <>
                     <Sparkles className="w-4 h-4 text-amber-300" />
-                    <span>[ SUBMIT WORK TO CHALLENGE ARENA ]</span>
+                    <span>[ {isEditing ? 'UPDATE SUBMISSION' : 'SUBMIT WORK TO CHALLENGE ARENA'} ]</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}

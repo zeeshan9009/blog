@@ -109,7 +109,7 @@ export const TermsPage: React.FC = () => {
             <span>7. Merchant of Record & Support Contact</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            Our order process is conducted by our online reseller <strong>Paddle.com</strong>. Paddle.com is the Merchant of Record for all our orders. Paddle provides all customer service inquiries and handles returns.
+            Our order process is conducted by our online reseller & Merchant of Record <strong>Lemon Squeezy</strong>. Lemon Squeezy provides all customer service inquiries and handles returns.
           </p>
           <p className="text-xs text-slate-700 pt-1">
             For direct platform support or terms inquiries, contact us at <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklanrc@gmail.com</a>.

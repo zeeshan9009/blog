@@ -242,11 +242,11 @@ export const PricingPage: React.FC = () => {
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <h3 className="text-sm font-black text-black font-mono uppercase flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
-            <span>Paddle Merchant of Record & Checkout Disclosures</span>
+            <span>Authorized Merchant of Record & Checkout Disclosures</span>
           </h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-700 leading-relaxed">
             <div>
-              <p><strong>Currency & Taxes:</strong> Prices are displayed in your local currency with automatic tax calculation via Paddle.com.</p>
+              <p><strong>Currency & Taxes:</strong> Prices are displayed in USD with automatic tax/VAT calculation via Lemon Squeezy.</p>
               <p className="mt-1"><strong>Payment Methods:</strong> Visa, MasterCard, AMEX, Discover, PayPal, and Apple Pay.</p>
             </div>
             <div>

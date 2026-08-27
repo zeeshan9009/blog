@@ -102,7 +102,7 @@ export const PrivacyPage: React.FC = () => {
             <p>We only share data with vetted infrastructure providers essential to our platform operations:</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 font-mono">
               <div className="p-3 bg-slate-50 border border-slate-200">
-                <strong>Paddle.com Inc.</strong>
+                <strong>Lemon Squeezy Inc.</strong>
                 <div className="text-[11px] text-slate-500 mt-1">Merchant of Record & Payments</div>
               </div>
               <div className="p-3 bg-slate-50 border border-slate-200">

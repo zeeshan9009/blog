@@ -12,6 +12,14 @@ function localApiPlugin(): Plugin {
                     const { default: handler } = await import("./api/challenges.js");
                     return handler(req, res);
                 }
+                if (url.startsWith("/api/admin")) {
+                    const { default: handler } = await import("./api/admin.js");
+                    return handler(req, res);
+                }
+                if (url.startsWith("/api/paddle-webhook")) {
+                    const { default: handler } = await import("./api/paddle-webhook.js");
+                    return handler(req, res);
+                }
                 if (url.startsWith("/api/spotlight")) {
                     const { default: handler } = await import("./api/spotlight.js");
                     return handler(req, res);

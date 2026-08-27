@@ -130,18 +130,18 @@ export const Footer: React.FC = () => {
             </ul>
           </div>
 
-          {/* Column 4: Merchant of Record (Paddle) */}
+          {/* Column 4: Merchant of Record (Lemon Squeezy) */}
           <div className="space-y-3 p-4 bg-slate-900/80 border border-slate-800">
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Merchant of Record</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Our order process is conducted by our online reseller & Merchant of Record <strong>Paddle.com</strong>.
+              Our order process is conducted by our online reseller & Merchant of Record <strong>Lemon Squeezy</strong>.
             </p>
             <div className="pt-2 border-t border-slate-800 flex items-center gap-2 font-mono text-[10px] text-slate-400">
               <Lock className="w-3 h-3 text-emerald-400" />
-              <span>Paddle 256-Bit SSL Encrypted</span>
+              <span>256-Bit SSL Encrypted Checkout</span>
             </div>
           </div>
 

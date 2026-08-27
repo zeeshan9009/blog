@@ -22,11 +22,14 @@ import {
   Layers,
   ChevronRight,
   TrendingUp,
-  Link2
+  Link2,
+  Sliders
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
 import { AdminChallengeLinksTab } from '../components/admin/AdminChallengeLinksTab';
+import { AdminSubmissionsTab } from '../components/admin/AdminSubmissionsTab';
+import { AdminVotingRulesModal } from '../components/admin/AdminVotingRulesModal';
 import toast from 'react-hot-toast';
 
 interface AdminStats {
@@ -63,6 +66,7 @@ export const AdminPage: React.FC = () => {
 
   // Create Challenge Modal state
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [votingRulesChallenge, setVotingRulesChallenge] = useState<any | null>(null);
   const [newTitle, setNewTitle] = useState('');
   const [newPrompt, setNewPrompt] = useState('');
   const [newCategory, setNewCategory] = useState('Development');
@@ -634,6 +638,15 @@ export const AdminPage: React.FC = () => {
                         </select>
                       </div>
 
+                      {/* Configure Voting Rules */}
+                      <button
+                        onClick={() => setVotingRulesChallenge(ch)}
+                        className="py-1.5 px-3 bg-slate-900 hover:bg-[#e8622c] text-white font-mono text-xs font-bold border border-black cursor-pointer transition flex items-center gap-1.5"
+                      >
+                        <Sliders className="w-3.5 h-3.5 text-[#e8622c]" />
+                        <span>VOTING RULES</span>
+                      </button>
+
                       {/* Force Winner Calculation */}
                       <button
                         onClick={() => handleResolveWinners(ch.id)}
@@ -650,6 +663,15 @@ export const AdminPage: React.FC = () => {
                       >
                         <ExternalLink className="w-3.5 h-3.5" />
                         <span>VIEW ARENA</span>
+                      </Link>
+
+                      <Link
+                        to={`/challenges/${ch.slug || ch.id}/vote`}
+                        target="_blank"
+                        className="py-1.5 px-3 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold border border-black cursor-pointer flex items-center gap-1 shadow-xs"
+                      >
+                        <Vote className="w-3.5 h-3.5" />
+                        <span>PUBLIC VOTING ↗</span>
                       </Link>
                     </div>
                   </div>
@@ -670,76 +692,13 @@ export const AdminPage: React.FC = () => {
         {/* TAB 3: SUBMISSIONS & MODERATION */}
         {/* =================================================================== */}
         {activeTab === 'submissions' && (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-2xl font-black text-black font-mono">SUBMISSIONS & ANTI-ABUSE MODERATION</h3>
-              <p className="text-xs text-slate-600">Audit live participant submissions, inspect links, and remove spam.</p>
-            </div>
-
-            <div className="bg-white border-2 border-black shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] overflow-x-auto">
-              <table className="w-full text-left text-xs font-sans">
-                <thead className="bg-black text-white font-mono uppercase text-[11px] border-b-2 border-black">
-                  <tr>
-                    <th className="p-3">Author</th>
-                    <th className="p-3">Project Title & Description</th>
-                    <th className="p-3">Link</th>
-                    <th className="p-3 text-center">Votes</th>
-                    <th className="p-3">Submitted</th>
-                    <th className="p-3 text-right">Moderation Action</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-200">
-                  {(stats?.submissions || []).length === 0 ? (
-                    <tr>
-                      <td colSpan={6} className="p-8 text-center text-slate-500 font-mono text-xs">
-                        No submissions recorded yet.
-                      </td>
-                    </tr>
-                  ) : (
-                    (stats?.submissions || []).map((sub: any) => (
-                      <tr key={sub.id} className="hover:bg-orange-50/40 transition">
-                        <td className="p-3 font-medium">
-                          <div className="font-bold text-black">{sub.authorName}</div>
-                          <div className="text-[10px] text-slate-500 font-mono">{sub.authorEmail}</div>
-                        </td>
-                        <td className="p-3 max-w-xs">
-                          <div className="font-bold text-black">{sub.title}</div>
-                          <div className="text-[11px] text-slate-600 line-clamp-1">{sub.submissionText}</div>
-                        </td>
-                        <td className="p-3">
-                          <a
-                            href={sub.submissionUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[#e8622c] hover:underline font-mono text-xs flex items-center gap-1 font-bold"
-                          >
-                            <span>Open URL</span>
-                            <ExternalLink className="w-3 h-3" />
-                          </a>
-                        </td>
-                        <td className="p-3 text-center font-mono font-black text-sm">
-                          <span className="px-2 py-0.5 bg-orange-100 border border-orange-300 text-[#e8622c]">
-                            {sub.voteCount}
-                          </span>
-                        </td>
-                        <td className="p-3 font-mono text-[11px] text-slate-500 whitespace-nowrap">
-                          {new Date(sub.createdAt).toLocaleDateString()}
-                        </td>
-                        <td className="p-3 text-right">
-                          <button
-                            onClick={() => handleDisqualifySubmission(sub.id)}
-                            className="py-1 px-2.5 bg-red-50 hover:bg-red-600 hover:text-white text-red-600 border border-red-300 font-mono text-[10px] font-bold uppercase transition cursor-pointer"
-                          >
-                            [ DISQUALIFY ]
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
+          <AdminSubmissionsTab
+            submissions={stats?.submissions || []}
+            challenges={stats?.challenges || []}
+            adminToken={adminToken}
+            onRefresh={() => fetchAdminData()}
+            onOpenVotingRules={(ch) => setVotingRulesChallenge(ch)}
+          />
         )}
 
         {/* =================================================================== */}
@@ -1011,6 +970,20 @@ export const AdminPage: React.FC = () => {
 
           </div>
         </div>
+      )}
+
+      {/* Admin Voting Rules Modal */}
+      {votingRulesChallenge && (
+        <AdminVotingRulesModal
+          challenge={votingRulesChallenge}
+          isOpen={Boolean(votingRulesChallenge)}
+          onClose={() => setVotingRulesChallenge(null)}
+          adminToken={adminToken}
+          onSaved={() => {
+            setVotingRulesChallenge(null);
+            fetchAdminData();
+          }}
+        />
       )}
 
     </div>
