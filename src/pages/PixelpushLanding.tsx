@@ -4,7 +4,6 @@ import Hero from '../components/pixelpush/Hero';
 import { TopDeveloperRail } from '../components/challenges/TopDeveloperRail';
 import { SpotlightSection } from '../components/pixelpush/SpotlightSection';
 import { ChallengeSection } from '../components/challenges/ChallengeSection';
-import FeatureGrid from '../components/pixelpush/FeatureGrid';
 import BenchmarkChart from '../components/pixelpush/BenchmarkChart';
 import Pricing from '../components/pixelpush/Pricing';
 import Faq from '../components/pixelpush/Faq';
@@ -37,11 +36,6 @@ export const PixelpushLanding: React.FC = () => {
         {/* 4. Outbid Spotlight Ascending Auction Top 3 Slots */}
         <div id="spotlight">
           <SpotlightSection />
-        </div>
-
-        {/* 5. Feature Grid */}
-        <div id="features">
-          <FeatureGrid />
         </div>
 
         {/* 6. Benchmark / Chart Section */}
