@@ -65,7 +65,7 @@ export async function getLocalizedPricePreviews(priceIds: string[]): Promise<Rec
 }
 
 /**
- * Open Paddle 1-Page Overlay Checkout for Challenge Entry or Sponsorship
+ * Open Checkout for Challenge Entry or Sponsorship (Configured for Lemon Squeezy Verification)
  */
 export async function openRankLancrCheckout(options: {
   priceId: string;
@@ -73,28 +73,23 @@ export async function openRankLancrCheckout(options: {
   customData?: Record<string, any>;
   successUrl?: string;
 }) {
-  const paddle = await getPaddle();
-
-  if (!paddle) {
-    throw new Error('Paddle.js could not be initialized');
+  // During Lemon Squeezy store verification, prevent Paddle overlay from opening
+  const LEMON_STORE_URL = 'https://ranklancr.lemonsqueezy.com';
+  
+  console.log('[Checkout Requested]', options);
+  
+  // Inform user that checkout is currently undergoing Lemon Squeezy store activation
+  const message = 'Payment gateway is currently undergoing activation with Lemon Squeezy. Please check back shortly once review completes.';
+  
+  if (typeof window !== 'undefined') {
+    // Check if custom lemon squeezy URL is available or notify user
+    const hasLemonCheckout = false; // Set to true once Lemon Squeezy product URL is added
+    if (hasLemonCheckout) {
+      window.location.href = `${LEMON_STORE_URL}`;
+    } else {
+      alert(message);
+    }
   }
-
-  const successUrl = options.successUrl || `${window.location.origin}/welcome`;
-
-  paddle.Checkout.open({
-    settings: {
-      displayMode: 'overlay',
-      variant: 'one-page',
-      theme: 'light',
-      locale: 'en',
-      successUrl
-    },
-    items: [
-      { priceId: options.priceId, quantity: 1 }
-    ],
-    customer: options.customerEmail ? { email: options.customerEmail } : undefined,
-    customData: options.customData || { platform: 'RankLancr' }
-  });
 }
 
 /**
