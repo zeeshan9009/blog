@@ -29,90 +29,90 @@ export const ContactPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans selection:bg-[#e8622c] selection:text-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FAFAF9] text-[#1A1A1A] font-sans selection:bg-[#FF5A1F] selection:text-white flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-12 space-y-8 w-full">
+      <main className="max-w-4xl mx-auto px-4 sm:px-8 py-14 space-y-8 w-full">
         
         {/* Header */}
-        <div className="space-y-3 border-b-2 border-black pb-6">
+        <div className="space-y-3 border-b border-[#E5E5E5] pb-6">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-slate-600 hover:text-black mb-2 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#525252] hover:text-[#1A1A1A] mb-2 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>[ RETURN TO HOME ]</span>
+            <span>Return to Home</span>
           </Link>
 
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 bg-black text-white font-mono text-[10px] font-bold uppercase">
-            <Mail className="w-3.5 h-3.5 text-[#e8622c]" />
-            <span>24/7 CUSTOMER SUPPORT & INQUIRIES</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#E5E5E5] text-[11px] font-semibold text-[#FF5A1F] uppercase tracking-wider">
+            <Mail className="w-3.5 h-3.5" />
+            <span>Customer Support & Inquiries</span>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-black">
+          <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-[#1A1A1A]">
             Contact Us & Support
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-600 font-mono">
+          <p className="text-xs sm:text-sm text-[#525252] font-normal">
             We are here to help. Reach our dedicated platform operations and support team.
           </p>
         </div>
 
         {/* Contact Info Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-            <div className="w-8 h-8 bg-black text-white flex items-center justify-center border border-black">
-              <Mail className="w-4 h-4 text-[#e8622c]" />
+          <div className="bg-white border border-[#E5E5E5] p-5 space-y-2">
+            <div className="w-8 h-8 bg-[#FAFAF9] border border-[#E5E5E5] flex items-center justify-center">
+              <Mail className="w-4 h-4 text-[#FF5A1F]" />
             </div>
-            <div className="text-xs font-mono font-bold uppercase text-slate-500">Official Support</div>
-            <a href="mailto:ranklancr@gmail.com" className="text-sm font-bold text-black hover:text-[#e8622c] block font-mono">
+            <div className="text-[11px] font-semibold uppercase text-[#737373] tracking-wider">Official Support</div>
+            <a href="mailto:ranklancr@gmail.com" className="text-sm font-semibold text-[#1A1A1A] hover:text-[#FF5A1F] block font-mono">
               ranklancr@gmail.com
             </a>
           </div>
 
-          <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-            <div className="w-8 h-8 bg-black text-white flex items-center justify-center border border-black">
-              <Clock className="w-4 h-4 text-emerald-400" />
+          <div className="bg-white border border-[#E5E5E5] p-5 space-y-2">
+            <div className="w-8 h-8 bg-[#FAFAF9] border border-[#E5E5E5] flex items-center justify-center">
+              <Clock className="w-4 h-4 text-emerald-600" />
             </div>
-            <div className="text-xs font-mono font-bold uppercase text-slate-500">Response SLA</div>
-            <div className="text-sm font-bold text-black font-mono">
+            <div className="text-[11px] font-semibold uppercase text-[#737373] tracking-wider">Response SLA</div>
+            <div className="text-sm font-semibold text-[#1A1A1A]">
               Within 24 Hours
             </div>
           </div>
 
-          <div className="bg-white border-2 border-black p-5 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-2">
-            <div className="w-8 h-8 bg-black text-white flex items-center justify-center border border-black">
-              <ShieldCheck className="w-4 h-4 text-blue-400" />
+          <div className="bg-white border border-[#E5E5E5] p-5 space-y-2">
+            <div className="w-8 h-8 bg-[#FAFAF9] border border-[#E5E5E5] flex items-center justify-center">
+              <ShieldCheck className="w-4 h-4 text-blue-600" />
             </div>
-            <div className="text-xs font-mono font-bold uppercase text-slate-500">Merchant Desk</div>
-            <div className="text-sm font-bold text-black font-mono">
+            <div className="text-[11px] font-semibold uppercase text-[#737373] tracking-wider">Merchant Desk</div>
+            <div className="text-sm font-semibold text-[#1A1A1A]">
               Billing & Disputes
             </div>
           </div>
         </div>
 
         {/* Support Ticket Form */}
-        <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-6">
+        <div className="bg-white border border-[#E5E5E5] p-6 sm:p-8 space-y-6">
           <div className="space-y-1">
-            <h2 className="text-xl font-black text-black font-mono uppercase">
+            <h2 className="text-lg sm:text-xl font-bold text-[#1A1A1A]">
               Send a Support Message
             </h2>
-            <p className="text-xs text-slate-600">
+            <p className="text-xs text-[#525252] font-normal">
               Submit your inquiry below and our support team will get back to you via email.
             </p>
           </div>
 
           {isSubmitted ? (
-            <div className="p-6 bg-emerald-50 border-2 border-emerald-500 text-center space-y-3">
+            <div className="p-6 bg-emerald-50 border border-emerald-200 text-center space-y-3">
               <CheckCircle2 className="w-10 h-10 text-emerald-600 mx-auto" />
-              <h3 className="text-lg font-black text-emerald-950 font-mono">Message Received!</h3>
+              <h3 className="text-lg font-bold text-emerald-950">Message Received!</h3>
               <p className="text-xs text-emerald-800 max-w-md mx-auto">
                 Thank you, <strong>{name}</strong>. Your ticket has been logged and a support representative will reply to <strong>{email}</strong> within 24 hours.
               </p>
               <button
                 type="button"
                 onClick={() => { setIsSubmitted(false); setMessage(''); }}
-                className="mt-2 py-2 px-4 bg-black text-white font-mono text-xs font-bold uppercase cursor-pointer"
+                className="mt-2 py-2 px-4 bg-[#1A1A1A] hover:bg-[#FF5A1F] text-white text-xs font-semibold uppercase transition-colors cursor-pointer"
               >
                 Send Another Message
               </button>
@@ -121,7 +121,7 @@ export const ContactPage: React.FC = () => {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
                     Your Name *
                   </label>
                   <input
@@ -130,12 +130,12 @@ export const ContactPage: React.FC = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Your Full Name"
-                    className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
+                    className="w-full px-3.5 py-2.5 border border-[#E5E5E5] text-sm bg-[#FAFAF9] focus:bg-white text-[#1A1A1A] focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                  <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
                     Your Email Address *
                   </label>
                   <input
@@ -144,30 +144,30 @@ export const ContactPage: React.FC = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="name@example.com"
-                    className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
+                    className="w-full px-3.5 py-2.5 border border-[#E5E5E5] text-sm bg-[#FAFAF9] focus:bg-white text-[#1A1A1A] focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
                   Inquiry Topic *
                 </label>
                 <select
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  className="w-full px-3.5 py-2.5 border-2 border-black text-xs font-mono font-bold bg-white focus:outline-hidden"
+                  className="w-full px-3.5 py-2.5 border border-[#E5E5E5] text-xs font-medium text-[#1A1A1A] bg-[#FAFAF9] focus:bg-white focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                 >
                   <option value="General Inquiry">General Platform Inquiry</option>
                   <option value="Challenge Entry Billing">Challenge Entry / $5 Fee Billing</option>
-                  <option value="Brand Sponsorship Inquiry">Brand Sponsorship & Auction</option>
+                  <option value="Brand Sponsorship Inquiry">Brand Sponsorship & Placement</option>
                   <option value="Technical Dispute / Bug">Technical Issue or Submission Bug</option>
                   <option value="Refund & Chargeback Query">Refund Request / Billing Dispute</option>
                 </select>
               </div>
 
               <div>
-                <label className="block text-xs font-mono font-bold text-slate-700 uppercase mb-1">
+                <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
                   Message Details *
                 </label>
                 <textarea
@@ -176,43 +176,43 @@ export const ContactPage: React.FC = () => {
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
                   placeholder="Please describe your question or issue in detail..."
-                  className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
+                  className="w-full px-3.5 py-2.5 border border-[#E5E5E5] text-sm bg-[#FAFAF9] focus:bg-white text-[#1A1A1A] focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                 />
               </div>
 
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50"
+                className="w-full py-3 bg-[#FF5A1F] hover:bg-[#E54E17] text-white text-xs font-semibold transition-colors flex items-center justify-center gap-2 border border-[#FF5A1F] cursor-pointer disabled:opacity-50"
               >
                 <Send className="w-3.5 h-3.5" />
-                <span>{isSubmitting ? 'Sending Ticket...' : '[ SEND SUPPORT TICKET ]'}</span>
+                <span>{isSubmitting ? 'Sending Ticket...' : 'Send Support Ticket'}</span>
               </button>
             </form>
           )}
         </div>
 
         {/* Quick FAQ */}
-        <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-4">
-          <h3 className="text-base font-black text-black font-mono uppercase flex items-center gap-2">
-            <HelpCircle className="w-4 h-4 text-blue-600" />
+        <div className="bg-white border border-[#E5E5E5] p-6 sm:p-8 space-y-4">
+          <h3 className="text-base font-bold text-[#1A1A1A] flex items-center gap-2">
+            <HelpCircle className="w-4 h-4 text-[#FF5A1F]" />
             <span>Frequently Asked Support Questions</span>
           </h3>
 
-          <div className="space-y-3 text-xs text-slate-700 divide-y divide-slate-200">
+          <div className="space-y-3 text-xs text-[#525252] divide-y divide-[#E5E5E5]">
             <div className="pt-2">
-              <div className="font-bold text-black font-mono">How do I submit my project after paying the $5 entry fee?</div>
-              <p className="text-slate-600 mt-1">Once the challenge moves to the <strong>submission window</strong>, navigate to the challenge arena and click "[ SUBMIT PROJECT ]" to provide your repository or demo link.</p>
+              <div className="font-semibold text-[#1A1A1A]">How do I submit my project after paying the $5 entry fee?</div>
+              <p className="text-[#525252] mt-1 font-normal">Once the challenge moves to the submission window, navigate to the challenge arena and click "Submit Project" to provide your repository or demo link.</p>
             </div>
 
-            <div className="pt-2">
-              <div className="font-bold text-black font-mono">Are there any cash prizes awarded?</div>
-              <p className="text-slate-600 mt-1"><strong>No cash prizes are awarded anywhere on RankLancr.</strong> Winners receive 72-hour Top Developer Rail visibility and permanent profile accolades.</p>
+            <div className="pt-3">
+              <div className="font-semibold text-[#1A1A1A]">Are there any cash prizes awarded?</div>
+              <p className="text-[#525252] mt-1 font-normal">No cash prizes are awarded anywhere on RankLancr. Winners receive 72-hour Top Developer Rail visibility and permanent profile badges.</p>
             </div>
 
-            <div className="pt-2">
-              <div className="font-bold text-black font-mono">How does brand sponsorship billing work?</div>
-              <p className="text-slate-600 mt-1">Sponsors can purchase fixed Bronze ($50), Silver ($150) tiers or compete in the live Gold outbid auction. Payments are processed securely via Paddle.</p>
+            <div className="pt-3">
+              <div className="font-semibold text-[#1A1A1A]">How does brand sponsorship billing work?</div>
+              <p className="text-[#525252] mt-1 font-normal">Sponsors compete in ascending-bid outbid auctions for exclusive 48h Top Developer Rail co-branding with the winning creator.</p>
             </div>
           </div>
         </div>

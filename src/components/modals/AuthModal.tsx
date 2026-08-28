@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Lock, Loader2, User2, Eye, EyeOff, Sparkles, ArrowRight, X } from 'lucide-react';
+import { Mail, Lock, User2, Eye, EyeOff, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import type { UserRole } from '../../types/talent';
 import toast from 'react-hot-toast';
@@ -62,10 +62,10 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setLoading(true);
 
     setTimeout(() => {
-      const userName = name.trim() || email.split('@')[0] || 'Pro Talent';
+      const userName = name.trim() || email.split('@')[0] || 'RankLancr Creator';
       const newUser = {
         id: 'user_' + Math.random().toString(36).substring(2, 9),
-        email: email || 'talent@prorank.dev',
+        email: email || 'creator@ranklancr.lol',
         name: userName,
         avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(userName)}`,
         plan: 'PRO' as const,
@@ -79,73 +79,67 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
       setUser(newUser);
       setLoading(false);
-      toast.success(isLogin ? `Welcome back, ${userName}!` : `Account created! Welcome to ProRank.`);
+      toast.success(isLogin ? `Welcome back, ${userName}!` : `Account created! Welcome to RankLancr.`);
       onClose();
     }, 450);
   };
 
-  const handleQuickDemo = (role: string, demoEmail: string) => {
-    setName(role);
-    setEmail(demoEmail);
-    setPassword('prorank-pass-123');
-  };
-
   return (
-    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-      <div className="bg-white border-2 border-black shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] w-full max-w-lg overflow-hidden animate-fadeIn rounded-none">
+    <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 font-sans">
+      <div className="bg-white border border-[#E5E5E5] w-full max-w-md overflow-hidden animate-fadeIn shadow-lg">
         
         {/* Top Header */}
-        <div className="p-4 border-b-2 border-black flex items-center justify-between bg-slate-100">
+        <div className="p-4 border-b border-[#E5E5E5] flex items-center justify-between bg-[#FAFAF9]">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 bg-[#e8622c]" />
-            <span className="font-mono font-bold text-xs uppercase tracking-wider text-black">
-              PRO-RANK AUTHENTICATION GATEWAY
+            <span className="w-2 h-2 bg-[#FF5A1F]" />
+            <span className="font-semibold text-xs text-[#1A1A1A]">
+              RankLancr Authentication
             </span>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-black hover:text-white transition border border-black cursor-pointer"
+            className="p-1 hover:bg-[#E5E5E5] transition-colors cursor-pointer text-[#737373] hover:text-[#1A1A1A]"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="p-6 sm:p-8">
+        <div className="p-6 sm:p-7">
           {/* Title & Subtitle */}
           <div className="mb-5">
-            <h2 className="text-2xl font-black text-black tracking-tight">
-              {isLogin ? 'Sign into your account' : 'Create talent profile'}
+            <h2 className="text-xl font-bold text-[#1A1A1A] tracking-tight">
+              {isLogin ? 'Sign into your account' : 'Create creator account'}
             </h2>
-            <p className="text-xs text-slate-500 font-medium mt-0.5">
+            <p className="text-xs text-[#525252] mt-1 font-normal">
               {isLogin
-                ? 'Access your verified developer & designer credentials'
-                : 'Join 4,800+ pre-vetted engineers with 0% commission'}
+                ? 'Access your challenge entries and Top Developer Rail positions'
+                : 'Join skill challenges, contest the rail, and earn verified visibility'}
             </p>
           </div>
 
           {/* Square UI Tab Switcher */}
-          <div className="grid grid-cols-2 gap-2 mb-5 p-1 bg-slate-100 border border-slate-300">
+          <div className="grid grid-cols-2 gap-1 mb-5 p-1 bg-[#FAFAF9] border border-[#E5E5E5]">
             <button
               type="button"
               onClick={() => setIsLogin(true)}
-              className={`py-2 text-xs font-bold transition-all cursor-pointer font-mono ${
+              className={`py-2 text-xs font-semibold transition-colors cursor-pointer ${
                 isLogin
-                  ? 'bg-black text-white shadow-xs'
-                  : 'text-slate-600 hover:text-black'
+                  ? 'bg-white text-[#1A1A1A] shadow-xs'
+                  : 'text-[#737373] hover:text-[#1A1A1A]'
               }`}
             >
-              [ SIGN IN ]
+              Sign In
             </button>
             <button
               type="button"
               onClick={() => setIsLogin(false)}
-              className={`py-2 text-xs font-bold transition-all cursor-pointer font-mono ${
+              className={`py-2 text-xs font-semibold transition-colors cursor-pointer ${
                 !isLogin
-                  ? 'bg-[#e8622c] text-white shadow-xs'
-                  : 'text-slate-600 hover:text-black'
+                  ? 'bg-white text-[#1A1A1A] shadow-xs'
+                  : 'text-[#737373] hover:text-[#1A1A1A]'
               }`}
             >
-              [ REGISTER ]
+              Create Account
             </button>
           </div>
 
@@ -153,134 +147,95 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <button
             onClick={handleGoogleAuth}
             type="button"
-            className="w-full py-2.5 px-4 bg-white border-2 border-black hover:bg-orange-50 text-black flex items-center justify-center gap-2.5 text-xs font-bold transition-all cursor-pointer shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[1px] hover:translate-y-[1px] mb-5"
+            className="w-full py-2.5 px-4 bg-white border border-[#E5E5E5] hover:bg-[#FAFAF9] text-[#1A1A1A] flex items-center justify-center gap-2.5 text-xs font-semibold transition-colors cursor-pointer mb-4"
           >
             <GoogleIcon className="w-4 h-4 shrink-0" />
             <span>Continue with Google</span>
           </button>
 
           {/* Divider */}
-          <div className="relative flex items-center justify-center mb-5">
-            <div className="border-t border-slate-300 w-full" />
-            <span className="bg-white px-3 text-[10px] font-mono text-slate-500 uppercase">
-              OR ENTER EMAIL
+          <div className="relative flex items-center justify-center mb-4">
+            <div className="border-t border-[#E5E5E5] w-full" />
+            <span className="bg-white px-2 text-[10px] text-[#737373] uppercase tracking-wider relative font-semibold">
+              OR EMAIL
             </span>
-            <div className="border-t border-slate-300 w-full" />
           </div>
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5">
             {!isLogin && (
               <div>
-                <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-                  Full Name <span className="text-[#e8622c]">*</span>
+                <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
+                  Full Name
                 </label>
                 <div className="relative">
-                  <User2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <User2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#737373]" />
                   <input
                     type="text"
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="Alex Morgan"
-                    className="w-full pl-9 pr-3 py-2 bg-slate-50 border-2 border-slate-300 focus:border-black focus:bg-white text-xs font-medium text-black placeholder:text-slate-400 outline-hidden transition-colors rounded-none"
+                    placeholder="John Doe"
+                    className="w-full pl-9 pr-3 py-2 bg-[#FAFAF9] border border-[#E5E5E5] text-xs text-[#1A1A1A] focus:bg-white focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-                Email Address <span className="text-[#e8622c]">*</span>
+              <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
+                Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#737373]" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="alex@prorank.dev"
-                  className="w-full pl-9 pr-3 py-2 bg-slate-50 border-2 border-slate-300 focus:border-black focus:bg-white text-xs font-medium text-black placeholder:text-slate-400 outline-hidden transition-colors rounded-none"
+                  placeholder="name@domain.com"
+                  className="w-full pl-9 pr-3 py-2 bg-[#FAFAF9] border border-[#E5E5E5] text-xs text-[#1A1A1A] focus:bg-white focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-bold text-black uppercase tracking-wider mb-1">
-                Password <span className="text-[#e8622c]">*</span>
+              <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
+                Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#737373]" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-9 pr-10 py-2 bg-slate-50 border-2 border-slate-300 focus:border-black focus:bg-white text-xs font-medium text-black placeholder:text-slate-400 outline-hidden transition-colors rounded-none"
+                  placeholder="••••••••"
+                  className="w-full pl-9 pr-9 py-2 bg-[#FAFAF9] border border-[#E5E5E5] text-xs text-[#1A1A1A] focus:bg-white focus:outline-hidden focus:border-[#FF5A1F] transition-colors"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-black cursor-pointer"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#737373] hover:text-[#1A1A1A] cursor-pointer"
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-black hover:bg-[#e8622c] text-white font-bold text-xs font-mono uppercase tracking-wider transition-all cursor-pointer shadow-[3px_3px_0px_0px_#e8622c] active:translate-x-[1px] active:translate-y-[1px] flex items-center justify-center gap-2 mt-4"
+              className="w-full py-2.5 bg-[#FF5A1F] hover:bg-[#E54E17] text-white text-xs font-semibold transition-colors cursor-pointer border border-[#FF5A1F] mt-2"
             >
-              {loading ? (
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
-              ) : (
-                <>
-                  <span>{isLogin ? 'Authenticate & Enter' : 'Create Free Account'}</span>
-                  <ArrowRight className="w-4 h-4" />
-                </>
-              )}
+              {loading ? 'Authenticating...' : (isLogin ? 'Sign In' : 'Create Account')}
             </button>
           </form>
-
-          {/* Quick Demo Pre-fill */}
-          <div className="mt-6 pt-4 border-t border-slate-200">
-            <div className="text-[10px] font-mono font-bold text-slate-500 uppercase mb-2 flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#e8622c]" />
-              <span>Instant Demo Accounts:</span>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('David Chen (Full-Stack)', 'david.chen@example.com')}
-                className="px-2 py-1 text-[10px] font-mono bg-slate-100 hover:bg-orange-100 hover:text-orange-900 border border-slate-300 text-slate-700 transition cursor-pointer"
-              >
-                ⚡ Full-Stack Dev
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('Elena Rostova (UI/UX)', 'elena.design@example.com')}
-                className="px-2 py-1 text-[10px] font-mono bg-slate-100 hover:bg-orange-100 hover:text-orange-900 border border-slate-300 text-slate-700 transition cursor-pointer"
-              >
-                🎨 UI Designer
-              </button>
-              <button
-                type="button"
-                onClick={() => handleQuickDemo('Acme Hiring (Client)', 'hiring@acmecorp.com')}
-                className="px-2 py-1 text-[10px] font-mono bg-slate-100 hover:bg-orange-100 hover:text-orange-900 border border-slate-300 text-slate-700 transition cursor-pointer"
-              >
-                💼 Client Recruiter
-              </button>
-            </div>
-          </div>
-
         </div>
 
       </div>
     </div>
   );
 };
+
+export default AuthModal;

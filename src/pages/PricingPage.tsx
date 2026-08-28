@@ -55,40 +55,40 @@ export const PricingPage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans selection:bg-[#e8622c] selection:text-white flex flex-col justify-between">
+    <div className="min-h-screen bg-[#FAFAF9] text-[#1A1A1A] font-sans selection:bg-[#FF5A1F] selection:text-white flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-12 space-y-8 w-full">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-14 space-y-10 w-full">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
           <Link
             to="/"
-            className="inline-flex items-center gap-1.5 font-mono text-xs font-bold text-slate-600 hover:text-black mb-2 transition"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#525252] hover:text-[#1A1A1A] mb-2 transition-colors"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>[ RETURN TO HOME ]</span>
+            <span>Return to Home</span>
           </Link>
 
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-black text-white font-mono text-xs font-bold uppercase">
-            <Trophy className="w-3.5 h-3.5 text-amber-400" />
-            <span>TRANSPARENT ONE-OFF PRICING</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#E5E5E5] text-[11px] font-semibold text-[#FF5A1F] uppercase tracking-wider">
+            <Trophy className="w-3.5 h-3.5" />
+            <span>Transparent Pricing & Placements</span>
           </div>
 
-          <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-black">
+          <h1 className="text-3xl sm:text-5xl font-bold tracking-tight text-[#1A1A1A]">
             Challenge Entries & Visibility Placements
           </h1>
 
-          <p className="text-xs sm:text-sm text-slate-600 font-medium">
+          <p className="text-sm sm:text-base text-[#525252] font-normal leading-relaxed">
             Pay a simple $5 fee to enter skill challenges, or secure paid promotional visibility to showcase your tools to high-intent developers. Zero subscriptions or hidden cuts.
           </p>
         </div>
 
         {/* Persistent Compliance Disclosure Banner */}
-        <div className="max-w-3xl mx-auto p-4 bg-amber-50/90 border-2 border-black font-mono text-xs text-amber-950 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3">
-          <ShieldCheck className="w-5 h-5 text-[#e8622c] shrink-0 mt-0.5" />
+        <div className="max-w-3xl mx-auto p-4 bg-white border border-[#E5E5E5] text-xs text-[#525252] flex items-start gap-3">
+          <ShieldCheck className="w-4 h-4 text-[#FF5A1F] shrink-0 mt-0.5" />
           <div className="leading-relaxed">
-            <strong>Skill Competition Compliance Notice:</strong> RankLancr is a skill-based portfolio competition. Placement is determined entirely by community votes — never by chance, luck, or payment amount. Entry fees fund platform operations; <strong>there is no cash prize and no monetary payout to any participant.</strong>
+            <strong className="text-[#1A1A1A] font-semibold">Skill Competition Compliance Notice:</strong> RankLancr is a skill-based portfolio competition. Placement is determined entirely by community votes — never by chance, luck, or payment amount. Entry fees fund platform operations; <strong className="text-[#1A1A1A] font-semibold">there is no cash prize and no monetary payout to any participant.</strong>
           </div>
         </div>
 
@@ -96,22 +96,22 @@ export const PricingPage: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
           
           {/* Card 1: Challenge Entry Fee ($5) */}
-          <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6">
+          <div className="bg-white border border-[#E5E5E5] p-6 sm:p-8 flex flex-col justify-between space-y-6 hover:border-[#D4D4D4] transition-colors">
             <div className="space-y-4">
-              <div className="inline-block px-2.5 py-0.5 bg-black text-white font-mono text-[10px] font-bold uppercase">
+              <div className="inline-block px-2 py-0.5 bg-[#FAFAF9] border border-[#E5E5E5] text-[#1A1A1A] text-[10px] font-semibold uppercase tracking-wider">
                 COMMUNITY ARENA
               </div>
               <div>
-                <h3 className="text-xl font-black text-black">Skill Challenge Entry</h3>
-                <p className="text-xs text-slate-600 mt-1">Per-challenge entry ticket to submit your project and compete for 72h visibility.</p>
+                <h3 className="text-xl font-bold text-[#1A1A1A]">Skill Challenge Entry</h3>
+                <p className="text-xs text-[#525252] mt-1">Per-challenge entry ticket to submit your project and compete for 72h visibility.</p>
               </div>
 
-              <div className="text-4xl font-black text-black font-mono">
+              <div className="text-4xl font-bold text-[#1A1A1A] font-mono">
                 {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId] || '$5.00'}{' '}
-                <span className="text-xs font-normal text-slate-500 font-sans">/ entry</span>
+                <span className="text-xs font-normal text-[#737373] font-sans">/ entry</span>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-200">
+              <ul className="space-y-2.5 text-xs text-[#525252] pt-4 border-t border-[#E5E5E5]">
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Right to submit 1 project repo/demo</span>
@@ -134,13 +134,13 @@ export const PricingPage: React.FC = () => {
             <button
               onClick={() => handleCheckout(RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId, { type: 'challenge_entry' })}
               disabled={loadingCheckoutPriceId === RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId}
-              className="w-full py-3.5 bg-[#e8622c] hover:bg-black text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
+              className="w-full py-3 bg-[#FF5A1F] hover:bg-[#E54E17] text-white text-xs font-semibold transition-colors text-center border border-[#FF5A1F] cursor-pointer flex items-center justify-center gap-2 disabled:opacity-50"
             >
               {loadingCheckoutPriceId === RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
                 <>
-                  <span>[ ENTER CHALLENGE ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId] || '$5.00'}) ]</span>
+                  <span>Enter Challenge ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.challengeEntry.priceId] || '$5.00'})</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -148,22 +148,22 @@ export const PricingPage: React.FC = () => {
           </div>
 
           {/* Card 2: Outbid Spotlight ($5+ Floor) */}
-          <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6">
+          <div className="bg-white border border-[#E5E5E5] p-6 sm:p-8 flex flex-col justify-between space-y-6 hover:border-[#D4D4D4] transition-colors">
             <div className="space-y-4">
-              <div className="inline-block px-2.5 py-0.5 bg-blue-600 text-white font-mono text-[10px] font-bold uppercase">
+              <div className="inline-block px-2 py-0.5 bg-blue-50 border border-blue-200 text-blue-700 text-[10px] font-semibold uppercase tracking-wider">
                 HOMEPAGE SPOTLIGHT
               </div>
               <div>
-                <h3 className="text-xl font-black text-black">Spotlight Placements</h3>
-                <p className="text-xs text-slate-600 mt-1">Paid promotional cards on the homepage held for 72 hours.</p>
+                <h3 className="text-xl font-bold text-[#1A1A1A]">Spotlight Placements</h3>
+                <p className="text-xs text-[#525252] mt-1">Paid promotional cards on the homepage held for 72 hours.</p>
               </div>
 
-              <div className="text-4xl font-black text-black font-mono">
+              <div className="text-4xl font-bold text-[#1A1A1A] font-mono">
                 $5.00+{' '}
-                <span className="text-xs font-normal text-slate-500 font-sans">/ 72h hold</span>
+                <span className="text-xs font-normal text-[#737373] font-sans">/ 72h hold</span>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-200">
+              <ul className="space-y-2.5 text-xs text-[#525252] pt-4 border-t border-[#E5E5E5]">
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
                   <span>Direct link & card on homepage</span>
@@ -185,44 +185,44 @@ export const PricingPage: React.FC = () => {
 
             <Link
               to="/spotlight"
-              className="w-full py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
+              className="w-full py-3 bg-white hover:bg-[#FAFAF9] text-[#1A1A1A] text-xs font-semibold transition-colors text-center border border-[#1A1A1A] flex items-center justify-center gap-2"
             >
-              <span>[ VIEW SPOTLIGHT ]</span>
+              <span>View Spotlight</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
 
           {/* Card 3: Arena Co-Sponsorship Placement ($50+) */}
-          <div className="bg-orange-50 border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_#e8622c] flex flex-col justify-between space-y-6">
+          <div className="bg-[#FAFAF9] border border-[#FF5A1F]/50 p-6 sm:p-8 flex flex-col justify-between space-y-6">
             <div className="space-y-4">
-              <div className="inline-block px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
+              <div className="inline-block px-2 py-0.5 bg-[#FF5A1F] text-white text-[10px] font-semibold uppercase tracking-wider">
                 CO-SPONSORSHIP AUCTION
               </div>
               <div>
-                <h3 className="text-xl font-black text-black">Arena Co-Sponsorship</h3>
-                <p className="text-xs text-slate-600 mt-1">Ascending live outbid auction for exclusive 48h co-branding with the challenge winner.</p>
+                <h3 className="text-xl font-bold text-[#1A1A1A]">Arena Co-Sponsorship</h3>
+                <p className="text-xs text-[#525252] mt-1">Ascending live outbid auction for exclusive 48h co-branding with the challenge winner.</p>
               </div>
 
-              <div className="text-4xl font-black text-black font-mono">
+              <div className="text-4xl font-bold text-[#1A1A1A] font-mono">
                 $50.00+{' '}
-                <span className="text-xs font-normal text-slate-500 font-sans">Floor</span>
+                <span className="text-xs font-normal text-[#737373] font-sans">Floor</span>
               </div>
 
-              <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-orange-200">
+              <ul className="space-y-2.5 text-xs text-[#525252] pt-4 border-t border-[#E5E5E5]">
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
+                  <Check className="w-4 h-4 text-[#FF5A1F] shrink-0" />
                   <span><strong>48h Top Developer Rail:</strong> Promoted with winner</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
+                  <Check className="w-4 h-4 text-[#FF5A1F] shrink-0" />
                   <span>Brand logo, description & destination link</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
+                  <Check className="w-4 h-4 text-[#FF5A1F] shrink-0" />
                   <span>Outbid ascending auction (+5% / +$1 min)</span>
                 </li>
                 <li className="flex items-center gap-2">
-                  <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
+                  <Check className="w-4 h-4 text-[#FF5A1F] shrink-0" />
                   <span>Zero influence over challenge outcomes</span>
                 </li>
               </ul>
@@ -230,9 +230,9 @@ export const PricingPage: React.FC = () => {
 
             <Link
               to="/arena"
-              className="w-full py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
+              className="w-full py-3 bg-[#1A1A1A] hover:bg-[#FF5A1F] text-white text-xs font-semibold transition-colors text-center border border-[#1A1A1A] hover:border-[#FF5A1F] flex items-center justify-center gap-2"
             >
-              <span>[ SPONSOR ARENA ]</span>
+              <span>Sponsor Arena</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -240,19 +240,19 @@ export const PricingPage: React.FC = () => {
         </div>
 
         {/* Merchant & Security Disclosures */}
-        <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
-          <h3 className="text-sm font-black text-black font-mono uppercase flex items-center gap-2">
+        <div className="bg-white border border-[#E5E5E5] p-6 space-y-3">
+          <h3 className="text-xs font-semibold text-[#1A1A1A] uppercase tracking-wider flex items-center gap-2">
             <ShieldCheck className="w-4 h-4 text-emerald-600" />
             <span>Authorized Merchant of Record & Checkout Disclosures</span>
           </h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-700 leading-relaxed">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-[#525252] leading-relaxed">
             <div>
               <p><strong>Currency & Taxes:</strong> Prices are displayed in USD with automatic tax/VAT calculation via Lemon Squeezy.</p>
               <p className="mt-1"><strong>Payment Methods:</strong> Visa, MasterCard, AMEX, Discover, PayPal, and Apple Pay.</p>
             </div>
             <div>
               <p><strong>Delivery:</strong> Digital submission access and brand visibility placements activate immediately upon transaction completion.</p>
-              <p className="mt-1"><strong>Official Support:</strong> <a href="mailto:ranklancr@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklancr@gmail.com</a></p>
+              <p className="mt-1"><strong>Official Support:</strong> <a href="mailto:ranklancr@gmail.com" className="text-[#FF5A1F] underline font-medium font-mono">ranklancr@gmail.com</a></p>
             </div>
           </div>
         </div>
