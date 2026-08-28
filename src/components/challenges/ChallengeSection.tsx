@@ -39,36 +39,36 @@ export const ChallengeSection: React.FC = () => {
   };
 
   return (
-    <section className="py-16 bg-[#fffdfa] border-y-2 border-black relative overflow-hidden font-sans">
+    <section className="py-20 bg-slate-50/60 border-y border-slate-200/80 relative overflow-hidden font-sans">
       
-      {/* Background Micro Dots */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none bg-[radial-gradient(#000_1px,transparent_1px)] [background-size:16px_16px]" />
+      {/* Background Subtle Gradient */}
+      <div className="absolute top-0 right-0 w-[500px] h-[300px] bg-orange-400/5 blur-3xl pointer-events-none -z-10" />
 
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 relative z-10 space-y-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 relative z-10 space-y-10">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b-2 border-black pb-5">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-amber-100 border border-amber-400 font-mono text-xs font-bold text-amber-900 uppercase">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/80 pb-6">
+          <div className="space-y-2.5">
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-semibold text-amber-900">
               <Trophy className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
               <span>SKILL ARENA // $5 ENTRY • EARNED VISIBILITY REWARDS</span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-black tracking-tight leading-tight">
-              CHALLENGE ARENA: <span className="text-[#e8622c] underline decoration-4 underline-offset-4">COMPETE & EARN SPOTLIGHT.</span>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight font-heading">
+              Challenge Arena: <span className="text-[#e8622c]">Compete & Earn Spotlight.</span>
             </h2>
 
-            <p className="text-xs sm:text-sm text-slate-700 max-w-2xl font-medium">
-              Join focused 3-day skill prompts for $5. Public vote chooses the winners. Top 3 earn 72 hours in our site-wide Top Developer Rail and permanent profile accolades.
+            <p className="text-sm sm:text-base text-slate-600 max-w-2xl font-normal leading-relaxed">
+              Join focused 3-day skill prompts for $5. Public community votes crown the top creator. Top 3 earn 72 hours in our site-wide Top Developer Rail and verified profile badges.
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 shrink-0">
             <Link
               to="/arena"
-              className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold transition flex items-center gap-2 border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
+              className="px-5 py-2.5 bg-slate-900 hover:bg-[#e8622c] text-white font-sans text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
             >
-              <span>[ VIEW ALL CHALLENGES ]</span>
+              <span>Explore All Challenges</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>

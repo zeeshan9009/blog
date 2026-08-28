@@ -266,33 +266,33 @@ export const RailStealCard: React.FC = () => {
   return (
     <div className="w-full max-w-6xl mx-auto px-3 sm:px-6">
       <div
-        className={`relative bg-[#fffdfa] border-3 border-black p-5 sm:p-8 md:p-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] sm:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all duration-500 ${
-          flashEffect ? 'ring-4 ring-[#e8622c] bg-amber-50 scale-[1.01]' : ''
+        className={`relative bg-white border border-slate-200/90 rounded-2xl p-6 sm:p-8 md:p-10 shadow-modern-lg transition-all duration-500 ${
+          flashEffect ? 'ring-4 ring-[#e8622c] bg-orange-50/40 scale-[1.01]' : ''
         }`}
       >
         {/* Top Banner Tag */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b-2 border-black mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100 mb-6">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="px-2.5 sm:px-3 py-1 bg-black text-amber-400 font-mono text-[11px] sm:text-xs font-black uppercase tracking-wider border border-black flex items-center gap-1.5 shadow-xs">
+            <span className="px-3 py-1 bg-slate-900 text-amber-400 font-sans text-xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-1.5 shadow-sm">
               <Trophy className="w-3.5 h-3.5 fill-amber-400" />
-              #1 CONTESTABLE DEVELOPER RAIL
+              #1 Contestable Developer Rail
             </span>
-            <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-[#e8622c] text-white font-mono text-[10px] sm:text-[11px] font-bold uppercase flex items-center gap-1">
+            <span className="px-2.5 py-1 bg-[#e8622c] text-white font-sans text-xs font-bold uppercase rounded-lg flex items-center gap-1 shadow-sm">
               <Flame className="w-3 h-3 fill-white" />
-              STEAL THE SPOT
+              Live Takeover
             </span>
           </div>
 
           {/* Social Proof Live Counter & Timer */}
-          <div className="flex flex-wrap items-center gap-2 sm:gap-3 font-mono text-[11px] sm:text-xs">
-            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-white border-2 border-black font-bold text-slate-800 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-lg font-medium text-slate-700">
               <Users className="w-3.5 h-3.5 text-[#e8622c]" />
-              <span><strong>{attemptsTodayCount}</strong> attempts recorded</span>
+              <span><strong className="text-slate-900 font-bold">{attemptsTodayCount}</strong> attempts recorded</span>
             </div>
 
-            <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1 bg-amber-100 border-2 border-black font-bold text-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-50 border border-amber-200/80 rounded-lg font-medium text-amber-900">
               <Clock className="w-3.5 h-3.5 text-amber-700" />
-              <span>{holder ? <>Held for <strong>{timeHeldString}</strong></> : 'Open for Takeover'}</span>
+              <span>{holder ? <>Held for <strong className="font-mono font-bold">{timeHeldString}</strong></> : 'Open for Takeover'}</span>
             </div>
           </div>
         </div>
@@ -301,49 +301,49 @@ export const RailStealCard: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
           
           {/* Left / Center Holder Spotlight */}
-          <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
+          <div className="lg:col-span-8 flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-6">
             <div className="relative shrink-0">
               {holder?.avatar ? (
                 <img
                   src={holder.avatar}
                   alt={holder.name}
-                  className="w-20 h-20 sm:w-28 sm:h-28 border-3 border-black object-cover bg-slate-100 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                  className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border-2 border-slate-200 object-cover bg-slate-100 shadow-md"
                 />
               ) : (
-                <div className="w-20 h-20 sm:w-28 sm:h-28 border-3 border-black bg-amber-50 flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+                <div className="w-20 h-20 sm:w-28 sm:h-28 rounded-2xl border-2 border-amber-200 bg-amber-50 flex items-center justify-center shadow-md">
                   <Trophy className="w-10 h-10 sm:w-12 sm:h-12 text-amber-600" />
                 </div>
               )}
-              <div className="absolute -top-3 -left-3 w-7 h-7 sm:w-8 sm:h-8 bg-amber-400 border-2 border-black flex items-center justify-center shadow-xs">
-                <Crown className="w-4 h-4 sm:w-5 sm:h-5 text-black fill-amber-300" />
+              <div className="absolute -top-3 -left-3 w-8 h-8 bg-amber-400 rounded-lg border border-amber-500 flex items-center justify-center shadow-sm">
+                <Crown className="w-4 h-4 text-slate-950 fill-amber-300" />
               </div>
             </div>
 
-            <div className="space-y-2 min-w-0 w-full">
-              <div className="flex flex-wrap items-center gap-2 font-mono">
-                <span className="px-2 py-0.5 bg-amber-400 border border-black text-black font-black text-[11px] sm:text-xs">
+            <div className="space-y-2 min-w-0 w-full font-sans">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="px-2.5 py-0.5 bg-amber-100 text-amber-900 rounded-md font-bold text-xs">
                   {holder ? 'CURRENT #1 HOLDER' : 'OPEN FOR TAKEOVER'}
                 </span>
-                <span className="text-[11px] sm:text-xs font-mono text-slate-500 font-semibold flex items-center gap-1">
-                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Placement
+                <span className="text-xs text-slate-500 font-medium flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Verified Merit Placement
                 </span>
               </div>
 
-              <h2 className="text-xl sm:text-3xl font-black text-black tracking-tight truncate font-mono">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight truncate font-heading">
                 {holder ? holder.name : 'Unclaimed #1 Champion Rail'}
               </h2>
 
-              <p className="text-xs sm:text-sm text-slate-700 font-medium truncate">
+              <p className="text-sm text-slate-600 font-normal truncate">
                 {holder ? holder.title : 'First qualifying project submission takes the #1 flagship spot.'}
               </p>
 
-              <div className="pt-1 flex flex-wrap items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-mono">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-slate-100 border border-black font-bold text-slate-900 truncate max-w-full">
+              <div className="pt-1 flex flex-wrap items-center gap-2 sm:gap-3 text-xs">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 border border-slate-200/80 rounded-lg font-medium text-slate-800 truncate max-w-full">
                   <Trophy className="w-3.5 h-3.5 text-[#e8622c] shrink-0" />
                   <span className="truncate">Prompt: {holder ? holder.challengeTitle : activeChallengeTitle}</span>
                 </div>
 
-                <div className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#e8622c]/10 border border-[#e8622c] font-black text-[#e8622c] shrink-0">
+                <div className="inline-flex items-center gap-1 px-3 py-1 bg-orange-50 border border-orange-200 rounded-lg font-mono font-bold text-[#e8622c] shrink-0">
                   <span>{holder ? `${holder.voteCount} Community Votes` : '0 Votes (Open to Beat)'}</span>
                 </div>
               </div>
@@ -351,20 +351,20 @@ export const RailStealCard: React.FC = () => {
           </div>
 
           {/* Right Action Callout */}
-          <div className="lg:col-span-4 bg-white border-2 border-black p-4 sm:p-5 flex flex-col justify-between space-y-4 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
-            <div className="space-y-1.5 font-mono">
-              <div className="text-[10px] sm:text-xs font-bold text-slate-500 uppercase">THE VIRAL HOOK</div>
-              <h3 className="text-sm sm:text-base font-black text-black leading-tight">
+          <div className="lg:col-span-4 bg-slate-50 border border-slate-200/80 rounded-2xl p-5 flex flex-col justify-between space-y-4 shadow-sm">
+            <div className="space-y-1.5 font-sans">
+              <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">THE VIRAL HOOK</div>
+              <h3 className="text-base font-bold text-slate-900 leading-tight">
                 {holder ? 'Think your project is better? Steal the crown.' : 'Be the first creator to hold the #1 Rail.'}
               </h3>
-              <p className="text-[11px] text-slate-600 leading-relaxed">
+              <p className="text-xs text-slate-600 leading-relaxed">
                 {holder
                   ? `If your submission has more than ${holder.voteCount} votes, you instantly take over the #1 Top Developer Rail!`
                   : 'Submit your 3-day challenge project for $5 and claim site-wide #1 visibility!'}
               </p>
             </div>
 
-            <div className="space-y-2 pt-2 border-t border-slate-200">
+            <div className="space-y-2.5 pt-2 border-t border-slate-200/80">
               <button
                 type="button"
                 disabled={isCooldownActive}
@@ -376,10 +376,10 @@ export const RailStealCard: React.FC = () => {
                   }
                   setIsStealModalOpen(true);
                 }}
-                className={`w-full min-h-[44px] py-3 px-4 text-white font-mono text-xs sm:text-sm font-black uppercase tracking-wider transition flex items-center justify-center gap-2 border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] ${
+                className={`w-full min-h-[46px] py-3 px-4 text-white font-sans text-sm font-bold rounded-xl transition-all duration-200 flex items-center justify-center gap-2 shadow-sm ${
                   isCooldownActive
                     ? 'bg-slate-400 cursor-not-allowed text-slate-100'
-                    : 'bg-[#e8622c] hover:bg-black cursor-pointer'
+                    : 'bg-[#e8622c] hover:bg-orange-600 cursor-pointer shadow-orange-glow hover:shadow-md transform hover:-translate-y-0.5'
                 }`}
               >
                 {isCooldownActive && cooldownExpiresAt ? (
@@ -390,7 +390,7 @@ export const RailStealCard: React.FC = () => {
                       date={cooldownExpiresAt}
                       onComplete={() => setCooldownExpiresAt(null)}
                       renderer={({ minutes, seconds }) => (
-                        <span className="text-amber-200 font-black font-mono">
+                        <span className="text-amber-200 font-bold font-mono">
                           {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
                         </span>
                       )}
@@ -398,8 +398,8 @@ export const RailStealCard: React.FC = () => {
                   </div>
                 ) : (
                   <>
-                    <Zap className="w-4 h-4 text-amber-300 fill-amber-300" />
-                    <span>[ ATTEMPT RAIL STEAL ]</span>
+                    <Zap className="w-4 h-4 text-amber-200 fill-amber-200" />
+                    <span>Attempt Rail Steal</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -407,7 +407,7 @@ export const RailStealCard: React.FC = () => {
 
               <Link
                 to="/arena"
-                className="block text-center text-[11px] font-mono font-bold text-slate-600 hover:text-black transition"
+                className="block text-center text-xs font-semibold text-slate-600 hover:text-slate-900 transition"
               >
                 Don't have an entry yet? Enter for $5 ↗
               </Link>
@@ -417,13 +417,13 @@ export const RailStealCard: React.FC = () => {
         </div>
 
         {/* Footer Guarantee */}
-        <div className="mt-6 pt-4 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-[10px] sm:text-[11px] font-mono text-slate-600">
+        <div className="mt-6 pt-4 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs font-sans text-slate-500">
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 shrink-0" />
             <span>Top Developer Rail placement is earned by community vote count, not chance or payment amount. Zero cash prizes.</span>
           </div>
           <div>
-            <span>Real-time anti-bot verified voting.</span>
+            <span className="text-slate-400">Real-time anti-bot verified voting.</span>
           </div>
         </div>
 

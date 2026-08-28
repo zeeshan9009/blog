@@ -70,9 +70,9 @@ export const ActivityFeedTicker: React.FC = () => {
       case 'new_entry':
         return <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
       case 'spotlight_outbid':
-        return <Flame className="w-3.5 h-3.5 text-orange-500 fill-orange-500 shrink-0" />;
+        return <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400 shrink-0" />;
       case 'challenge_won':
-        return <Trophy className="w-3.5 h-3.5 text-amber-500 shrink-0" />;
+        return <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
       default:
         return <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
     }
@@ -92,7 +92,7 @@ export const ActivityFeedTicker: React.FC = () => {
       case 'rail_steal':
         return (
           <>
-            🔴 {actor} just <span className="text-[#ff7844] font-black underline decoration-1 underline-offset-2">stole the #1 Top Developer Rail</span>
+            🔴 {actor} just <span className="text-[#ff8a58] font-bold">claimed the #1 Top Developer Rail</span>
             {event.metadata?.vote_count ? ` (${event.metadata.vote_count} votes)` : ''}
           </>
         );
@@ -140,26 +140,26 @@ export const ActivityFeedTicker: React.FC = () => {
 
   return (
     <div className="w-full max-w-2xl mx-auto px-2">
-      <div className="bg-black text-white border-2 border-black px-3.5 py-2 font-mono text-[11px] sm:text-xs shadow-[3px_3px_0px_0px_rgba(232,98,44,1)] flex items-center justify-between gap-3 overflow-hidden">
+      <div className="bg-slate-950/90 text-white border border-slate-800 rounded-full px-4 py-2 text-xs shadow-modern-lg backdrop-blur-md flex items-center justify-between gap-3 overflow-hidden">
         {/* Left: Live indicator + Icon */}
         <div className="flex items-center gap-2 shrink-0">
           <span className="relative flex h-2 w-2">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
           </span>
-          <span className="bg-[#e8622c] text-white px-1.5 py-0.2 font-black text-[9px] uppercase tracking-wider">
+          <span className="bg-[#e8622c] text-white px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider">
             LIVE
           </span>
           {renderEventIcon(currentEvent?.event_type)}
         </div>
 
         {/* Middle: Event text ticker */}
-        <div className="flex-1 truncate text-slate-200 text-left transition-opacity duration-300">
+        <div className="flex-1 truncate text-slate-200 text-left transition-opacity duration-300 font-sans">
           {renderEventText(currentEvent)}
         </div>
 
         {/* Right: Timestamp */}
-        <div className="text-[10px] text-slate-400 shrink-0 font-mono hidden sm:block">
+        <div className="text-[11px] text-slate-400 shrink-0 font-mono hidden sm:block">
           {timeAgo}
         </div>
       </div>
