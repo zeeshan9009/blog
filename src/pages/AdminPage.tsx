@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import {
   ShieldAlert,
   Lock,
+  Mail,
+  Key,
   DollarSign,
   Trophy,
   Users,
@@ -16,6 +18,7 @@ import {
   ArrowRight,
   RefreshCw,
   Eye,
+  EyeOff,
   Check,
   Building2,
   Calendar,
@@ -23,7 +26,8 @@ import {
   ChevronRight,
   TrendingUp,
   Link2,
-  Sliders
+  Sliders,
+  ShieldCheck
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { RankLancrLogo } from '../components/brand/RankLancrLogo';
@@ -56,7 +60,9 @@ interface AdminStats {
 }
 
 export const AdminPage: React.FC = () => {
-  const [passkey, setPasskey] = useState('');
+  const [adminEmail, setAdminEmail] = useState('ranklancr@gmail.com');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [adminToken, setAdminToken] = useState('');
   const [activeTab, setActiveTab] = useState<'overview' | 'challenges' | 'submissions' | 'sponsorships' | 'users' | 'links'>('overview');
@@ -88,14 +94,20 @@ export const AdminPage: React.FC = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!passkey.trim()) return;
+    if (!adminEmail.trim() || !adminPassword.trim()) {
+      toast.error('Please enter admin email and password');
+      return;
+    }
 
     setLoading(true);
     try {
       const res = await fetch('/api/admin?action=auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ passkey: passkey.trim() })
+        body: JSON.stringify({
+          email: adminEmail.trim(),
+          password: adminPassword.trim()
+        })
       });
 
       const data = await res.json();
@@ -106,7 +118,7 @@ export const AdminPage: React.FC = () => {
         toast.success('Admin Console Unlocked');
         fetchAdminData(data.token);
       } else {
-        toast.error(data.error || 'Invalid passkey');
+        toast.error(data.error || 'Invalid admin email or password');
       }
     } catch {
       toast.error('Authentication request failed');
@@ -276,63 +288,80 @@ export const AdminPage: React.FC = () => {
   };
 
   // =========================================================================
-  // PASSKEY LOGIN GATE
+  // ADMIN LOGIN GATE (EMAIL & PASSWORD)
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-slate-950 text-white flex items-center justify-center p-4 font-sans selection:bg-[#e8622c] selection:text-white">
-        <div className="w-full max-w-md bg-slate-900 border-2 border-[#e8622c] p-8 shadow-[8px_8px_0px_0px_#e8622c] relative">
+      <div className="min-h-screen bg-[#FAFAF9] text-[#1A1A1A] flex items-center justify-center p-4 font-sans selection:bg-[#FF5A1F] selection:text-white">
+        <div className="w-full max-w-md bg-white border border-[#E5E5E5] p-8 shadow-sm relative">
+          
           <div className="mb-6 space-y-2 text-center">
-            <div className="inline-flex p-3 bg-black border border-[#e8622c] mb-2">
-              <ShieldAlert className="w-8 h-8 text-[#e8622c]" />
+            <div className="inline-flex p-3 bg-[#FAFAF9] border border-[#E5E5E5] mb-2">
+              <ShieldCheck className="w-7 h-7 text-[#FF5A1F]" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white uppercase font-mono">
+            <h1 className="text-2xl font-bold tracking-tight text-[#1A1A1A]">
               Admin Command Console
             </h1>
-            <p className="text-xs text-slate-400 font-mono">
-              Restricted Area • Master Passkey Required
+            <p className="text-xs text-[#525252] font-normal">
+              Restricted Area • Authorized Email & Password Required
             </p>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4 font-mono">
+          <form onSubmit={handleLogin} className="space-y-4">
+            {/* Email Field */}
             <div>
-              <label className="block text-xs font-bold text-slate-300 uppercase mb-1">
-                Enter Master Passkey
+              <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
+                Admin Email Address
               </label>
               <div className="relative">
-                <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                <Mail className="w-4 h-4 text-[#737373] absolute left-3 top-3" />
                 <input
-                  type="password"
+                  type="email"
                   required
-                  value={passkey}
-                  onChange={(e) => setPasskey(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full pl-9 pr-4 py-2.5 bg-black border-2 border-slate-700 text-white text-sm focus:border-[#e8622c] focus:outline-hidden font-mono"
+                  value={adminEmail}
+                  onChange={(e) => setAdminEmail(e.target.value)}
+                  placeholder="admin@ranklancr.lol"
+                  className="w-full pl-9 pr-4 py-2.5 bg-[#FAFAF9] border border-[#E5E5E5] text-[#1A1A1A] text-xs focus:bg-white focus:border-[#FF5A1F] focus:outline-hidden transition-colors"
                 />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div>
+              <label className="block text-xs font-semibold text-[#1A1A1A] mb-1">
+                Admin Password
+              </label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-[#737373] absolute left-3 top-3" />
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  value={adminPassword}
+                  onChange={(e) => setAdminPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="w-full pl-9 pr-10 py-2.5 bg-[#FAFAF9] border border-[#E5E5E5] text-[#1A1A1A] text-xs focus:bg-white focus:border-[#FF5A1F] focus:outline-hidden transition-colors font-mono"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-3 text-[#737373] hover:text-[#1A1A1A] cursor-pointer"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-3 bg-[#e8622c] hover:bg-white hover:text-black text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] disabled:opacity-50"
+              className="w-full py-3 bg-[#FF5A1F] hover:bg-[#E54E17] text-white font-semibold text-xs transition-colors cursor-pointer border border-[#FF5A1F] disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
             >
-              {loading ? 'Authenticating...' : '[ UNLOCK COMMAND CENTER ]'}
+              {loading ? 'Authenticating...' : 'Sign In To Admin Console'}
             </button>
-
-            <div className="text-center pt-2">
-              <button
-                type="button"
-                onClick={() => setPasskey('ranklancr_admin_2026')}
-                className="text-[11px] text-slate-400 hover:text-white underline cursor-pointer"
-              >
-                Use default passkey (Quick Access)
-              </button>
-            </div>
           </form>
 
-          <div className="mt-6 pt-4 border-t border-slate-800 text-center">
-            <Link to="/" className="text-xs font-mono text-slate-500 hover:text-white transition">
+          <div className="mt-6 pt-4 border-t border-[#E5E5E5] text-center">
+            <Link to="/" className="text-xs text-[#525252] hover:text-[#1A1A1A] transition-colors">
               ← Return to RankLancr.lol
             </Link>
           </div>

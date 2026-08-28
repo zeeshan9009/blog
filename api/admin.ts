@@ -1,7 +1,9 @@
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { createClient } from "@supabase/supabase-js";
 
-const ADMIN_SECRET = process.env.ADMIN_PASSKEY || "ranklancr_admin_2026";
+const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "ranklancr@gmail.com").toLowerCase().trim();
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || process.env.ADMIN_PASSKEY || "ranklancr_admin_2026";
+const ADMIN_SECRET = process.env.ADMIN_SECRET || "ranklancr_admin_token_2026_secure";
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://femtnrbswscrxidxuzgb.supabase.co";
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbXRucmJzd3NjcnhpZHh1emdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMDg1NjMsImV4cCI6MjEwMjc4NDU2M30.KPXD0ZPtTR4xFxHMtOor3aGDMf4vyBRC5f48IrDYISM";
@@ -23,8 +25,8 @@ async function parseBody(req: IncomingMessage): Promise<any> {
 
 function verifyAdminAuth(req: IncomingMessage, body: any): boolean {
   const authHeader = req.headers["x-admin-key"] || req.headers["authorization"]?.replace("Bearer ", "");
-  if (authHeader === ADMIN_SECRET) return true;
-  if (body && body.adminKey === ADMIN_SECRET) return true;
+  if (authHeader === ADMIN_SECRET || authHeader === ADMIN_PASSWORD) return true;
+  if (body && (body.adminKey === ADMIN_SECRET || body.adminKey === ADMIN_PASSWORD)) return true;
   return false;
 }
 
@@ -46,16 +48,29 @@ export default async function handler(req: IncomingMessage, res: ServerResponse)
     const parsedUrl = new URL(rawUrl.startsWith("http") ? rawUrl : `http://${host}${rawUrl.startsWith("/") ? "" : "/"}${rawUrl}`);
     const action = parsedUrl.searchParams.get("action") || "";
 
-    // 1. Passkey Verification Endpoint
+    // 1. Email & Password Verification Endpoint
     if (req.method === "POST" && action === "auth") {
       const body = await parseBody(req);
-      if (body.passkey === ADMIN_SECRET) {
+      const emailInput = (body.email || "").toLowerCase().trim();
+      const passwordInput = body.password || body.passkey || "";
+
+      // Verify email and password
+      const isEmailValid = emailInput === ADMIN_EMAIL || (!emailInput && body.passkey === ADMIN_PASSWORD);
+      const isPasswordValid = passwordInput === ADMIN_PASSWORD;
+
+      if (isEmailValid && isPasswordValid) {
         res.statusCode = 200;
-        res.end(JSON.stringify({ success: true, token: ADMIN_SECRET, message: "Admin access granted" }));
+        res.end(JSON.stringify({
+          success: true,
+          token: ADMIN_SECRET,
+          adminEmail: ADMIN_EMAIL,
+          message: "Admin authentication successful"
+        }));
         return;
       }
+
       res.statusCode = 401;
-      res.end(JSON.stringify({ error: "Invalid admin passkey" }));
+      res.end(JSON.stringify({ error: "Invalid admin email or password. Access denied." }));
       return;
     }
 
