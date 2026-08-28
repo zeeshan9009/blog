@@ -162,7 +162,7 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
         </div>
 
         {/* Action Buttons Based on Lifecycle */}
-        <div className="pt-2 flex flex-col sm:flex-row gap-2.5">
+        <div className="pt-2 flex flex-col sm:flex-row gap-2">
           {challenge.status === 'open_entry' && (
             <>
               <button
@@ -175,10 +175,11 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
 
               <button
                 onClick={() => onSponsorChallenge(challenge)}
-                className="py-2.5 px-3 bg-white hover:bg-orange-50 text-black font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer"
+                className="py-2.5 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-black font-mono text-[11px] font-bold transition flex items-center justify-center gap-1.5 border border-slate-300 hover:border-black cursor-pointer"
+                title="Sponsor this challenge for 48h co-branded visibility"
               >
-                <Flame className="w-3.5 h-3.5 text-[#e8622c] fill-[#e8622c]" />
-                <span>SPONSOR AUCTION</span>
+                <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Sponsor Visibility</span>
               </button>
             </>
           )}
@@ -195,10 +196,11 @@ export const ChallengeCard: React.FC<ChallengeCardProps> = ({
 
               <button
                 onClick={() => onSponsorChallenge(challenge)}
-                className="py-2.5 px-3 bg-white hover:bg-orange-50 text-black font-mono text-xs font-bold transition flex items-center justify-center gap-1.5 border border-black cursor-pointer"
+                className="py-2.5 px-3 bg-slate-50 hover:bg-slate-100 text-slate-700 hover:text-black font-mono text-[11px] font-bold transition flex items-center justify-center gap-1.5 border border-slate-300 hover:border-black cursor-pointer"
+                title="Sponsor this challenge for 48h co-branded visibility"
               >
-                <Flame className="w-3.5 h-3.5 text-[#e8622c] fill-[#e8622c]" />
-                <span>SPONSOR AUCTION</span>
+                <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                <span>Sponsor Visibility</span>
               </button>
             </>
           )}
