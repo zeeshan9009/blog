@@ -1,7 +1,6 @@
 import React from 'react';
 import Navbar from '../components/pixelpush/Navbar';
 import Hero from '../components/pixelpush/Hero';
-import { RailStealCard } from '../components/challenges/RailStealCard';
 import { LiveVoteBattle } from '../components/challenges/LiveVoteBattle';
 import { ChallengeSection } from '../components/challenges/ChallengeSection';
 import { HowItWorksCondensed } from '../components/pixelpush/HowItWorksCondensed';
@@ -23,7 +22,7 @@ export const PixelpushLanding: React.FC = () => {
   useUserBroadcast(currentUserId);
 
   return (
-    <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans selection:bg-[#e8622c] selection:text-white">
+    <div className="min-h-screen bg-white text-[#1A1A1A] font-sans selection:bg-[#FF5A1F] selection:text-white">
       {/* Toast provider for live real-time steal notifications */}
       <Toaster position="top-right" richColors expand={true} />
 
@@ -33,35 +32,27 @@ export const PixelpushLanding: React.FC = () => {
       {/* Main Content Landmark */}
       <main id="main-content">
         
-        {/* 1. Hero Section + Live Activity Feed Ticker */}
+        {/* 1. Hero Section (Includes Live Activity Ticker & #1 Top Developer Rail Card) */}
         <div id="hero">
           <Hero />
         </div>
 
-        {/* 2. Steal the Rail Card — Front & Center Main Hook */}
-        <div id="rail-steal-section" className="py-8 sm:py-12 bg-linear-to-b from-[#faf8f5] to-white border-b-2 border-black">
-          <RailStealCard />
+        {/* 2. Active Challenge & Live Vote Battle Section */}
+        <div id="arena-live-battle" className="bg-white">
+          <ChallengeSection />
         </div>
 
-        {/* 3. Active Challenge & Live Vote Battle Section */}
-        <div id="arena-live-battle" className="py-8 sm:py-12 bg-white border-b-2 border-black">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            <LiveVoteBattle />
-            <ChallengeSection />
-          </div>
-        </div>
-
-        {/* 4. How It Works — Condensed 3-Step Explainer */}
+        {/* 3. How It Works — Condensed 3-Step Explainer */}
         <div id="how-it-works">
           <HowItWorksCondensed />
         </div>
 
-        {/* 5. Pricing Section (kept as-is) */}
+        {/* 4. Pricing Section */}
         <div id="pricing">
           <Pricing />
         </div>
 
-        {/* 6. FAQ Section (kept as-is) */}
+        {/* 5. FAQ Section */}
         <div id="faq">
           <Faq />
         </div>
