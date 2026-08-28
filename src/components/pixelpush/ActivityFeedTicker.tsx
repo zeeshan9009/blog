@@ -64,73 +64,73 @@ export const ActivityFeedTicker: React.FC = () => {
   const renderEventIcon = (type?: ActivityFeedItem['event_type']) => {
     switch (type) {
       case 'rail_steal':
-        return <Trophy className="w-3.5 h-3.5 text-amber-400 fill-amber-400 shrink-0" />;
+        return <Trophy className="w-3.5 h-3.5 text-[#FF5A1F] shrink-0" />;
       case 'new_vote':
-        return <Vote className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
+        return <Vote className="w-3.5 h-3.5 text-emerald-600 shrink-0" />;
       case 'new_entry':
-        return <Sparkles className="w-3.5 h-3.5 text-blue-400 shrink-0" />;
+        return <Sparkles className="w-3.5 h-3.5 text-blue-600 shrink-0" />;
       case 'spotlight_outbid':
-        return <Flame className="w-3.5 h-3.5 text-orange-400 fill-orange-400 shrink-0" />;
+        return <Flame className="w-3.5 h-3.5 text-[#FF5A1F] shrink-0" />;
       case 'challenge_won':
-        return <Trophy className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+        return <Trophy className="w-3.5 h-3.5 text-amber-600 shrink-0" />;
       default:
-        return <Zap className="w-3.5 h-3.5 text-amber-400 shrink-0" />;
+        return <Zap className="w-3.5 h-3.5 text-[#FF5A1F] shrink-0" />;
     }
   };
 
   const renderEventText = (event?: ActivityFeedItem) => {
     if (!event) {
       return (
-        <span className="text-slate-200">
-          ⚡ Challenge Arena is open — Submit your project to contest and claim the #1 Top Developer Rail!
+        <span className="text-[#525252]">
+          Challenge Arena is open — Submit your project to contest and claim the #1 Top Developer Rail.
         </span>
       );
     }
 
-    const actor = <strong className="text-white font-bold">{event.actor_display_name}</strong>;
+    const actor = <strong className="text-[#1A1A1A] font-semibold">{event.actor_display_name}</strong>;
     switch (event.event_type) {
       case 'rail_steal':
         return (
           <>
-            🔴 {actor} just <span className="text-[#ff8a58] font-bold">claimed the #1 Top Developer Rail</span>
+            {actor} claimed the <span className="text-[#FF5A1F] font-semibold">#1 Top Developer Rail</span>
             {event.metadata?.vote_count ? ` (${event.metadata.vote_count} votes)` : ''}
           </>
         );
       case 'new_vote':
         return (
           <>
-            🟢 {actor} cast a public vote for {event.metadata?.challenge_title || 'a top project'}
+            {actor} voted for {event.metadata?.challenge_title || 'a challenge submission'}
           </>
         );
       case 'new_entry':
         return (
           <>
-            🚀 {actor} entered the $5 Skill Challenge Arena
+            {actor} entered the $5 Skill Challenge Arena
           </>
         );
       case 'spotlight_outbid':
         return (
           <>
-            🔥 {actor} claimed #{event.metadata?.position || 1} Spotlight for {event.metadata?.amount || 'Top Slot'}
+            {actor} claimed #{event.metadata?.position || 1} Spotlight placement ({event.metadata?.amount || 'Top Slot'})
           </>
         );
       case 'challenge_won':
         return (
           <>
-            👑 {actor} won the 72-Hour Flagship Rail hold
+            {actor} secured the 72-Hour Top Developer Rail placement
           </>
         );
       default:
         return (
           <>
-            ⚡ {actor} performed live activity on RankLancr
+            {actor} performed live activity on RankLancr
           </>
         );
     }
   };
 
   const timeAgo = (() => {
-    if (!currentEvent?.created_at) return 'Live now';
+    if (!currentEvent?.created_at) return 'Live';
     try {
       return formatDistanceToNow(new Date(currentEvent.created_at), { addSuffix: true });
     } catch {
@@ -139,29 +139,24 @@ export const ActivityFeedTicker: React.FC = () => {
   })();
 
   return (
-    <div className="w-full max-w-2xl mx-auto px-2">
-      <div className="bg-slate-950/90 text-white border border-slate-800 rounded-full px-4 py-2 text-xs shadow-modern-lg backdrop-blur-md flex items-center justify-between gap-3 overflow-hidden">
-        {/* Left: Live indicator + Icon */}
-        <div className="flex items-center gap-2 shrink-0">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
-          </span>
-          <span className="bg-[#e8622c] text-white px-2 py-0.5 rounded-full font-bold text-[10px] uppercase tracking-wider">
-            LIVE
-          </span>
-          {renderEventIcon(currentEvent?.event_type)}
-        </div>
+    <div className="w-full bg-white border border-[#E5E5E5] px-3.5 py-2 text-xs flex items-center justify-between gap-3 overflow-hidden font-sans">
+      {/* Left: Live indicator + Icon */}
+      <div className="flex items-center gap-2 shrink-0">
+        <span className="w-1.5 h-1.5 bg-[#FF5A1F]" />
+        <span className="text-[#FF5A1F] font-semibold text-[10px] uppercase tracking-wider">
+          LIVE
+        </span>
+        {renderEventIcon(currentEvent?.event_type)}
+      </div>
 
-        {/* Middle: Event text ticker */}
-        <div className="flex-1 truncate text-slate-200 text-left transition-opacity duration-300 font-sans">
-          {renderEventText(currentEvent)}
-        </div>
+      {/* Middle: Event text ticker */}
+      <div className="flex-1 truncate text-[#525252] text-left transition-opacity duration-300">
+        {renderEventText(currentEvent)}
+      </div>
 
-        {/* Right: Timestamp */}
-        <div className="text-[11px] text-slate-400 shrink-0 font-mono hidden sm:block">
-          {timeAgo}
-        </div>
+      {/* Right: Timestamp */}
+      <div className="text-[11px] text-[#737373] shrink-0 font-mono hidden sm:block">
+        {timeAgo}
       </div>
     </div>
   );

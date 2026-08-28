@@ -34,57 +34,57 @@ export const Faq: React.FC = () => {
   ];
 
   return (
-    <section id="faq" className="py-20 sm:py-28 bg-[#fafafa] border-b-2 border-black">
+    <section id="faq" className="py-20 sm:py-24 bg-[#FAFAF9] border-b border-[#E5E5E5] font-sans">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           
           {/* Left Column */}
           <div className="lg:col-span-5 space-y-6">
-            <div className="inline-flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-[#e8622c]">
-              <span className="w-2 h-2 bg-[#e8622c] block" />
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#E5E5E5] text-[11px] font-semibold text-[#FF5A1F] uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 bg-[#FF5A1F] shrink-0" />
               <span>FREQUENTLY ASKED QUESTIONS</span>
             </div>
 
-            <h2 className="text-3xl sm:text-5xl font-black text-black tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight">
               Got Questions? <br />
-              <span className="text-[#e8622c]">Clear Answers.</span>
+              <span className="text-[#FF5A1F]">Clear Answers.</span>
             </h2>
 
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
+            <p className="text-[#525252] text-sm sm:text-base leading-relaxed font-normal">
               Everything you need to know about entering skill challenges, transparent community voting, advertising visibility placements, and our zero-cash-prize compliance standard.
             </p>
 
             <div className="pt-2">
               <button
                 onClick={() => navigate('/arena')}
-                className="px-6 py-3.5 bg-slate-900 hover:bg-[#e8622c] text-white font-sans font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-sm cursor-pointer"
+                className="px-6 py-3 bg-[#1A1A1A] hover:bg-[#FF5A1F] text-white font-sans font-semibold text-xs transition-colors flex items-center gap-2 border border-[#1A1A1A] hover:border-[#FF5A1F] cursor-pointer"
               >
                 <span>Explore Challenge Arena</span>
-                <ArrowRight className="w-3.5 h-3.5 text-orange-400" />
+                <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
 
           {/* Right Column: Accordion */}
-          <div className="lg:col-span-7 divide-y divide-slate-100 bg-white border border-slate-200/90 rounded-2xl shadow-modern overflow-hidden">
+          <div className="lg:col-span-7 divide-y divide-[#E5E5E5] bg-white border border-[#E5E5E5] overflow-hidden">
             {faqItems.map((item, idx) => {
               const isOpen = openIndex === idx;
               return (
-                <div key={idx} className="p-6 transition-colors hover:bg-slate-50/50">
+                <div key={idx} className="p-6 transition-colors hover:bg-[#FAFAF9]">
                   <button
                     onClick={() => setOpenIndex(isOpen ? null : idx)}
-                    className="w-full flex items-center justify-between text-left gap-4 font-bold text-slate-900 hover:text-[#e8622c] text-base transition cursor-pointer font-heading"
+                    className="w-full flex items-center justify-between text-left gap-4 font-semibold text-[#1A1A1A] hover:text-[#FF5A1F] text-base transition-colors cursor-pointer"
                   >
                     <span>{item.q}</span>
                     <ChevronDown
-                      className={`w-5 h-5 text-slate-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-[#e8622c]' : ''
+                      className={`w-4 h-4 text-[#737373] shrink-0 transition-transform duration-200 ${
+                        isOpen ? 'rotate-180 text-[#FF5A1F]' : ''
                       }`}
                     />
                   </button>
 
                   {isOpen && (
-                    <div className="mt-3 text-slate-600 text-sm leading-relaxed pr-6 animate-fadeIn font-normal">
+                    <div className="mt-3 text-[#525252] text-sm leading-relaxed pr-6 animate-fadeIn font-normal">
                       {item.a}
                     </div>
                   )}

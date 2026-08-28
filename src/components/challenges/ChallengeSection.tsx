@@ -39,26 +39,22 @@ export const ChallengeSection: React.FC = () => {
   };
 
   return (
-    <section className="py-20 bg-slate-50/60 border-y border-slate-200/80 relative overflow-hidden font-sans">
-      
-      {/* Background Subtle Gradient */}
-      <div className="absolute top-0 right-0 w-[500px] h-[300px] bg-orange-400/5 blur-3xl pointer-events-none -z-10" />
-
-      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 relative z-10 space-y-10">
+    <section className="py-20 sm:py-24 bg-[#FAFAF9] border-y border-[#E5E5E5] font-sans">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-8 space-y-10">
         
         {/* Section Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-slate-200/80 pb-6">
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-[#E5E5E5] pb-6">
           <div className="space-y-2.5">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-amber-50 border border-amber-200/80 rounded-full text-xs font-semibold text-amber-900">
-              <Trophy className="w-3.5 h-3.5 text-amber-600 fill-amber-500" />
-              <span>SKILL ARENA // $5 ENTRY • EARNED VISIBILITY REWARDS</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-[#E5E5E5] text-[11px] font-semibold text-[#FF5A1F] uppercase tracking-wider">
+              <span className="w-1.5 h-1.5 bg-[#FF5A1F] shrink-0" />
+              <span>Skill Arena // $5 Entry • Earned Visibility</span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-950 tracking-tight font-heading">
-              Challenge Arena: <span className="text-[#e8622c]">Compete & Earn Spotlight.</span>
+            <h2 className="text-3xl sm:text-4xl font-bold text-[#1A1A1A] tracking-tight">
+              Challenge Arena: <span className="text-[#FF5A1F]">Compete & Earn Spotlight</span>
             </h2>
 
-            <p className="text-sm sm:text-base text-slate-600 max-w-2xl font-normal leading-relaxed">
+            <p className="text-sm sm:text-base text-[#525252] max-w-2xl font-normal leading-relaxed">
               Join focused 3-day skill prompts for $5. Public community votes crown the top creator. Top 3 earn 72 hours in our site-wide Top Developer Rail and verified profile badges.
             </p>
           </div>
@@ -66,7 +62,7 @@ export const ChallengeSection: React.FC = () => {
           <div className="flex items-center gap-3 shrink-0">
             <Link
               to="/arena"
-              className="px-5 py-2.5 bg-slate-900 hover:bg-[#e8622c] text-white font-sans text-xs font-bold rounded-xl transition-all shadow-sm flex items-center gap-2 cursor-pointer"
+              className="px-5 py-2.5 bg-[#1A1A1A] hover:bg-[#FF5A1F] text-white font-sans text-xs font-semibold transition-colors flex items-center gap-2 border border-[#1A1A1A] hover:border-[#FF5A1F] cursor-pointer"
             >
               <span>Explore All Challenges</span>
               <ArrowRight className="w-3.5 h-3.5" />
@@ -88,87 +84,49 @@ export const ChallengeSection: React.FC = () => {
               />
             ))
           ) : (
-            <div className="col-span-full bg-white border-2 border-black p-10 sm:p-14 text-center shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] space-y-4 max-w-2xl mx-auto">
-              <div className="w-14 h-14 bg-amber-100 border-2 border-black flex items-center justify-center mx-auto shadow-[3px_3px_0px_0px_rgba(0,0,0,1)]">
-                <Trophy className="w-7 h-7 text-amber-600" />
+            <div className="col-span-full bg-white border border-[#E5E5E5] p-10 sm:p-14 text-center space-y-4 max-w-2xl mx-auto">
+              <div className="w-12 h-12 bg-[#FAFAF9] border border-[#E5E5E5] flex items-center justify-center mx-auto">
+                <Trophy className="w-6 h-6 text-[#FF5A1F]" />
               </div>
               <div className="space-y-1">
-                <h4 className="text-xl font-black font-mono text-black uppercase tracking-tight">
+                <h4 className="text-lg font-bold text-[#1A1A1A]">
                   Next Skill Challenge Dropping Soon
                 </h4>
-                <p className="text-xs sm:text-sm font-mono text-slate-600 max-w-md mx-auto leading-relaxed">
-                  Our next 3-day engineering prompt is currently being prepared. Check back shortly to pay the $5 entry, submit your project, and compete for the 72-hour Top Developer Rail!
+                <p className="text-xs sm:text-sm text-[#525252] max-w-md mx-auto leading-relaxed">
+                  Our next 3-day engineering prompt is currently being prepared. Check back shortly to pay the $5 entry, submit your project, and compete for the 72-hour Top Developer Rail.
                 </p>
-              </div>
-              <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
-                <Link
-                  to="/pricing"
-                  className="px-4 py-2 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase transition border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]"
-                >
-                  [ View Pricing & Rules ]
-                </Link>
               </div>
             </div>
           )}
         </div>
 
-        {/* 3 Value Props Strip */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-4 border-t border-slate-200 text-xs font-mono">
-          <div className="p-3 bg-white border border-black flex items-start gap-2.5 shadow-xs">
-            <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-black block">100% Merit-Based Voting</span>
-              <span className="text-[11px] text-slate-600">Pure public votes with fingerprint deduplication. Zero pay-to-win.</span>
-            </div>
-          </div>
-
-          <div className="p-3 bg-white border border-black flex items-start gap-2.5 shadow-xs">
-            <Award className="w-4 h-4 text-[#e8622c] shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-black block">72h Top Developer Rail</span>
-              <span className="text-[11px] text-slate-600">Top 3 finishers receive exclusive high-impact homepage placement.</span>
-            </div>
-          </div>
-
-          <div className="p-3 bg-white border border-black flex items-start gap-2.5 shadow-xs">
-            <Building2 className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-            <div>
-              <span className="font-bold text-black block">3-Tier Brand Sponsorship</span>
-              <span className="text-[11px] text-slate-600">Companies sponsor challenges; Gold sponsors co-brand with the winner.</span>
-            </div>
-          </div>
-        </div>
-
       </div>
 
-      {/* Submit Modal */}
+      {/* Modals */}
       {selectedChallengeForSubmit && (
         <ChallengeSubmitModal
           challenge={selectedChallengeForSubmit}
-          isOpen={Boolean(selectedChallengeForSubmit)}
+          isOpen={true}
           onClose={() => setSelectedChallengeForSubmit(null)}
           onSubmitted={() => {
-            setSelectedChallengeForSubmit(null);
             fetchChallenges();
-            toast.success('Project submission recorded!');
+            toast.success('Project submitted successfully!');
           }}
         />
       )}
 
-      {/* Sponsor Modal */}
       {selectedChallengeForSponsor && (
         <SponsorChallengeModal
           challengeId={selectedChallengeForSponsor.id}
           challengeTitle={selectedChallengeForSponsor.title}
-          isOpen={Boolean(selectedChallengeForSponsor)}
+          isOpen={true}
           onClose={() => setSelectedChallengeForSponsor(null)}
           onSuccess={() => {
-            setSelectedChallengeForSponsor(null);
             fetchChallenges();
+            toast.success('Sponsorship bid submitted!');
           }}
         />
       )}
-
     </section>
   );
 };
