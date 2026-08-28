@@ -167,25 +167,5 @@ CREATE POLICY "Public read top developers" ON top_developer_entries FOR SELECT U
 CREATE POLICY "Public read sponsorships" ON challenge_sponsorships FOR SELECT USING (true);
 CREATE POLICY "Public read badges" ON challenge_badges FOR SELECT USING (true);
 
--- 11. Seed Initial Featured Challenge
-INSERT INTO challenges (
-  id,
-  title,
-  prompt,
-  category,
-  status,
-  entry_deadline,
-  submission_deadline,
-  voting_deadline,
-  entry_fee_cents
-) VALUES (
-  '11111111-1111-1111-1111-111111111111',
-  'Next.js 15 & AI Agent Interface Challenge',
-  'Build a lightning-fast Next.js 15 UI with streaming AI responses, keyboard navigation shortcuts, and zero layout shift. Winner earns 72h site-wide Top Developer Rail placement!',
-  'Development',
-  'open_entry',
-  now() + interval '2 days',
-  now() + interval '5 days',
-  now() + interval '8 days',
-  500
-) ON CONFLICT (id) DO NOTHING;
+-- 11. No dummy seed challenge (Empty state ready for live admin creation)
+

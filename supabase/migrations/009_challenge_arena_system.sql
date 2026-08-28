@@ -124,25 +124,5 @@ create trigger trg_prize_pool
 after insert on challenge_bids
 for each row execute function increment_prize_pool();
 
--- 8. Seed Initial Featured Challenge
-insert into challenges (
-  id,
-  title,
-  prompt,
-  category,
-  status,
-  submission_deadline,
-  voting_deadline,
-  prize_pool_cents,
-  platform_fee_bps
-) values (
-  '11111111-1111-1111-1111-111111111111',
-  'Next.js 15 & AI Agent Interface Challenge',
-  'Build a lightning-fast Next.js 15 UI with streaming AI responses, keyboard navigation shortcuts, and zero layout shift. Winner takes 100% of the public prize pool!',
-  'Development',
-  'open',
-  now() + interval '5 days',
-  now() + interval '7 days',
-  15000, -- $150.00 initial prize pool
-  1000
-) on conflict (id) do nothing;
+-- 8. No dummy seed challenge (Empty state ready for live admin creation)
+
