@@ -58,7 +58,7 @@ export const PricingPage: React.FC = () => {
     <div className="min-h-screen bg-[#fafafa] text-slate-900 font-sans selection:bg-[#e8622c] selection:text-white flex flex-col justify-between">
       <Navbar />
 
-      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-12 space-y-10 w-full">
+      <main className="max-w-6xl mx-auto px-4 sm:px-8 py-12 space-y-8 w-full">
         
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto space-y-3">
@@ -76,16 +76,24 @@ export const PricingPage: React.FC = () => {
           </div>
 
           <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-black">
-            Challenge Entries & Brand Sponsorships
+            Challenge Entries & Visibility Placements
           </h1>
 
           <p className="text-xs sm:text-sm text-slate-600 font-medium">
-            Pay a simple $5 fee to enter skill challenges, or sponsor arenas to promote your developer tools and brand. Zero subscriptions or hidden cuts.
+            Pay a simple $5 fee to enter skill challenges, or secure paid promotional visibility to showcase your tools to high-intent developers. Zero subscriptions or hidden cuts.
           </p>
         </div>
 
+        {/* Persistent Compliance Disclosure Banner */}
+        <div className="max-w-3xl mx-auto p-4 bg-amber-50/90 border-2 border-black font-mono text-xs text-amber-950 shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-start gap-3">
+          <ShieldCheck className="w-5 h-5 text-[#e8622c] shrink-0 mt-0.5" />
+          <div className="leading-relaxed">
+            <strong>Skill Competition Compliance Notice:</strong> RankLancr is a skill-based portfolio competition. Placement is determined entirely by community votes — never by chance, luck, or payment amount. Entry fees fund platform operations; <strong>there is no cash prize and no monetary payout to any participant.</strong>
+          </div>
+        </div>
+
         {/* 3-Column Pricing Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
           
           {/* Card 1: Challenge Entry Fee ($5) */}
           <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6">
@@ -114,7 +122,7 @@ export const PricingPage: React.FC = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>72-Hour Top Developer Rail reward (Top 3)</span>
+                  <span>Top creator earns 72h site-wide rail placement</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
@@ -139,71 +147,64 @@ export const PricingPage: React.FC = () => {
             </button>
           </div>
 
-          {/* Card 2: Fixed Brand Sponsorship ($50 - $150) */}
+          {/* Card 2: Outbid Spotlight ($5+ Floor) */}
           <div className="bg-white border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="inline-block px-2.5 py-0.5 bg-blue-600 text-white font-mono text-[10px] font-bold uppercase">
-                BRAND PROMOTION
+                HOMEPAGE SPOTLIGHT
               </div>
               <div>
-                <h3 className="text-xl font-black text-black">Fixed Sponsorships</h3>
-                <p className="text-xs text-slate-600 mt-1">Instant brand placements for developer tools, SaaS, and tech companies.</p>
+                <h3 className="text-xl font-black text-black">Spotlight Placements</h3>
+                <p className="text-xs text-slate-600 mt-1">Paid promotional cards on the homepage held for 72 hours.</p>
               </div>
 
               <div className="text-4xl font-black text-black font-mono">
-                {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId] || '$50.00'}{' '}
-                <span className="text-xs font-normal text-slate-500 font-sans">— {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId] || '$150.00'}</span>
+                $5.00+{' '}
+                <span className="text-xs font-normal text-slate-500 font-sans">/ 72h hold</span>
               </div>
 
               <ul className="space-y-2 text-xs text-slate-700 pt-2 border-t border-slate-200">
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span><strong>Bronze ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId] || '$50'}):</strong> Arena banner badge</span>
+                  <span>Direct link & card on homepage</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span><strong>Silver ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId] || '$150'}):</strong> Homepage card logo</span>
+                  <span>Guaranteed 72-hour visibility hold</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Instant first-payment reservation</span>
+                  <span>Transparent outbid increment (+5% / +$1)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-                  <span>Zero influence over judging or results</span>
+                  <span>Decoupled from challenge judging</span>
                 </li>
               </ul>
             </div>
 
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => handleCheckout(RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId, { tier: 'bronze' })}
-                className="py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-[11px] font-bold uppercase transition text-center border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-              >
-                Bronze ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.bronzeSponsorship.priceId] || '$50'})
-              </button>
-              <button
-                onClick={() => handleCheckout(RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId, { tier: 'silver' })}
-                className="py-3 bg-black hover:bg-[#e8622c] text-white font-mono text-[11px] font-bold uppercase transition text-center border border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] cursor-pointer"
-              >
-                Silver ({localizedPrices[RANKLANCR_PADDLE_PRODUCTS.silverSponsorship.priceId] || '$150'})
-              </button>
-            </div>
+            <Link
+              to="/spotlight"
+              className="w-full py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
+            >
+              <span>[ VIEW SPOTLIGHT ]</span>
+              <ArrowRight className="w-4 h-4" />
+            </Link>
           </div>
 
-          {/* Card 3: Gold Flagship Outbid Auction ($100+) */}
+          {/* Card 3: Arena Co-Sponsorship Placement ($50+) */}
           <div className="bg-orange-50 border-2 border-black p-6 sm:p-8 shadow-[6px_6px_0px_0px_#e8622c] flex flex-col justify-between space-y-6">
             <div className="space-y-4">
               <div className="inline-block px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
-                FLAGSHIP AUCTION
+                CO-SPONSORSHIP AUCTION
               </div>
               <div>
-                <h3 className="text-xl font-black text-black">Gold Co-Sponsorship</h3>
-                <p className="text-xs text-slate-600 mt-1">Ascending live outbid auction for exclusive co-branding with the challenge winner.</p>
+                <h3 className="text-xl font-black text-black">Arena Co-Sponsorship</h3>
+                <p className="text-xs text-slate-600 mt-1">Ascending live outbid auction for exclusive 48h co-branding with the challenge winner.</p>
               </div>
 
               <div className="text-4xl font-black text-black font-mono">
-                {localizedPrices[RANKLANCR_PADDLE_PRODUCTS.goldSponsorship.priceId] || '$100.00'}+{' '}
+                $50.00+{' '}
                 <span className="text-xs font-normal text-slate-500 font-sans">Floor</span>
               </div>
 
@@ -214,15 +215,15 @@ export const PricingPage: React.FC = () => {
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Live ascending outbid competition</span>
+                  <span>Brand logo, description & destination link</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Minimum increment: +$25.00 or +10%</span>
+                  <span>Outbid ascending auction (+5% / +$1 min)</span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Check className="w-4 h-4 text-[#e8622c] shrink-0" />
-                  <span>Automated social broadcast announcement</span>
+                  <span>Zero influence over challenge outcomes</span>
                 </li>
               </ul>
             </div>
@@ -231,7 +232,7 @@ export const PricingPage: React.FC = () => {
               to="/arena"
               className="w-full py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono text-xs font-bold uppercase tracking-wider transition text-center border border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] flex items-center justify-center gap-2"
             >
-              <span>[ ENTER GOLD AUCTION ]</span>
+              <span>[ SPONSOR ARENA ]</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
@@ -251,7 +252,7 @@ export const PricingPage: React.FC = () => {
             </div>
             <div>
               <p><strong>Delivery:</strong> Digital submission access and brand visibility placements activate immediately upon transaction completion.</p>
-              <p className="mt-1"><strong>Official Support:</strong> <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklanrc@gmail.com</a></p>
+              <p className="mt-1"><strong>Official Support:</strong> <a href="mailto:ranklancr@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklancr@gmail.com</a></p>
             </div>
           </div>
         </div>

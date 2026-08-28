@@ -24,7 +24,7 @@ export const ContactPage: React.FC = () => {
     setTimeout(() => {
       setIsSubmitting(false);
       setIsSubmitted(true);
-      toast.success('Your message has been sent to ranklanrc@gmail.com!');
+      toast.success('Your message has been sent to ranklancr@gmail.com!');
     }, 800);
   };
 
@@ -65,8 +65,8 @@ export const ContactPage: React.FC = () => {
               <Mail className="w-4 h-4 text-[#e8622c]" />
             </div>
             <div className="text-xs font-mono font-bold uppercase text-slate-500">Official Support</div>
-            <a href="mailto:ranklanrc@gmail.com" className="text-sm font-bold text-black hover:text-[#e8622c] block font-mono">
-              ranklanrc@gmail.com
+            <a href="mailto:ranklancr@gmail.com" className="text-sm font-bold text-black hover:text-[#e8622c] block font-mono">
+              ranklancr@gmail.com
             </a>
           </div>
 
@@ -129,7 +129,7 @@ export const ContactPage: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Alex Rivera"
+                    placeholder="Your Full Name"
                     className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-medium focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
                   />
                 </div>

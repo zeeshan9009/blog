@@ -240,8 +240,8 @@ export const CreateProfilePage: React.FC = () => {
                     required
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    placeholder="e.g. Alex Rivera, Ali Raza"
-                    className="w-full px-3.5 py-2.5 border-2 border-black text-sm bg-white font-bold text-black focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
+                    placeholder="Your Full Name"
+                    className="w-full px-3.5 py-2.5 bg-white border-2 border-black font-mono text-xs font-bold focus:outline-hidden focus:ring-2 focus:ring-[#e8622c]"
                   />
                 </div>
 

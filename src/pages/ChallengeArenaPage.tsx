@@ -19,6 +19,7 @@ import { Link, useSearchParams, useParams } from 'react-router-dom';
 import { Navbar } from '../components/pixelpush/Navbar';
 import { Footer } from '../components/pixelpush/Footer';
 import { TopDeveloperRail } from '../components/challenges/TopDeveloperRail';
+import { LiveVoteBattle } from '../components/challenges/LiveVoteBattle';
 import { ChallengeSubmitModal } from '../components/challenges/ChallengeSubmitModal';
 import { SponsorChallengeModal } from '../components/challenges/SponsorChallengeModal';
 import { useAuth } from '../context/AuthContext';
@@ -243,6 +244,15 @@ export const ChallengeArenaPage: React.FC = () => {
                 </div>
               </div>
             </div>
+
+            {/* Persistent Compliance Disclosure Banner */}
+            <div className="p-3.5 bg-amber-500/10 border-2 border-[#e8622c] font-mono text-xs text-amber-200 flex items-start gap-2.5">
+              <ShieldCheck className="w-4 h-4 text-[#e8622c] shrink-0 mt-0.5" />
+              <div className="leading-relaxed text-slate-200">
+                <strong>Skill-Based Portfolio Competition:</strong> Placement is determined entirely by community votes — never by chance, luck, or payment amount. Entry fees fund platform operations; <strong>there is no cash prize and no monetary payout to any participant.</strong>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -367,6 +377,11 @@ export const ChallengeArenaPage: React.FC = () => {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Live Vote Battle Component */}
+          {activeChallenge && (
+            <LiveVoteBattle challenge={activeChallenge} submissions={submissions} />
           )}
 
           {/* Submissions & Voting Section */}

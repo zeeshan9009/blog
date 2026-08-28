@@ -1,19 +1,19 @@
 import { supabase } from '../../lib/supabase';
 import type { ChallengeSponsorshipAuction, SponsorshipBidRecord } from '../../types/challenge';
 
-export const BASE_AUCTION_FLOOR_CENTS = 10000; // $100.00 USD
-export const BASE_MIN_INCREMENT_CENTS = 2500;  // $25.00 USD or +10%
+export const BASE_AUCTION_FLOOR_CENTS = 5000; // $50.00 USD starting floor
+export const BASE_MIN_INCREMENT_CENTS = 100;  // $1.00 USD (or +5%)
 
 /**
  * Calculates the minimum qualifying next bid for the challenge sponsorship auction.
- * Rule: +10% or +$25.00, whichever is higher.
+ * Rule: +5% or +$1.00 USD (whichever is higher) to match Outbid Spotlight mechanics.
  */
-export function calculateMinNextSponsorshipBid(currentBidCents: number): number {
+export function calculateMinNextSponsorshipBid(currentBidCents: number, minIncrementCents: number = BASE_MIN_INCREMENT_CENTS): number {
   if (!currentBidCents || currentBidCents < BASE_AUCTION_FLOOR_CENTS) {
     return BASE_AUCTION_FLOOR_CENTS;
   }
-  const incrementByPercent = Math.ceil(currentBidCents * 0.10);
-  const increment = Math.max(BASE_MIN_INCREMENT_CENTS, incrementByPercent);
+  const incrementByPercent = Math.ceil(currentBidCents * 0.05);
+  const increment = Math.max(minIncrementCents, incrementByPercent);
   return currentBidCents + increment;
 }
 

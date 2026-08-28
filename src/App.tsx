@@ -21,6 +21,7 @@ import RefundPolicyPage from "./pages/RefundPolicyPage";
 import ContactPage from "./pages/ContactPage";
 import PricingPage from "./pages/PricingPage";
 import WelcomePage from "./pages/WelcomePage";
+import AboutPage from "./pages/AboutPage";
 
 export default function App() {
   const isDashboardSubdomain = typeof window !== 'undefined' && window.location.hostname.startsWith('dashboard.');
@@ -89,7 +90,9 @@ export default function App() {
           <Route path="/refunds" element={<RefundPolicyPage />} />
           <Route path="/refund-policy" element={<RefundPolicyPage />} />
 
-          {/* Customer Support Desk */}
+          {/* Customer Support & Company Info */}
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/about-us" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
           <Route path="/support" element={<ContactPage />} />
 

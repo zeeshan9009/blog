@@ -117,7 +117,7 @@ export const RefundPolicyPage: React.FC = () => {
             Our order process is conducted by our online reseller & Merchant of Record <strong>Lemon Squeezy</strong>. If you experience a billing anomaly or duplicate charge, <strong>please contact our support team before initiating a bank chargeback</strong>. We review and resolve all legitimate billing inquiries within <strong>24 to 48 business hours</strong>.
           </p>
           <div className="p-3 bg-white border border-black font-mono text-xs text-black space-y-1">
-            <div><strong>Official Support Email:</strong> <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold">ranklanrc@gmail.com</a></div>
+            <div><strong>Official Support Email:</strong> <a href="mailto:ranklancr@gmail.com" className="text-[#e8622c] underline font-bold">ranklancr@gmail.com</a></div>
             <div><strong>Subject Line:</strong> Refund Request — [Your Email / Order ID]</div>
             <div><strong>Merchant of Record:</strong> Lemon Squeezy Inc.</div>
             <div><strong>SLA:</strong> 24 Hours Response Guarantee</div>

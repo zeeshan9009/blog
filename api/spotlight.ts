@@ -18,89 +18,21 @@ const supabaseUrl = process.env.VITE_SUPABASE_URL || "https://femtnrbswscrxidxuz
 const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlbXRucmJzd3NjcnhpZHh1emdiIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMDg1NjMsImV4cCI6MjEwMjc4NDU2M30.KPXD0ZPtTR4xFxHMtOor3aGDMf4vyBRC5f48IrDYISM";
 const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
-// Default In-Memory Mock Slots Store
-const MOCK_SLOTS: any[] = [
-  {
-    id: "slot-global-1",
-    scope: "global",
-    category: null,
-    position: 1,
-    current_holder_profile_id: "pro_top_global",
-    current_holder_name: "Hamza Sheikh",
-    current_holder_title: "Principal Full Stack Architect",
-    current_holder_destination_url: "https://www.linkedin.com/in/hamza-architect",
-    current_holder_platform: "linkedin",
-    current_price_cents: 2500, // $25.00
-    min_increment_cents: 100,
-    claimed_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 60 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "slot-global-2",
-    scope: "global",
-    category: null,
-    position: 2,
-    current_holder_profile_id: "pro_global_2",
-    current_holder_name: "Zainab Tariq",
-    current_holder_title: "Senior AI & PyTorch Engineer",
-    current_holder_destination_url: "https://github.com/zainab-ml",
-    current_holder_platform: "github",
-    current_price_cents: 1800, // $18.00
-    min_increment_cents: 100,
-    claimed_at: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 52 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "slot-global-3",
-    scope: "global",
-    category: null,
-    position: 3,
-    current_holder_profile_id: "pro_global_3",
-    current_holder_name: "Bilal Dev",
-    current_holder_title: "React & Next.js Performance Specialist",
-    current_holder_destination_url: "https://www.upwork.com/freelancers/~01928374",
-    current_holder_platform: "upwork",
-    current_price_cents: 1200, // $12.00
-    min_increment_cents: 100,
-    claimed_at: new Date(Date.now() - 5 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 67 * 60 * 60 * 1000).toISOString()
-  },
-  // Category Slots - Web Development
-  {
-    id: "slot-web-1",
-    scope: "category",
-    category: "Web Development",
-    position: 1,
-    current_holder_profile_id: "pro_web_1",
-    current_holder_name: "Ahmed Khan",
-    current_holder_title: "Full Stack & Microservices Lead",
-    current_holder_destination_url: "https://www.linkedin.com/in/ahmedkhan-dev",
-    current_holder_platform: "linkedin",
-    current_price_cents: 1500, // $15.00
-    min_increment_cents: 100,
-    claimed_at: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 64 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "slot-web-2",
-    scope: "category",
-    category: "Web Development",
-    position: 2,
-    current_holder_profile_id: "pro_web_2",
-    current_holder_name: "Sarah Jenkins",
-    current_holder_title: "Frontend UI/UX Specialist",
-    current_holder_destination_url: "https://fiverr.com/sarah_ui",
-    current_holder_platform: "fiverr",
-    current_price_cents: 1000,
-    min_increment_cents: 100,
-    claimed_at: new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString(),
-    expires_at: new Date(Date.now() + 62 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "slot-web-3",
-    scope: "category",
-    category: "Web Development",
-    position: 3,
+// Default In-Memory Unclaimed Slots Store
+const DEFAULT_SCOPES = [
+  { scope: "global", category: null },
+  { scope: "category", category: "Web Development" },
+  { scope: "category", category: "UI/UX Design" },
+  { scope: "category", category: "AI Engineering" },
+  { scope: "category", category: "Mobile Development" }
+];
+
+const MOCK_SLOTS: any[] = DEFAULT_SCOPES.flatMap(({ scope, category }) =>
+  [1, 2, 3].map((position) => ({
+    id: `slot-${scope}-${(category || "all").toLowerCase().replace(/[^a-z0-9]/g, "-")}-${position}`,
+    scope,
+    category,
+    position,
     current_holder_profile_id: null,
     current_holder_name: null,
     current_holder_title: null,
@@ -110,41 +42,10 @@ const MOCK_SLOTS: any[] = [
     min_increment_cents: 100,
     claimed_at: null,
     expires_at: null
-  }
-];
+  }))
+);
 
-const MOCK_ACTIVITY_FEED: any[] = [
-  {
-    id: "act-1",
-    bidderName: "Hamza Sheikh",
-    scope: "global",
-    category: null,
-    position: 1,
-    amountCents: 2500,
-    platform: "linkedin",
-    createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "act-2",
-    bidderName: "Zainab Tariq",
-    scope: "global",
-    category: null,
-    position: 2,
-    amountCents: 1800,
-    platform: "github",
-    createdAt: new Date(Date.now() - 20 * 60 * 60 * 1000).toISOString()
-  },
-  {
-    id: "act-3",
-    bidderName: "Ahmed Khan",
-    scope: "category",
-    category: "Web Development",
-    position: 1,
-    amountCents: 1500,
-    platform: "linkedin",
-    createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000).toISOString()
-  }
-];
+const MOCK_ACTIVITY_FEED: any[] = [];
 
 export default async function handler(req: IncomingMessage, res: ServerResponse) {
   const parsedUrl = new URL(req.url || "", `http://${req.headers.host || "localhost"}`);

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Trophy, Flame, ShieldCheck, Lock, Mail, ExternalLink, ArrowRight } from 'lucide-react';
+import { Trophy, Flame, ShieldCheck, Lock, Mail, ExternalLink, ArrowRight, Building2, HelpCircle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   return (
@@ -12,13 +12,13 @@ export const Footer: React.FC = () => {
           <div className="space-y-2">
             <div className="inline-flex items-center gap-2 px-2.5 py-0.5 bg-[#e8622c] text-white font-mono text-[10px] font-bold uppercase">
               <Trophy className="w-3.5 h-3.5" />
-              <span>COMMUNITY SKILL COMPETITION PLATFORM</span>
+              <span>SKILL-BASED PORTFOLIO COMPETITION PLATFORM</span>
             </div>
             <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
-              Compete in Skill Arenas. Win 72h Visibility.
+              Submit Your Best Work. Compete for #1 Visibility.
             </h3>
             <p className="text-xs sm:text-sm text-slate-400 font-medium max-w-2xl">
-              Pay $5 to enter skill challenges, earn public community votes, and claim site-wide Top Developer Rail showcase placements.
+              Fixed $5.00 entry fee funds platform operations and review infrastructure. No cash prizes. Placement is earned 100% by community vote count.
             </p>
           </div>
 
@@ -41,7 +41,7 @@ export const Footer: React.FC = () => {
         {/* 4-Column Navigation & Legal Compliance Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-xs">
           
-          {/* Column 1: Platform & Arenas */}
+          {/* Column 1: Platform & Competitions */}
           <div className="space-y-3">
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-white border-b border-slate-800 pb-2">
               Platform & Arenas
@@ -54,7 +54,7 @@ export const Footer: React.FC = () => {
               </li>
               <li>
                 <Link to="/spotlight" className="hover:text-white transition flex items-center gap-1.5 text-[#e8622c] font-bold">
-                  <span>🔥 Outbid Spotlight (72h)</span>
+                  <span>🔥 Outbid Spotlight (Visibility)</span>
                 </Link>
               </li>
               <li>
@@ -97,8 +97,13 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
+                <Link to="/about" className="hover:text-white transition text-blue-400 font-bold">
+                  About RankLancr & Mission
+                </Link>
+              </li>
+              <li>
                 <Link to="/rules" className="hover:text-white transition">
-                  Auction & Fair Play Rules
+                  Fair Play & Voting Integrity
                 </Link>
               </li>
             </ul>
@@ -117,27 +122,30 @@ export const Footer: React.FC = () => {
                 </Link>
               </li>
               <li>
-                <a href="mailto:ranklanrc@gmail.com" className="hover:text-white transition font-mono text-[#e8622c]">
-                  ranklanrc@gmail.com
+                <a href="mailto:ranklancr@gmail.com" className="hover:text-white transition font-mono text-[#e8622c]">
+                  ranklancr@gmail.com
                 </a>
+              </li>
+              <li>
+                <Link to="/about" className="hover:text-white transition flex items-center gap-1">
+                  <Building2 className="w-3.5 h-3.5" />
+                  <span>About Platform & Founder</span>
+                </Link>
               </li>
               <li className="text-[11px] text-slate-500 font-mono">
                 Response SLA: Within 24-48 Hours
               </li>
-              <li className="text-[11px] text-slate-500 font-mono">
-                Dispute Desk: Active Mon-Sat
-              </li>
             </ul>
           </div>
 
-          {/* Column 4: Merchant of Record (Lemon Squeezy) */}
+          {/* Column 4: Platform Security & Compliance Notice */}
           <div className="space-y-3 p-4 bg-slate-900/80 border border-slate-800">
             <div className="text-xs font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
-              <span>Merchant of Record</span>
+              <span>Skill & Compliance Notice</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              Our order process is conducted by our online reseller & Merchant of Record <strong>Lemon Squeezy</strong>.
+              RankLancr is a skill-based competition platform. Voting is 100% merit-based. <strong>No cash prizes or gambling mechanics.</strong>
             </p>
             <div className="pt-2 border-t border-slate-800 flex items-center gap-2 font-mono text-[10px] text-slate-400">
               <Lock className="w-3 h-3 text-emerald-400" />
@@ -154,10 +162,12 @@ export const Footer: React.FC = () => {
             <div className="w-6 h-6 bg-[#e8622c] flex items-center justify-center text-white text-xs font-black font-mono border border-black">
               R
             </div>
-            <span>© 2026 RankLancr.lol Platform Inc. All rights reserved.</span>
+            <span>© 2026 RankLancr • All rights reserved.</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-4 font-mono text-[11px]">
+            <Link to="/about" className="hover:text-white transition">About</Link>
+            <span>•</span>
             <Link to="/terms" className="hover:text-white transition">Terms</Link>
             <span>•</span>
             <Link to="/privacy" className="hover:text-white transition">Privacy</Link>

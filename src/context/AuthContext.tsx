@@ -171,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 const fallbackUser: User = {
                     id: `google-user-${Date.now()}`,
                     email: "creator@ranklancr.lol",
-                    name: "Alex Rivera",
+                    name: "Developer",
                     avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
                     plan: "PRO",
                     roles: ['buyer', 'provider'],
@@ -187,7 +187,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const fallbackUser: User = {
                 id: `google-user-${Date.now()}`,
                 email: "creator@ranklancr.lol",
-                name: "Alex Rivera",
+                name: "Developer",
                 avatar_url: "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
                 plan: "PRO",
                 roles: ['buyer', 'provider'],

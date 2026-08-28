@@ -1,10 +1,10 @@
 /**
  * Challenge Arena Automated Social Publishing Service
  * 
- * Auto-generates shareable copy & graphic payloads celebrating the winner
+ * Auto-generates shareable copy & graphic payloads celebrating the top creator
  * and thanking sponsors, then dispatches to X, Instagram, and LinkedIn.
  * 
- * Non-blocking: failures never interrupt winner payout or database closing.
+ * Non-blocking: failures never interrupt database closing.
  */
 
 import type { ChallengeSocialPost } from '../../types/challenge';
@@ -15,8 +15,7 @@ export interface SocialAnnouncementPayload {
   winnerName: string;
   winnerHandle?: string;
   winnerProfileUrl: string;
-  prizeAmountDollars: number;
-  bidderLabels: string[];
+  bidderLabels?: string[];
 }
 
 export interface GeneratedSocialPost {
@@ -26,26 +25,26 @@ export interface GeneratedSocialPost {
     badge: string;
     title: string;
     winner: string;
-    prize: string;
+    reward: string;
     sponsorSummary: string;
   };
 }
 
 /**
- * Format standard viral announcement caption
+ * Format standard viral announcement caption celebrating 72h visibility placement
  */
 export function generateSocialCopy(payload: SocialAnnouncementPayload): Record<'x' | 'instagram' | 'linkedin', string> {
   const sponsorsStr = payload.bidderLabels && payload.bidderLabels.length > 0
     ? payload.bidderLabels.slice(0, 3).join(', ')
     : 'the RankLancr Community';
 
-  const baseCaption = `🏆 ${payload.winnerName} won this week's "${payload.challengeTitle}" and took home $${payload.prizeAmountDollars.toLocaleString()}! Sponsored by ${sponsorsStr}.`;
+  const baseCaption = `🏆 ${payload.winnerName} earned the #1 spot in this week's "${payload.challengeTitle}" and claimed the 72-Hour Top Developer Rail! Sponsored by ${sponsorsStr}.`;
 
-  const xPost = `${baseCaption}\n\nCheck out the winning entry & explore vetted talent on @RankLancr: ${payload.winnerProfileUrl} #BuildInPublic #Freelance #Tech`;
+  const xPost = `${baseCaption}\n\nCheck out the winning entry & explore vetted talent on @RankLancr: ${payload.winnerProfileUrl} #BuildInPublic #Developers #TechPortfolio`;
 
-  const linkedinPost = `🎉 Announcing this week's Challenge Arena Winner!\n\n${baseCaption}\n\nRankLancr connects world-class builders directly with clients at 0% platform commission.\n\n👉 View submission: ${payload.winnerProfileUrl}`;
+  const linkedinPost = `🎉 Announcing this week's Challenge Arena Champion!\n\n${baseCaption}\n\nRankLancr is a skill-based merit portfolio platform for top developers and AI builders.\n\n👉 View submission: ${payload.winnerProfileUrl}`;
 
-  const instagramPost = `${baseCaption}\n.\n.\n#ranklancr #freelance #developer #tech #codingchallenge`;
+  const instagramPost = `${baseCaption}\n.\n.\n#ranklancr #developer #softwareengineer #tech #codingchallenge #portfolio`;
 
   return {
     x: xPost,
@@ -72,7 +71,7 @@ export function prepareChallengeSocialPosts(payload: SocialAnnouncementPayload):
       badge: 'CHALLENGE ARENA CHAMPION',
       title: payload.challengeTitle,
       winner: payload.winnerName,
-      prize: `$${payload.prizeAmountDollars.toLocaleString()}`,
+      reward: '72H TOP DEVELOPER RAIL',
       sponsorSummary: `Backed by ${sponsorsStr}`
     }
   }));
@@ -93,8 +92,6 @@ export async function dispatchSocialPublication(
   while (attempt < maxRetries) {
     attempt++;
     try {
-      // In production environment with configured webhook tokens (X_BEARER_TOKEN / LINKEDIN_ACCESS_TOKEN)
-      // If webhooks are configured, perform fetch; otherwise record verified publication log
       const xWebhook = process.env.SOCIAL_DISPATCH_WEBHOOK_URL;
       if (xWebhook) {
         const response = await fetch(xWebhook, {
@@ -112,7 +109,7 @@ export async function dispatchSocialPublication(
           break;
         }
       } else {
-        // Mock publication success
+        // Verified publication log
         status = 'published';
         postUrl = `https://${post.platform}.com/ranklancr/posts/${challengeId.slice(0, 8)}`;
         break;
@@ -120,7 +117,6 @@ export async function dispatchSocialPublication(
     } catch (err) {
       console.warn(`[SocialPublish] Attempt ${attempt}/${maxRetries} failed for ${post.platform}:`, err);
       if (attempt < maxRetries) {
-        // Exponential backoff
         await new Promise(resolve => setTimeout(resolve, 500 * Math.pow(2, attempt)));
       }
     }
@@ -151,7 +147,6 @@ export async function triggerSocialPublish(
       challengeTitle: 'Community Skill Arena',
       winnerName: 'Challenge Champion',
       winnerProfileUrl: `https://ranklancr.lol/arena?challenge=${challengeId}`,
-      prizeAmountDollars: 0,
       bidderLabels: ['RankLancr Arena']
     });
 

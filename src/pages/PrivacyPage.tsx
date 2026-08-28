@@ -128,7 +128,7 @@ export const PrivacyPage: React.FC = () => {
             <ul className="list-disc list-inside space-y-1 pl-2 text-slate-600">
               <li><strong>Right to Access:</strong> You may request a copy of the personal information we hold on your account.</li>
               <li><strong>Right to Rectification:</strong> You can update your display name, title, and bio directly in your profile settings.</li>
-              <li><strong>Right to Deletion (Right to be Forgotten):</strong> You may request full deletion of your profile, submissions, and account records by emailing <code className="bg-slate-100 px-1 font-mono">ranklanrc@gmail.com</code>.</li>
+              <li><strong>Right to Deletion (Right to be Forgotten):</strong> You may request full deletion of your profile, submissions, and account records by emailing <code className="bg-slate-100 px-1 font-mono">ranklancr@gmail.com</code>.</li>
             </ul>
           </div>
         </div>
@@ -143,7 +143,7 @@ export const PrivacyPage: React.FC = () => {
             For privacy inquiries, data deletion requests, or compliance questions:
           </p>
           <div className="font-mono text-xs font-bold text-black pt-1">
-            Official Email: <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline">ranklanrc@gmail.com</a>
+            Official Email: <a href="mailto:ranklancr@gmail.com" className="text-[#e8622c] underline">ranklancr@gmail.com</a>
           </div>
         </div>
 

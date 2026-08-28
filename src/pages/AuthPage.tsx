@@ -78,14 +78,6 @@ export const AuthPage: React.FC = () => {
     }
   };
 
-  const fillDemoAccount = (demoEmail: string, demoName: string) => {
-    setEmail(demoEmail);
-    setPassword('demo123456');
-    if (mode === 'register') {
-      setName(demoName);
-    }
-  };
-
   return (
     <div className="h-screen max-h-screen w-screen overflow-hidden bg-[#fafafa] text-slate-900 font-sans selection:bg-[#e8622c] selection:text-white flex flex-col">
       
@@ -372,37 +364,6 @@ export const AuthPage: React.FC = () => {
                 </button>
 
               </form>
-
-              {/* Quick 1-Click Demo Profiles */}
-              <div className="pt-2 border-t border-slate-200">
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] font-mono text-slate-400 font-bold uppercase">
-                    1-CLICK DEMO LOGIN:
-                  </span>
-                  <Sparkles className="w-3 h-3 text-[#e8622c]" />
-                </div>
-
-                <div className="grid grid-cols-2 gap-1.5">
-                  <button
-                    type="button"
-                    onClick={() => fillDemoAccount('ali.raza@example.com', 'Ali Raza')}
-                    className="p-1.5 bg-slate-50 hover:bg-orange-50 border border-slate-300 hover:border-black transition text-left cursor-pointer"
-                  >
-                    <div className="font-bold text-[10px] text-black">Ali Raza</div>
-                    <div className="text-[9px] font-mono text-slate-500">Developer</div>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => fillDemoAccount('sarah.design@example.com', 'Sarah Jenkins')}
-                    className="p-1.5 bg-slate-50 hover:bg-orange-50 border border-slate-300 hover:border-black transition text-left cursor-pointer"
-                  >
-                    <div className="font-bold text-[10px] text-black">Sarah Jenkins</div>
-                    <div className="text-[10px] font-mono text-slate-500">UI/UX Lead</div>
-                  </button>
-                </div>
-              </div>
-
             </div>
 
             {/* Card Footer Switcher */}

@@ -54,29 +54,29 @@ export const TermsPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Section 3: Company Sponsorship Non-Influence & Ascending Auction Policy */}
+        {/* Section 3: Brand Sponsorship Visibility Placement Auction */}
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
             <Building2 className="w-4 h-4 text-blue-600" />
-            <span>3. Brand Sponsorship & Gold Ascending Auction Policy</span>
+            <span>3. Brand Sponsorship Visibility Placement Auction</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            Companies and tool creators may purchase Bronze ($50) or Silver ($150) fixed sponsorships, or compete in the <strong>Gold Flagship Ascending Outbid Auction</strong> (floor $100, minimum +$25 / +10% increment).
+            Companies, dev tool providers, and tech brands may compete in the <strong>Challenge Co-Sponsorship Visibility Placement Auction</strong> (floor $50.00, minimum +5% or +$1.00 increment).
           </p>
           <ul className="list-disc list-inside space-y-1 text-[11px] text-slate-800 pt-1">
-            <li><strong>Displacement & No Refunds:</strong> Outbid bids are non-refundable and purchase visibility for the duration held on the live leaderboard. Highest bidder at the close of the bidding window claims the 72h co-branded Top Developer rail placement.</li>
-            <li><strong>Strict Non-Influence Policy:</strong> Sponsorship payments purchase brand advertising placement only. <strong>Sponsors have zero influence over community voting, algorithmic ranking, or winner selection.</strong></li>
+            <li><strong>Displacement & No Refunds:</strong> Outbid bids are non-refundable and purchase visibility for the duration held on the live leaderboard. The highest bidder at the close of the challenge window secures the 48-hour co-branded Top Developer rail placement.</li>
+            <li><strong>Strict Non-Influence Policy:</strong> Sponsorship payments purchase brand advertising placement only. <strong>Sponsors have zero influence over community voting, algorithmic ranking, or challenge outcomes.</strong></li>
           </ul>
         </div>
 
-        {/* Section 4: Outbid Spotlight Ascending Auction Policy */}
+        {/* Section 4: Outbid Spotlight Visibility Placement Auction */}
         <div className="bg-white border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
             <Flame className="w-4 h-4 text-[#e8622c] fill-[#e8622c]" />
-            <span>4. Outbid Spotlight Ascending Auction Policy</span>
+            <span>4. Outbid Spotlight Visibility Placement Auction</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
-            Spotlight leaderboard slots are claimed via ascending auction. Holding a slot guarantees placement for up to 72 hours or until outbid by another party (+5% / +$1.00 min increment). Bids are final and non-refundable.
+            Spotlight homepage cards are claimed via ascending-bid visibility auctions. Holding a card guarantees placement for up to 72 hours or until outbid by another creator (+5% / +$1.00 min increment). All bids purchase immediate advertising visibility and are final and non-refundable.
           </p>
         </div>
 
@@ -102,17 +102,28 @@ export const TermsPage: React.FC = () => {
           </p>
         </div>
 
-        {/* Section 7: Merchant of Record & Support Contact */}
+        {/* Section 7: Skill-Based Competition & Non-Gambling Certification */}
+        <div className="bg-amber-50 border-2 border-black p-6 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] space-y-3">
+          <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
+            <ShieldCheck className="w-4 h-4 text-emerald-600" />
+            <span>7. Skill-Based Competition & Non-Gambling Certification</span>
+          </div>
+          <p className="text-xs text-slate-800 leading-relaxed">
+            RankLancr is strictly a skill-based portfolio competition platform. All rankings and placements are determined solely by public peer votes evaluating technical merit and design execution. No game of chance, wagering, prize pooling, odds, or monetary payouts exist on RankLancr.
+          </p>
+        </div>
+
+        {/* Section 8: Merchant of Record & Support Contact */}
         <div className="bg-orange-50 border-2 border-black p-6 shadow-[4px_4px_0px_0px_#e8622c] space-y-2">
           <div className="flex items-center gap-2 text-sm font-black text-black uppercase">
             <FileText className="w-4 h-4 text-[#e8622c]" />
-            <span>7. Merchant of Record & Support Contact</span>
+            <span>8. Merchant of Record & Support Contact</span>
           </div>
           <p className="text-xs text-slate-700 leading-relaxed">
             Our order process is conducted by our online reseller & Merchant of Record <strong>Lemon Squeezy</strong>. Lemon Squeezy provides all customer service inquiries and handles returns.
           </p>
           <p className="text-xs text-slate-700 pt-1">
-            For direct platform support or terms inquiries, contact us at <a href="mailto:ranklanrc@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklanrc@gmail.com</a>.
+            For direct platform support or terms inquiries, contact us at <a href="mailto:ranklancr@gmail.com" className="text-[#e8622c] underline font-bold font-mono">ranklancr@gmail.com</a>.
           </p>
         </div>
 

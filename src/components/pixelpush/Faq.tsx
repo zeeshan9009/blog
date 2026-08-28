@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ChevronDown, ArrowRight, Trophy } from 'lucide-react';
+import { ChevronDown, ArrowRight, Trophy, ShieldCheck } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export const Faq: React.FC = () => {
@@ -8,37 +8,33 @@ export const Faq: React.FC = () => {
 
   const faqItems = [
     {
-      q: 'How do skill challenges work on RankLancr?',
-      a: 'We host timed skill challenges across web development, AI, design, and marketing. Participants pay a fixed $5.00 entry fee to enter the challenge arena, build their project according to the prompt, and submit their work. The community then votes on submissions.'
+      q: 'Is this gambling or a game of chance?',
+      a: 'No. Top submissions are determined solely by transparent public community voting on submitted code and design quality. There is no randomness, no odds, and zero cash prizes — RankLancr is a professional portfolio and skill-showcase platform, not a betting or chance-based product.'
     },
     {
-      q: 'Are there any cash prizes awarded to challenge winners?',
-      a: 'No. RankLancr operates with a strict visibility-only reward model. Winners and the Top 3 earn 72 hours of site-wide Top Developer Rail placement, automated social media broadcasts, and permanent winner badges on their creator passport.'
+      q: 'What do I actually get for my $5 entry fee?',
+      a: 'The $5 entry fee provides digital access to submit your work for community peer review, eligibility for the Top Developer Rail (a 72-hour promotional visibility placement, not money), and permanent portfolio badge credentials. Entry fees fund server infrastructure and anti-abuse verification; no cash is transferred or paid out to entrants at any point.'
     },
     {
-      q: 'What does the $5.00 challenge entry fee cover?',
-      a: 'The $5 entry fee is a pure platform service fee that covers server infrastructure, anti-bot voting verification, and live leaderboard hosting. Entry fees are non-refundable and unlock the digital right to submit one project during the active window.'
+      q: "What does 'Outbid Spotlight' / sponsorship auction mean?",
+      a: 'This is a paid promotional visibility placement auction (similar to an online ad placement auction), fully separate from the merit-based Challenge Arena voting. Sponsors and creators pay for card/banner visibility on the platform, never for challenge judging or voting outcomes.'
     },
     {
-      q: 'How does the Gold Brand Sponsorship Outbid Auction work?',
-      a: 'Companies and SaaS tools can sponsor challenge arenas through fixed Bronze ($50), Silver ($150) tiers, or compete in the live Gold Outbid Auction (floor $100.00, min increment +$25 / +10%). The leading Gold sponsor earns 48h co-branded placement alongside the challenge winner.'
-    },
-    {
-      q: 'Do sponsors have any influence over challenge voting or winners?',
-      a: 'Zero. RankLancr enforces a strict separation between brand advertising and competition judging. Winner selection is 100% determined by community merit votes.'
+      q: 'How does the community voting and Steal the Rail mechanic work?',
+      a: 'Top Developer Rail placement is earned by community vote count, not chance or payment amount. When a challenge is live, peers vote on project quality. If a qualifying challenger entry receives strictly more community votes than the current #1 holder, they immediately take over the Top Developer Rail.'
     },
     {
       q: 'How does RankLancr prevent vote rigging and bot manipulation?',
-      a: 'Our voting engine utilizes client browser fingerprinting, strict IP rate-limiting (maximum 5 votes per minute), and one vote per submission per device. Any automated or suspicious voting surges are automatically filtered.'
+      a: 'Our voting engine utilizes browser device fingerprinting, strict IP rate-limiting (maximum 5 votes per minute), and limits voting to one vote per submission per device. Any automated or sybil voting surges are automatically filtered and discarded.'
     },
     {
-      q: 'Are payment transactions secure?',
-      a: 'Yes. All payments on RankLancr are processed through our authorized Merchant of Record (Lemon Squeezy) under PCI-DSS Level 1 compliance with 256-bit SSL encryption. We never store or log raw credit card numbers.'
+      q: 'Are payment transactions secure and refundable?',
+      a: 'All payment transactions are processed securely through our authorized Merchant of Record under PCI-DSS Level 1 compliance with 256-bit SSL encryption. Entry fees and visibility bids are non-refundable as server resources and ad placements are delivered immediately upon checkout.'
     }
   ];
 
   return (
-    <section id="faq" className="py-24 sm:py-32 bg-[#fafafa] border-b-2 border-black">
+    <section id="faq" className="py-20 sm:py-28 bg-[#fafafa] border-b-2 border-black">
       <div className="max-w-[1440px] mx-auto px-4 sm:px-8 lg:px-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
           
@@ -51,11 +47,11 @@ export const Faq: React.FC = () => {
 
             <h2 className="text-3xl sm:text-5xl font-black text-black tracking-tight leading-tight">
               Got Questions? <br />
-              <span className="text-[#e8622c]">We've Got Answers.</span>
+              <span className="text-[#e8622c]">Clear Answers.</span>
             </h2>
 
             <p className="text-slate-600 text-sm sm:text-base leading-relaxed">
-              Everything you need to know about entering skill challenges, public voting, brand sponsorships, and our 72-hour Top Developer visibility rewards.
+              Everything you need to know about entering skill challenges, transparent community voting, advertising visibility placements, and our zero-cash-prize compliance standard.
             </p>
 
             <div className="pt-2">
@@ -63,7 +59,7 @@ export const Faq: React.FC = () => {
                 onClick={() => navigate('/arena')}
                 className="px-6 py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono font-bold text-xs flex items-center gap-2 transition cursor-pointer border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
               >
-                <span>[ ENTER CHALLENGE ARENA ]</span>
+                <span>[ EXPLORE CHALLENGE ARENA ]</span>
                 <ArrowRight className="w-3.5 h-3.5 text-orange-400" />
               </button>
             </div>
