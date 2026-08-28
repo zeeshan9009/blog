@@ -57,23 +57,23 @@ export const Faq: React.FC = () => {
             <div className="pt-2">
               <button
                 onClick={() => navigate('/arena')}
-                className="px-6 py-3.5 bg-black hover:bg-[#e8622c] text-white font-mono font-bold text-xs flex items-center gap-2 transition cursor-pointer border border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]"
+                className="px-6 py-3.5 bg-slate-900 hover:bg-[#e8622c] text-white font-sans font-bold text-xs rounded-xl flex items-center gap-2 transition-all shadow-sm cursor-pointer"
               >
-                <span>[ EXPLORE CHALLENGE ARENA ]</span>
+                <span>Explore Challenge Arena</span>
                 <ArrowRight className="w-3.5 h-3.5 text-orange-400" />
               </button>
             </div>
           </div>
 
           {/* Right Column: Accordion */}
-          <div className="lg:col-span-7 divide-y-2 divide-black border-y-2 border-black bg-white shadow-[6px_6px_0px_0px_rgba(0,0,0,1)]">
+          <div className="lg:col-span-7 divide-y divide-slate-100 bg-white border border-slate-200/90 rounded-2xl shadow-modern overflow-hidden">
             {faqItems.map((item, idx) => {
               const isOpen = openIndex === idx;
               return (
-                <div key={idx} className="p-6">
+                <div key={idx} className="p-6 transition-colors hover:bg-slate-50/50">
                   <button
                     onClick={() => setOpenIndex(isOpen ? null : idx)}
-                    className="w-full flex items-center justify-between text-left gap-4 font-bold text-black hover:text-[#e8622c] text-base transition cursor-pointer"
+                    className="w-full flex items-center justify-between text-left gap-4 font-bold text-slate-900 hover:text-[#e8622c] text-base transition cursor-pointer font-heading"
                   >
                     <span>{item.q}</span>
                     <ChevronDown
@@ -84,7 +84,7 @@ export const Faq: React.FC = () => {
                   </button>
 
                   {isOpen && (
-                    <div className="mt-3 text-slate-600 text-xs sm:text-sm leading-relaxed pr-6 animate-fadeIn font-medium">
+                    <div className="mt-3 text-slate-600 text-sm leading-relaxed pr-6 animate-fadeIn font-normal">
                       {item.a}
                     </div>
                   )}

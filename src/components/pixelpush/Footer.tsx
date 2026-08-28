@@ -139,16 +139,16 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Column 4: Platform Security & Compliance Notice */}
-          <div className="space-y-3 p-4 bg-slate-900/80 border border-slate-800">
-            <div className="text-xs font-mono font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
+          <div className="space-y-3 p-5 bg-slate-900/90 border border-slate-800 rounded-2xl shadow-modern-sm">
+            <div className="text-xs font-sans font-bold uppercase tracking-wider text-white flex items-center gap-1.5">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Skill & Compliance Notice</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              RankLancr is a skill-based competition platform. Voting is 100% merit-based. <strong>No cash prizes or gambling mechanics.</strong>
+            <p className="text-xs text-slate-400 leading-relaxed font-normal font-sans">
+              RankLancr is a skill-based competition platform. Voting is 100% merit-based. <strong className="text-slate-200">No cash prizes or gambling mechanics.</strong>
             </p>
-            <div className="pt-2 border-t border-slate-800 flex items-center gap-2 font-mono text-[10px] text-slate-400">
-              <Lock className="w-3 h-3 text-emerald-400" />
+            <div className="pt-2 border-t border-slate-800 flex items-center gap-2 font-mono text-[11px] text-slate-400">
+              <Lock className="w-3.5 h-3.5 text-emerald-400" />
               <span>256-Bit SSL Encrypted Checkout</span>
             </div>
           </div>
@@ -156,10 +156,10 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Bottom Copyright Bar */}
-        <div className="pt-8 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">
+        <div className="pt-8 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500 font-sans">
           
           <div className="flex items-center gap-3">
-            <div className="w-6 h-6 bg-[#e8622c] flex items-center justify-center text-white text-xs font-black font-mono border border-black">
+            <div className="w-6 h-6 bg-[#e8622c] rounded-md flex items-center justify-center text-white text-xs font-black font-sans shadow-sm">
               R
             </div>
             <span>© 2026 RankLancr • All rights reserved.</span>
