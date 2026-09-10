@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { GlobalScanMap } from './GlobalScanMap';
 import { useAuth } from '../context/AuthContext';
 import { Product } from '../types/product';
 import { Certificate, CertificateStatus, Customer, OwnershipTransfer } from '../types/models';
@@ -495,15 +494,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     }
   ];
 
-  // Country Breakdown
-  const scanLocations = [
-    { country: 'Pakistan', flag: '🇵🇰', count: '0', percent: 0 },
-    { country: 'UAE', flag: '🇦🇪', count: '0', percent: 0 },
-    { country: 'USA', flag: '🇺🇸', count: '0', percent: 0 },
-    { country: 'UK', flag: '🇬🇧', count: '0', percent: 0 },
-    { country: 'Others', flag: '🌐', count: '0', percent: 0 }
-  ];
-
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex antialiased selection:bg-[#155EEF] selection:text-white">
       
@@ -954,37 +944,41 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
               </div>
 
-              {/* ROW 2: SCAN ANALYTICS + PRODUCT STATUS + GLOBAL LOCATIONS */}
+              {/* ROW 2: SCAN ANALYTICS (8 COLS) + PRODUCT HEALTH & STATUS (4 COLS) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                 
-                {/* 2A. Scan Analytics (Area Chart) - 6 Columns */}
-                <div className="lg:col-span-6 bg-white border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+                {/* 2A. Scan Analytics & Verification Trajectory (8 Columns) */}
+                <div className="lg:col-span-8 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
                   
                   {/* Header */}
                   <div className="flex items-center justify-between mb-4">
                     <div className="text-left">
-                      <h3 className="text-sm font-bold text-slate-950">Scan Analytics</h3>
-                      <p className="text-[11px] text-slate-400">Total scans over the last 30 days</p>
+                      <div className="inline-flex items-center gap-1 text-[10px] font-mono text-blue-600 font-bold uppercase tracking-wider mb-0.5">
+                        <Activity className="w-3 h-3" />
+                        <span>Telemetry Trajectory</span>
+                      </div>
+                      <h3 className="text-sm font-bold text-slate-950">Scan & Verification Volume</h3>
+                      <p className="text-[11px] text-slate-400">Total consumer verifications and security handshakes over time</p>
                     </div>
-                    <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs text-slate-700 cursor-pointer hover:bg-slate-100">
+                    <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs text-slate-700 cursor-pointer hover:bg-slate-100 shadow-2xs">
                       <span className="text-[11px] font-medium">{timeRange}</span>
                       <ChevronDown className="w-3 h-3 text-slate-400" />
                     </div>
                   </div>
 
                   {/* Chart Canvas with SVG Line & Gradient */}
-                  <div className="relative w-full h-48 sm:h-52 pt-4">
+                  <div className="relative w-full h-52 sm:h-56 pt-4">
                     
                     {/* Y-Axis Grid Lines & Values */}
                     <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-mono text-slate-300 pointer-events-none pb-6">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>2K</span>
+                        <span>2,000</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>1.5K</span>
+                        <span>1,500</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>1K</span>
+                        <span>1,000</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
                         <span>500</span>
@@ -995,10 +989,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     </div>
 
                     {/* SVG Area & Square Stepped Line */}
-                    <svg viewBox="0 0 600 150" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
+                    <svg viewBox="0 0 700 160" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
                       <defs>
                         <linearGradient id="scanSquareGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#155EEF" stopOpacity="0.10" />
+                          <stop offset="0%" stopColor="#155EEF" stopOpacity="0.12" />
                           <stop offset="100%" stopColor="#155EEF" stopOpacity="0.00" />
                         </linearGradient>
                       </defs>
@@ -1006,23 +1000,23 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       {totalScansCount > 0 ? (
                         <>
                           <path
-                            d="M 0 145 H 100 V 120 H 220 V 90 H 350 V 60 H 450 V 40 H 600 V 150 H 0 Z"
+                            d="M 0 155 H 120 V 125 H 260 V 90 H 420 V 55 H 550 V 35 H 700 V 160 H 0 Z"
                             fill="url(#scanSquareGradient)"
                           />
                           <path
-                            d="M 0 145 H 100 V 120 H 220 V 90 H 350 V 60 H 450 V 40 H 600"
+                            d="M 0 155 H 120 V 125 H 260 V 90 H 420 V 55 H 550 V 35 H 700"
                             fill="none"
                             stroke="#155EEF"
                             strokeWidth="2.5"
                             strokeLinecap="square"
                           />
-                          <rect x="446" y="36" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
+                          <rect x="546" y="31" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
                         </>
                       ) : (
                         <>
-                          <path d="M 0 145 H 600 V 150 H 0 Z" fill="url(#scanSquareGradient)" />
-                          <path d="M 0 145 H 600" fill="none" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="square" />
-                          <rect x="420" y="141" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
+                          <path d="M 0 155 H 700 V 160 H 0 Z" fill="url(#scanSquareGradient)" />
+                          <path d="M 0 155 H 700" fill="none" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="square" />
+                          <rect x="500" y="151" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
                         </>
                       )}
                     </svg>
@@ -1030,7 +1024,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     {/* Floating Square Tooltip */}
                     <div 
                       className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-[10.5px] font-mono shadow-lg -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
-                      style={{ left: '71%', top: totalScansCount > 0 ? '35%' : '80%' }}
+                      style={{ left: '72%', top: totalScansCount > 0 ? '30%' : '85%' }}
                     >
                       <div className="text-slate-400 text-[9px] font-medium">Sep 22, 2026</div>
                       <div className="font-bold text-white text-xs mt-0.5">{totalScansCount} scans</div>
@@ -1052,15 +1046,21 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                 </div>
 
-                {/* 2B. Product Status Donut Chart - 3 Columns */}
-                <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                {/* 2B. Product Health & Status Distribution (4 Columns) */}
+                <div className="lg:col-span-4 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
                   
-                  <div className="text-left mb-2">
-                    <h3 className="text-sm font-bold text-slate-950">Product Status</h3>
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="text-left">
+                      <h3 className="text-sm font-bold text-slate-950">Passport Integrity Status</h3>
+                      <p className="text-[11px] text-slate-400">Cryptographic health of inventory</p>
+                    </div>
+                    <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
+                      100% HEALTH
+                    </span>
                   </div>
 
                   {/* Donut Chart Graphics */}
-                  <div className="relative w-36 h-36 mx-auto my-2 flex items-center justify-center">
+                  <div className="relative w-36 h-36 mx-auto my-3 flex items-center justify-center">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
                       <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="12" fill="none" />
                       {totalProductsCount > 0 && (
@@ -1080,17 +1080,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                     {/* Donut Center text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-lg font-black text-slate-950 leading-none">{totalProductsCount}</span>
-                      <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Products</span>
+                      <span className="text-xl font-black text-slate-950 leading-none">{totalProductsCount}</span>
+                      <span className="text-[10px] text-slate-400 font-medium mt-1">Total Passports</span>
                     </div>
                   </div>
 
                   {/* Legend List */}
-                  <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
+                  <div className="space-y-2 text-xs text-left pt-3 border-t border-slate-100">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className={`w-2 h-2 rounded-full ${verifiedProductsCount > 0 ? 'bg-[#155EEF]' : 'bg-slate-300'}`} />
-                        <span className="text-slate-600">Verified</span>
+                        <span className="text-slate-700 font-medium">Verified Original</span>
                       </div>
                       <span className="font-mono font-bold text-slate-900">
                         {verifiedProductsCount} <span className="font-normal text-slate-400">({totalProductsCount > 0 ? Math.round((verifiedProductsCount / totalProductsCount) * 100) : 0}%)</span>
@@ -1100,7 +1100,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-slate-600">Pending</span>
+                        <span className="text-slate-600">Pending Anchor</span>
                       </div>
                       <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
                     </div>
@@ -1108,79 +1108,39 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-slate-600">Flagged</span>
+                        <span className="text-slate-600">Fraud Flagged</span>
                       </div>
                       <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
                     </div>
-
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-slate-600">Expired</span>
-                      </div>
-                      <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
-                    </div>
-                  </div>
-
-                </div>
-
-                {/* 2C. Global Scan Locations - 3 Columns */}
-                <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-                  
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-slate-950">Global Scan Locations</h3>
-                    <button 
-                      onClick={() => setActiveTab('logs')}
-                      className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 cursor-pointer"
-                    >
-                      <span>View Details</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  {/* Interactive World Map */}
-                  <GlobalScanMap />
-
-                  {/* Country Breakdown Rows */}
-                  <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
-                    {scanLocations.map((loc, idx) => (
-                      <div key={idx} className="flex items-center justify-between text-[11.5px]">
-                        <div className="flex items-center gap-2">
-                          <span>{loc.flag}</span>
-                          <span className="text-slate-700 font-medium">{loc.country}</span>
-                        </div>
-                        <div className="flex items-center gap-2 font-mono">
-                          <span className="font-bold text-slate-900">{loc.count}</span>
-                          <span className="text-slate-400 text-[10px] w-7 text-right">{loc.percent}%</span>
-                        </div>
-                      </div>
-                    ))}
                   </div>
 
                 </div>
 
               </div>
 
-              {/* ROW 3: RECENT PRODUCTS TABLE + ACTIVITY FEED + BULK QR */}
+              {/* ROW 3: RECENT PRODUCTS (7 COLS) + ACTIVITY FEED & QUICK ACTIONS (5 COLS) */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                 
-                {/* 3A. Recent Products Table - 6 Columns */}
-                <div className="lg:col-span-6 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                {/* 3A. Recent Products Table (7 Columns) */}
+                <div className="lg:col-span-7 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
                   
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-slate-950">Recent Products</h3>
+                  <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-950">Recent Cryptographic Passports</h3>
+                      <p className="text-[11px] text-slate-400">Latest serialized products anchored to ledger</p>
+                    </div>
                     <button 
                       onClick={() => setActiveTab('products')}
                       className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 cursor-pointer"
                     >
-                      <span>View All</span>
+                      <span>View All Products</span>
                       <ArrowRight className="w-3 h-3" />
                     </button>
                   </div>
 
                   {products.length === 0 ? (
-                    <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
-                      <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-2.5">
+                    <div className="py-12 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
+                      <div className="w-11 h-11 rounded-none bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-3">
                         <PackageOpen className="w-5 h-5" />
                       </div>
                       <h4 className="text-xs font-bold text-slate-900">No products registered yet</h4>
@@ -1189,7 +1149,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       </p>
                       <button 
                         onClick={() => setActiveTab('add-product')}
-                        className="mt-3 px-3 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                        className="mt-3.5 px-4 py-2 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Add Product</span>
@@ -1200,27 +1160,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       <table className="w-full text-left text-xs">
                         <thead>
                           <tr className="border-b border-slate-100 text-[10.5px] font-mono text-slate-400 uppercase tracking-wider">
-                            <th className="pb-2 font-semibold">Product</th>
-                            <th className="pb-2 font-semibold">ID</th>
-                            <th className="pb-2 font-semibold">Category</th>
-                            <th className="pb-2 font-semibold">Status</th>
-                            <th className="pb-2 font-semibold text-right">Actions</th>
+                            <th className="pb-2.5 font-semibold">Product Name</th>
+                            <th className="pb-2.5 font-semibold">Passport ID</th>
+                            <th className="pb-2.5 font-semibold">Category</th>
+                            <th className="pb-2.5 font-semibold">Status</th>
+                            <th className="pb-2.5 font-semibold text-right">Actions</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-100">
+                        <tbody className="divide-y divide-slate-100 font-sans">
                           {products.slice(0, 5).map((prod) => (
                             <tr key={prod.id} className="hover:bg-slate-50 transition-colors">
-                              <td className="py-2.5">
+                              <td className="py-3">
                                 <span className="font-bold text-slate-900">{prod.name}</span>
                               </td>
-                              <td className="py-2.5 font-mono text-[11px] text-[#155EEF] font-semibold">{prod.id}</td>
-                              <td className="py-2.5 text-slate-600 text-[11.5px]">{prod.category}</td>
-                              <td className="py-2.5">
+                              <td className="py-3 font-mono text-[11px] text-[#155EEF] font-semibold">{prod.id}</td>
+                              <td className="py-3 text-slate-600 text-[11.5px]">{prod.category}</td>
+                              <td className="py-3">
                                 <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
                                   <span>✓</span> {prod.status}
                                 </span>
                               </td>
-                              <td className="py-2.5 text-right">
+                              <td className="py-3 text-right">
                                 <button
                                   onClick={() => setSelectedPassportProduct(prod)}
                                   className="text-slate-400 hover:text-[#155EEF] p-1 transition-colors cursor-pointer"
@@ -1238,84 +1198,39 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                 </div>
 
-                {/* 3B. Recent Activity Feed - 3 Columns */}
-                <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                {/* 3B. Live Activity & Quick Actions (5 Columns) */}
+                <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
                   
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-bold text-slate-950">Recent Activity</h3>
-                    <button className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1">
-                      <span>View All</span>
-                      <ArrowRight className="w-3 h-3" />
-                    </button>
-                  </div>
-
-                  {activities.length === 0 ? (
-                    <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
-                        <Activity className="w-4 h-4" />
-                      </div>
-                      <h4 className="text-xs font-bold text-slate-800">No activity recorded</h4>
-                      <p className="text-[10.5px] text-slate-400 max-w-[180px] mt-0.5 leading-snug">
-                        Live verifications and QR scans will appear here automatically.
-                      </p>
+                  {/* Recent Activity */}
+                  <div className="bg-white border border-slate-200 p-5 shadow-xs flex-1">
+                    <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
+                      <h3 className="text-xs font-bold text-slate-950 uppercase font-mono tracking-wider">Live Security Events</h3>
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                     </div>
-                  ) : (
-                    <div className="space-y-3 text-left">
-                      {activities.map((act) => (
-                        <div key={act.id} className="flex items-start gap-2.5 p-2 bg-slate-50/80 border border-slate-100">
-                          <div className="w-6 h-6 rounded-full bg-blue-100 text-[#155EEF] flex items-center justify-center shrink-0 mt-0.5">
-                            <ShieldCheck className="w-3.5 h-3.5" />
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="text-[11px] font-bold text-slate-900 truncate">{act.title}</div>
-                            <div className="text-[9.5px] font-mono text-slate-400 flex items-center justify-between mt-0.5">
-                              <span>{act.productId}</span>
-                              <span>{act.timestamp}</span>
+
+                    {activities.length === 0 ? (
+                      <div className="py-6 flex flex-col items-center justify-center text-center px-4 bg-slate-50/50 border border-slate-100">
+                        <Activity className="w-4 h-4 text-slate-400 mb-1" />
+                        <p className="text-[10.5px] text-slate-400">No activity recorded yet</p>
+                      </div>
+                    ) : (
+                      <div className="space-y-2 text-left max-h-48 overflow-y-auto">
+                        {activities.slice(0, 4).map((act) => (
+                          <div key={act.id} className="flex items-start gap-2.5 p-2 bg-slate-50 border border-slate-100">
+                            <div className="w-5 h-5 rounded-full bg-blue-100 text-[#155EEF] flex items-center justify-center shrink-0 mt-0.5">
+                              <ShieldCheck className="w-3 h-3" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[11px] font-bold text-slate-900 truncate">{act.title}</div>
+                              <div className="text-[9.5px] font-mono text-slate-400 flex items-center justify-between mt-0.5">
+                                <span>{act.productId}</span>
+                                <span>{act.timestamp}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-
-                </div>
-
-                {/* 3C. Right Stack: Bulk QR Card + Quick Actions - 3 Columns */}
-                <div className="lg:col-span-3 flex flex-col justify-between space-y-3">
-                  
-                  {/* Generate QR Codes in Bulk */}
-                  <div className="bg-slate-950 text-white border border-slate-800 p-4 relative overflow-hidden shadow-md flex flex-col justify-between">
-                    <div className="absolute right-0 top-0 bottom-0 w-28 opacity-40 overflow-hidden pointer-events-none">
-                      <img 
-                        src="/bulk-qr-tag.jpg" 
-                        alt="Bulk QR Tag" 
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.style.display = 'none';
-                        }}
-                      />
-                    </div>
-
-                    <div className="relative z-10 text-left">
-                      <h4 className="text-sm font-bold text-white leading-tight">
-                        Generate<br />QR Codes in Bulk
-                      </h4>
-                      <p className="text-[11px] text-slate-400 mt-1 max-w-[170px] leading-relaxed">
-                        Save hours of manual work. Create and download QR codes for all your products at once.
-                      </p>
-                    </div>
-
-                    <div className="relative z-10 mt-4">
-                      <button 
-                        onClick={() => setActiveTab('qrcodes')}
-                        className="px-3 py-1.5 bg-white text-slate-950 hover:bg-slate-100 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
-                      >
-                        <span>Open QR Studio</span>
-                        <ArrowRight className="w-3 h-3 text-[#155EEF]" />
-                      </button>
-                    </div>
-
+                        ))}
+                      </div>
+                    )}
                   </div>
 
                   {/* Quick Actions 2x2 Grid */}
@@ -1331,6 +1246,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       </button>
 
                       <button 
+                        onClick={() => setActiveTab('qrcodes')}
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Scan className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <span>QR Studio</span>
+                      </button>
+
+                      <button 
                         onClick={() => setActiveTab('certificates')}
                         className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
@@ -1343,29 +1266,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                         className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
                         <Users className="w-3.5 h-3.5 text-[#155EEF]" />
-                        <span>Customers</span>
+                        <span>Custodians</span>
                       </button>
-
-                      <button 
-                        onClick={() => setActiveTab('analytics')}
-                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
-                      >
-                        <BarChart3 className="w-3.5 h-3.5 text-[#155EEF]" />
-                        <span>Reports</span>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* System Status Pill */}
-                  <div className="bg-white border border-slate-200 p-2.5 flex items-center justify-between text-[10.5px] font-mono text-slate-500 shadow-2xs">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                      <span className="text-slate-800 font-bold">All Systems Operational</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-slate-400">
-                      <span>API 99.99%</span>
-                      <span>•</span>
-                      <span>SSL</span>
                     </div>
                   </div>
 
