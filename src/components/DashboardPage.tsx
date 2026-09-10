@@ -314,6 +314,24 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     }
   };
 
+  // Add Batch Products Handler
+  const handleAddBatchProducts = (newBatch: Product[]) => {
+    const updated = [...newBatch, ...products];
+    setProducts(updated);
+    localStorage.setItem('veripass_products', JSON.stringify(updated));
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      title: `Generated batch of ${newBatch.length} cryptographic units (${newBatch[0]?.name || 'Series'})`,
+      productId: newBatch[0]?.id || 'BATCH-RUN',
+      timestamp: 'Just now',
+      type: 'issue'
+    };
+    const updatedActivities = [newActivity, ...activities].slice(0, 10);
+    setActivities(updatedActivities);
+    localStorage.setItem('veripass_activities', JSON.stringify(updatedActivities));
+  };
+
   // Delete Product Handler
   const handleDeleteProduct = (productId: string) => {
     const updated = products.filter((p) => p.id !== productId);
@@ -825,6 +843,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
               products={products}
               onOpenAddProduct={() => setActiveTab('add-product')}
               onPreviewPassport={(p) => setSelectedPassportProduct(p)}
+              onAddBatchProducts={handleAddBatchProducts}
+              defaultBrand={displayCompany}
             />
           )}
 
