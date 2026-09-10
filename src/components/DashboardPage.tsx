@@ -11,6 +11,7 @@ import { CustomersView } from './CustomersView';
 import { AnalyticsView } from './AnalyticsView';
 import { LogsView } from './LogsView';
 import { SettingsView, EnterpriseSettings } from './SettingsView';
+import { PricingPage } from './PricingPage';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
@@ -139,7 +140,7 @@ const businessCategories: Record<string, BusinessData> = {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, initialCategory = 'jewelry' }) => {
   const { user, profile, signOut } = useAuth();
   const [currentCategoryKey, setCurrentCategoryKey] = useState<string>(initialCategory);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'add-product' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'add-product' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings' | 'pricing'>('dashboard');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d' | 'all'>('30d');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
@@ -530,6 +531,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     { id: 'analytics', label: 'Telemetry & BI', icon: BarChart3 },
     { id: 'logs', label: 'Security Audit Trail', icon: ScrollText },
     { id: 'settings', label: 'Enterprise Config', icon: Settings },
+    { id: 'pricing', label: 'Plans & Pricing', icon: Zap, badge: 'HOT' },
   ];
 
   // Dynamic Metric KPI Deck
@@ -823,6 +825,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       <span>{displayCompany}</span>
                     </div>
                   </div>
+
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      setActiveTab('pricing');
+                    }}
+                    className="w-full flex items-center justify-between px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-none transition-colors font-medium cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Zap className="w-3.5 h-3.5 text-[#155EEF]" />
+                      <span>Plans & Upgrade</span>
+                    </div>
+                    <span className="text-[9px] font-mono font-bold bg-[#EFF8FF] text-[#155EEF] px-1 py-0.2 rounded-none">
+                      $29/MO
+                    </span>
+                  </button>
 
                   <button
                     onClick={() => {
@@ -1512,6 +1530,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                 contactEmail: settings.contactEmail || displayEmail
               }}
               onUpdateSetting={handleUpdateSetting}
+            />
+          )}
+
+          {/* TAB 10: PLANS & PRICING MATRIX */}
+          {activeTab === 'pricing' && (
+            <PricingPage
+              onBack={() => setActiveTab('dashboard')}
+              currentPlanId="business"
+              onSelectPlan={(planId) => {
+                alert(`Selected Plan: ${planId.toUpperCase()} Tier. In live mode, this connects to Stripe / Paddle checkout.`);
+                setActiveTab('dashboard');
+              }}
             />
           )}
 
