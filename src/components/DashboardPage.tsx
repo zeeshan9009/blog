@@ -2,10 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { GlobalScanMap } from './GlobalScanMap';
 import { useAuth } from '../context/AuthContext';
 import { Product } from '../types/product';
+import { Certificate, CertificateStatus, Customer, OwnershipTransfer } from '../types/models';
 import { AddProductPage } from './AddProductPage';
 import { ProductPassportModal } from './ProductPassportModal';
 import { QrCodeHub } from './QrCodeHub';
 import { ProductsView } from './ProductsView';
+import { CertificatesView } from './CertificatesView';
+import { CustomersView } from './CustomersView';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
@@ -132,10 +135,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   // Passport preview modal state
   const [selectedPassportProduct, setSelectedPassportProduct] = useState<Product | null>(null);
 
-  // Dynamic Products & Activities state (with LocalStorage cache & zero default)
+  // Dynamic Products state (LocalStorage cache & zero default)
   const [products, setProducts] = useState<Product[]>(() => {
     try {
       const saved = localStorage.getItem('veripass_products');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Dynamic Certificates state
+  const [certificates, setCertificates] = useState<Certificate[]>(() => {
+    try {
+      const saved = localStorage.getItem('veripass_certificates');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  // Dynamic Customers state
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const saved = localStorage.getItem('veripass_customers');
       return saved ? JSON.parse(saved) : [];
     } catch {
       return [];
@@ -256,6 +279,114 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     localStorage.setItem('veripass_products', JSON.stringify(updated));
   };
 
+  // Issue Certificate Handler
+  const handleIssueCertificate = (newCert: Certificate) => {
+    const updated = [newCert, ...certificates];
+    setCertificates(updated);
+    localStorage.setItem('veripass_certificates', JSON.stringify(updated));
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      title: `Issued Authenticity Certificate to ${newCert.recipientName}`,
+      productId: newCert.productId,
+      timestamp: 'Just now',
+      type: 'certificate'
+    };
+    const updatedActivities = [newActivity, ...activities].slice(0, 10);
+    setActivities(updatedActivities);
+    localStorage.setItem('veripass_activities', JSON.stringify(updatedActivities));
+  };
+
+  // Update Certificate Status Handler
+  const handleUpdateCertificateStatus = (id: string, status: CertificateStatus) => {
+    const updated = certificates.map((c) => (c.id === id ? { ...c, status } : c));
+    setCertificates(updated);
+    localStorage.setItem('veripass_certificates', JSON.stringify(updated));
+  };
+
+  // Delete Certificate Handler
+  const handleDeleteCertificate = (id: string) => {
+    const updated = certificates.filter((c) => c.id !== id);
+    setCertificates(updated);
+    localStorage.setItem('veripass_certificates', JSON.stringify(updated));
+  };
+
+  // Add Customer Handler
+  const handleAddCustomer = (newCustomer: Customer) => {
+    const updated = [newCustomer, ...customers];
+    setCustomers(updated);
+    localStorage.setItem('veripass_customers', JSON.stringify(updated));
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      title: `Registered new asset custodian ${newCustomer.fullName}`,
+      productId: newCustomer.id,
+      timestamp: 'Just now',
+      type: 'customer'
+    };
+    const updatedActivities = [newActivity, ...activities].slice(0, 10);
+    setActivities(updatedActivities);
+    localStorage.setItem('veripass_activities', JSON.stringify(updatedActivities));
+  };
+
+  // Transfer Ownership Handler
+  const handleTransferOwnership = (transfer: OwnershipTransfer) => {
+    // Add new customer if needed or update counts
+    const updatedCustomers = customers.map((c) => {
+      if (c.id === transfer.fromCustomerId) {
+        return { ...c, ownedProductsCount: Math.max(0, (c.ownedProductsCount || 1) - 1) };
+      }
+      return c;
+    });
+
+    const newRecipient: Customer = {
+      id: transfer.toCustomerId,
+      fullName: transfer.toCustomerName,
+      email: `${transfer.toCustomerName.toLowerCase().replace(/\s+/g, '.')}@privateclient.id`,
+      country: 'Global Verified',
+      city: 'Capital',
+      tier: 'Verified Buyer',
+      registeredDate: transfer.transferDate,
+      ownedProductsCount: 1,
+      ownedProductIds: [transfer.productId],
+      totalScans: 0,
+      status: 'active',
+      walletAddress: `0x${transfer.txHash.slice(0, 10)}...${transfer.txHash.slice(-6)}`
+    };
+
+    const finalCustomers = [newRecipient, ...updatedCustomers];
+    setCustomers(finalCustomers);
+    localStorage.setItem('veripass_customers', JSON.stringify(finalCustomers));
+
+    // Update certificates status if linked
+    const updatedCertificates = certificates.map((cert) => {
+      if (cert.productId === transfer.productId) {
+        return { ...cert, status: 'transferred' as CertificateStatus };
+      }
+      return cert;
+    });
+    setCertificates(updatedCertificates);
+    localStorage.setItem('veripass_certificates', JSON.stringify(updatedCertificates));
+
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      title: `Transferred ownership of ${transfer.productName} to ${transfer.toCustomerName}`,
+      productId: transfer.productId,
+      timestamp: 'Just now',
+      type: 'transfer'
+    };
+    const updatedActivities = [newActivity, ...activities].slice(0, 10);
+    setActivities(updatedActivities);
+    localStorage.setItem('veripass_activities', JSON.stringify(updatedActivities));
+  };
+
+  // Delete Customer Handler
+  const handleDeleteCustomer = (id: string) => {
+    const updated = customers.filter((c) => c.id !== id);
+    setCustomers(updated);
+    localStorage.setItem('veripass_customers', JSON.stringify(updated));
+  };
+
   const currentBusiness = businessCategories[currentCategoryKey] || businessCategories.jewelry;
 
   const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Admin User';
@@ -275,6 +406,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   const verifiedProductsCount = products.filter((p) => p.status === 'verified').length;
   const totalScansCount = products.reduce((sum, p) => sum + (p.verificationCount || 0), 0);
   const activeQrCount = products.length;
+  const certificatesCount = certificates.length;
+  const customersCount = customers.length;
 
   const latestProduct = products.length > 0 ? products[0] : null;
 
@@ -283,8 +416,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'products', label: 'Products', icon: Box, count: totalProductsCount },
     { id: 'qrcodes', label: 'QR Codes', icon: QrCode, count: activeQrCount },
-    { id: 'certificates', label: 'Certificates', icon: FileCheck2 },
-    { id: 'customers', label: 'Customers', icon: Users },
+    { id: 'certificates', label: 'Certificates', icon: FileCheck2, count: certificatesCount },
+    { id: 'customers', label: 'Customers', icon: Users, count: customersCount },
     { id: 'ownership', label: 'Ownership', icon: UserCheck },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'logs', label: 'Scan Logs', icon: ScrollText },
@@ -502,17 +635,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input 
               type="text"
-              placeholder="Search products, IDs, or scan records..."
+              placeholder="Search products, certificates, customers, IDs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-[#155EEF] text-xs pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:outline-none transition-all rounded-none"
             />
           </div>
 
-          {/* Right Header Actions (Add Product Full Page Button + Notification + User Profile) */}
+          {/* Right Header Actions */}
           <div className="flex items-center gap-3 sm:gap-4">
             
-            {/* Direct Full-Page Add Product Action */}
             <button
               onClick={() => setActiveTab('add-product')}
               className="px-3.5 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
@@ -580,7 +712,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
         {/* ======================================================= */}
         <main className="flex-1 p-5 sm:p-6 lg:p-7 space-y-6 max-w-[1580px] w-full mx-auto">
           
-          {/* TAB 1: ADD PRODUCT & QR FULL PAGE VIEW (NO POPUP) */}
+          {/* TAB 1: ADD PRODUCT & QR FULL PAGE VIEW */}
           {activeTab === 'add-product' && (
             <AddProductPage
               onBack={() => setActiveTab('products')}
@@ -610,7 +742,30 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             />
           )}
 
-          {/* TAB 4: DASHBOARD MAIN OVERVIEW */}
+          {/* TAB 4: CERTIFICATES MANAGEMENT */}
+          {activeTab === 'certificates' && (
+            <CertificatesView
+              products={products}
+              certificates={certificates}
+              onIssueCertificate={handleIssueCertificate}
+              onUpdateCertificateStatus={handleUpdateCertificateStatus}
+              onDeleteCertificate={handleDeleteCertificate}
+              defaultIssuer={displayCompany}
+            />
+          )}
+
+          {/* TAB 5: CUSTOMERS & OWNERSHIP MANAGEMENT */}
+          {(activeTab === 'customers' || activeTab === 'ownership') && (
+            <CustomersView
+              customers={customers}
+              products={products}
+              onAddCustomer={handleAddCustomer}
+              onTransferOwnership={handleTransferOwnership}
+              onDeleteCustomer={handleDeleteCustomer}
+            />
+          )}
+
+          {/* TAB 6: DASHBOARD MAIN OVERVIEW */}
           {activeTab === 'dashboard' && (
             <>
               {/* ROW 1: WELCOME HERO CARD + 2x2 STATS GRID */}
@@ -841,7 +996,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       )}
                     </svg>
 
-                    {/* Floating Square Tooltip over current point */}
+                    {/* Floating Square Tooltip */}
                     <div 
                       className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-[10.5px] font-mono shadow-lg -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
                       style={{ left: '71%', top: totalScansCount > 0 ? '35%' : '80%' }}
@@ -952,7 +1107,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     </button>
                   </div>
 
-                  {/* Interactive World Map with Realtime Telemetry Standby */}
+                  {/* Interactive World Map */}
                   <GlobalScanMap />
 
                   {/* Country Breakdown Rows */}
@@ -992,7 +1147,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     </button>
                   </div>
 
-                  {/* Empty State vs List */}
                   {products.length === 0 ? (
                     <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
                       <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-2.5">
@@ -1098,10 +1252,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                 {/* 3C. Right Stack: Bulk QR Card + Quick Actions - 3 Columns */}
                 <div className="lg:col-span-3 flex flex-col justify-between space-y-3">
                   
-                  {/* Generate QR Codes in Bulk (Dark Card) */}
+                  {/* Generate QR Codes in Bulk */}
                   <div className="bg-slate-950 text-white border border-slate-800 p-4 relative overflow-hidden shadow-md flex flex-col justify-between">
-                    
-                    {/* Background QR Card Image */}
                     <div className="absolute right-0 top-0 bottom-0 w-28 opacity-40 overflow-hidden pointer-events-none">
                       <img 
                         src="/bulk-qr-tag.jpg" 
@@ -1148,19 +1300,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       </button>
 
                       <button 
-                        onClick={() => setActiveTab('qrcodes')}
-                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
-                      >
-                        <Scan className="w-3.5 h-3.5 text-[#155EEF]" />
-                        <span>View QRs</span>
-                      </button>
-
-                      <button 
                         onClick={() => setActiveTab('certificates')}
                         className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
-                        <FileText className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <FileCheck2 className="w-3.5 h-3.5 text-[#155EEF]" />
                         <span>Certificates</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setActiveTab('customers')}
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Users className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <span>Customers</span>
                       </button>
 
                       <button 
@@ -1190,10 +1342,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
               </div>
 
-              {/* ROW 4: BOTTOM WIDE BANNER (More Trust. More Value.) */}
+              {/* ROW 4: BOTTOM WIDE BANNER */}
               <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-[#0F172A] border border-slate-800 p-6 sm:p-7 relative overflow-hidden shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
-                
-                {/* Background geometric lighting */}
                 <div className="absolute top-0 right-1/4 w-72 h-full bg-[#155EEF]/10 blur-3xl pointer-events-none" />
 
                 <div className="text-left relative z-10">
@@ -1214,7 +1364,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                   </div>
                 </div>
 
-                {/* Right Metallic Card Emblem */}
                 <div className="relative z-10 flex items-center gap-3">
                   <div className="w-36 h-20 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 border border-slate-700 p-3 flex flex-col justify-between shadow-xl">
                     <div className="flex items-center justify-between">
@@ -1232,7 +1381,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
           )}
 
           {/* OTHER TABS FALLBACK */}
-          {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'qrcodes' && activeTab !== 'add-product' && (
+          {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'qrcodes' && activeTab !== 'add-product' && activeTab !== 'certificates' && activeTab !== 'customers' && activeTab !== 'ownership' && (
             <div className="bg-white border border-slate-200 p-10 text-center flex flex-col items-center justify-center space-y-3">
               <div className="w-12 h-12 bg-blue-50 border border-blue-100 text-[#155EEF] flex items-center justify-center font-bold">
                 <Layers className="w-6 h-6" />
@@ -1264,7 +1413,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
       </div>
 
-      {/* CONSUMER DIGITAL PASSPORT MODAL (For when user clicks View Passport) */}
+      {/* CONSUMER DIGITAL PASSPORT MODAL */}
       <ProductPassportModal
         isOpen={!!selectedPassportProduct}
         product={selectedPassportProduct}
