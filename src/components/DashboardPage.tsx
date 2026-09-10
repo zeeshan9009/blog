@@ -11,7 +11,7 @@ import { CertificatesView } from './CertificatesView';
 import { CustomersView } from './CustomersView';
 import { AnalyticsView } from './AnalyticsView';
 import { LogsView } from './LogsView';
-import { SettingsView } from './SettingsView';
+import { SettingsView, EnterpriseSettings } from './SettingsView';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
@@ -176,6 +176,34 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
       return [];
     }
   });
+
+  // Real-Time Enterprise Settings state
+  const [settings, setSettings] = useState<EnterpriseSettings>(() => {
+    try {
+      const saved = localStorage.getItem('veripass_enterprise_settings');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return {
+      brandName: '',
+      brandSubdomain: 'albadar',
+      contactEmail: '',
+      defaultOrigin: 'Switzerland',
+      currency: 'USD ($)',
+      antiCounterfeitMode: 'strict',
+      quantumProofEnabled: true,
+      geoFenceAlert: true,
+      brandColor: '#155EEF',
+      passportTheme: 'luxury_dark'
+    };
+  });
+
+  const handleUpdateSetting = <K extends keyof EnterpriseSettings>(key: K, value: EnterpriseSettings[K]) => {
+    setSettings((prev) => {
+      const updated = { ...prev, [key]: value };
+      localStorage.setItem('veripass_enterprise_settings', JSON.stringify(updated));
+      return updated;
+    });
+  };
 
   // Dynamically map registered business type to visual category
   useEffect(() => {
@@ -393,9 +421,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   const currentBusiness = businessCategories[currentCategoryKey] || businessCategories.jewelry;
 
   const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Admin User';
-  const displayCompany = profile?.companyName || user?.user_metadata?.company_name || currentBusiness.companyName;
+  const displayCompany = settings.brandName.trim() || profile?.companyName || user?.user_metadata?.company_name || currentBusiness.companyName;
   const displayCompanyId = profile?.companyId || user?.user_metadata?.company_id || currentBusiness.companyId;
-  const displayEmail = profile?.email || user?.email || 'admin@veripass.id';
+  const displayEmail = settings.contactEmail.trim() || profile?.email || user?.email || 'admin@veripass.id';
   const userInitials = displayName
     .split(' ')
     .filter(Boolean)
@@ -1403,6 +1431,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             <SettingsView
               companyName={displayCompany}
               companyId={displayCompanyId}
+              settings={{
+                ...settings,
+                brandName: settings.brandName || displayCompany,
+                contactEmail: settings.contactEmail || displayEmail
+              }}
+              onUpdateSetting={handleUpdateSetting}
             />
           )}
 
