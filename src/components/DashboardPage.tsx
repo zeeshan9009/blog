@@ -48,7 +48,18 @@ import {
   PackageOpen,
   Inbox,
   Eye,
-  Trash2
+  Trash2,
+  Zap,
+  ShieldAlert,
+  Cpu,
+  Fingerprint,
+  Radio,
+  Clock,
+  Key,
+  Copy,
+  CheckCheck,
+  Download,
+  Filter
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -129,10 +140,11 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   const { user, profile, signOut } = useAuth();
   const [currentCategoryKey, setCurrentCategoryKey] = useState<string>(initialCategory);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'add-product' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings'>('dashboard');
-  const [timeRange, setTimeRange] = useState('Last 30 days');
+  const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d' | 'all'>('30d');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
   // Passport preview modal state
   const [selectedPassportProduct, setSelectedPassportProduct] = useState<Product | null>(null);
@@ -417,6 +429,12 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     localStorage.setItem('veripass_customers', JSON.stringify(updated));
   };
 
+  const copyPassportId = (id: string) => {
+    navigator.clipboard.writeText(id);
+    setCopiedId(id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
   const currentBusiness = businessCategories[currentCategoryKey] || businessCategories.jewelry;
 
   const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Admin User';
@@ -429,7 +447,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     .map((n: string) => n[0])
     .join('')
     .slice(0, 2)
-    .toUpperCase() || 'AU';
+    .toUpperCase() || 'VP';
 
   // Dynamic calculations
   const totalProductsCount = products.length;
@@ -441,56 +459,64 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
   const latestProduct = products.length > 0 ? products[0] : null;
 
-  // Sidebar items
+  // Sidebar navigation configuration
   const sidebarItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'products', label: 'Products', icon: Box, count: totalProductsCount },
-    { id: 'qrcodes', label: 'QR Codes', icon: QrCode, count: activeQrCount },
-    { id: 'certificates', label: 'Certificates', icon: FileCheck2, count: certificatesCount },
-    { id: 'customers', label: 'Customers', icon: Users, count: customersCount },
-    { id: 'ownership', label: 'Ownership', icon: UserCheck },
-    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
-    { id: 'logs', label: 'Scan Logs', icon: ScrollText },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, badge: 'Live' },
+    { id: 'products', label: 'Products & Passports', icon: Box, count: totalProductsCount },
+    { id: 'qrcodes', label: 'QR Vector Studio', icon: QrCode, count: activeQrCount },
+    { id: 'certificates', label: 'Authenticity Certs', icon: FileCheck2, count: certificatesCount },
+    { id: 'customers', label: 'Custodians & VIPs', icon: Users, count: customersCount },
+    { id: 'ownership', label: 'Ownership Ledger', icon: UserCheck },
+    { id: 'analytics', label: 'Telemetry & BI', icon: BarChart3 },
+    { id: 'logs', label: 'Security Audit Trail', icon: ScrollText },
+    { id: 'settings', label: 'Enterprise Config', icon: Settings },
   ];
 
-  // Dynamic Metric Stats
+  // Dynamic Metric KPI Deck
   const stats = [
     {
-      title: 'Total Products',
+      title: 'Cryptographic Passports',
+      subtitle: 'Anchored Inventory',
       value: totalProductsCount.toString(),
       change: totalProductsCount > 0 ? '+100%' : '0%',
-      trend: 'vs last 30 days',
+      trend: 'ACTIVE',
       icon: Box,
-      sparkline: totalProductsCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120',
-      color: '#155EEF'
+      textColor: 'text-[#155EEF]',
+      bgColor: 'bg-[#EFF8FF] border-blue-200',
+      sparkline: totalProductsCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120'
     },
     {
-      title: 'Verified Products',
-      value: verifiedProductsCount.toString(),
-      change: verifiedProductsCount > 0 ? '+100%' : '0%',
-      trend: 'vs last 30 days',
-      icon: ShieldCheck,
-      sparkline: verifiedProductsCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120',
-      color: '#155EEF'
-    },
-    {
-      title: 'Total Scans',
+      title: 'Consumer Verifications',
+      subtitle: 'Real-time Scans',
       value: totalScansCount.toString(),
-      change: totalScansCount > 0 ? '+100%' : '0%',
-      trend: 'vs last 30 days',
-      icon: Scan,
-      sparkline: totalScansCount > 0 ? 'M0 24 Q 30 16, 60 10 T 120 2' : 'M0 24 H 120',
-      color: '#155EEF'
+      change: totalScansCount > 0 ? '100% Valid' : '0 Scans',
+      trend: 'TAMPER-FREE',
+      icon: ShieldCheck,
+      textColor: 'text-emerald-700',
+      bgColor: 'bg-emerald-50 border-emerald-200',
+      sparkline: totalScansCount > 0 ? 'M0 24 Q 30 16, 60 10 T 120 2' : 'M0 24 H 120'
     },
     {
-      title: 'Active QR Codes',
+      title: 'Active Digital Hangtags',
+      subtitle: 'SVG / PNG Vector QR',
       value: activeQrCount.toString(),
-      change: activeQrCount > 0 ? '+100%' : '0%',
-      trend: 'vs last 30 days',
+      change: activeQrCount > 0 ? 'Print Ready' : 'Standby',
+      trend: 'HIGH-RES',
       icon: QrCode,
-      sparkline: activeQrCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120',
-      color: '#155EEF'
+      textColor: 'text-indigo-700',
+      bgColor: 'bg-indigo-50 border-indigo-200',
+      sparkline: activeQrCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120'
+    },
+    {
+      title: 'Authenticity Certificates',
+      subtitle: 'Immutable Ownership Seals',
+      value: certificatesCount.toString(),
+      change: certificatesCount > 0 ? 'Anchored' : '0 Issued',
+      trend: 'VERIFIED',
+      icon: FileCheck2,
+      textColor: 'text-amber-700',
+      bgColor: 'bg-amber-50 border-amber-200',
+      sparkline: certificatesCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120'
     }
   ];
 
@@ -498,34 +524,42 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     <div className="min-h-screen bg-[#F8FAFC] text-slate-900 font-sans flex antialiased selection:bg-[#155EEF] selection:text-white">
       
       {/* ========================================================= */}
-      {/* 1. LEFT SIDEBAR */}
+      {/* 1. LEFT SHARP PRECISION SIDEBAR */}
       {/* ========================================================= */}
-      <aside className="w-[230px] xl:w-[240px] shrink-0 bg-white border-r border-slate-200 flex flex-col justify-between min-h-screen sticky top-0 h-screen overflow-y-auto z-30">
+      <aside className="w-[235px] xl:w-[250px] shrink-0 bg-white border-r border-slate-200 flex flex-col justify-between min-h-screen sticky top-0 h-screen overflow-y-auto z-30 rounded-none">
         
         {/* Top Section */}
         <div>
           {/* Logo & Brand Header */}
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+          <div className="p-4 sm:p-5 border-b border-slate-100 flex items-center justify-between">
             <div 
               onClick={onBackToHome}
               className="flex items-center gap-2.5 cursor-pointer group"
             >
-              <div className="w-7 h-7 bg-[#155EEF] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#124bbf] transition-colors">
-                <div className="w-3.5 h-3.5 border-2 border-white rounded-none border-r-transparent border-b-transparent rotate-45" />
+              <div className="w-8 h-8 bg-[#155EEF] rounded-none flex items-center justify-center text-white shadow-xs group-hover:bg-[#124bbf] transition-colors">
+                <ShieldCheck className="w-4 h-4 text-white" />
               </div>
-              <div className="flex flex-col">
-                <span className="text-base font-black tracking-tight text-slate-950 font-sans leading-none">
-                  VeriPass
-                </span>
+              <div className="flex flex-col text-left">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base font-black tracking-tight text-slate-950 font-sans leading-none">
+                    VeriPass
+                  </span>
+                  <span className="text-[9px] font-mono font-bold bg-[#EFF8FF] text-[#155EEF] border border-blue-200 px-1 py-0.2 rounded-none">
+                    PRO
+                  </span>
+                </div>
                 <span className="text-[8px] font-bold text-slate-400 tracking-wider mt-0.5 uppercase">
-                  PRODUCT IDENTITY INFRASTRUCTURE
+                  CRYPTOGRAPHIC SUITE
                 </span>
               </div>
             </div>
           </div>
 
           {/* Navigation Links */}
-          <nav className="p-3 space-y-1">
+          <div className="px-3 pt-3 pb-1 text-[9.5px] font-mono font-bold text-slate-400 uppercase tracking-widest text-left">
+            Main Management
+          </div>
+          <nav className="p-2 space-y-0.5">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
               const isActive = activeTab === item.id || (item.id === 'products' && activeTab === 'add-product');
@@ -534,19 +568,25 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as any)}
-                  className={`w-full flex items-center justify-between px-3.5 py-2 text-[13px] font-medium transition-all text-left cursor-pointer rounded-none ${
+                  className={`w-full flex items-center justify-between px-3 py-2 text-[13px] font-medium transition-all text-left cursor-pointer rounded-none ${
                     isActive
-                      ? 'bg-[#EFF8FF] text-[#155EEF] font-semibold shadow-2xs border-l-2 border-[#155EEF]'
-                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
+                      ? 'bg-[#EFF8FF] text-[#155EEF] font-semibold border-l-2 border-[#155EEF]'
+                      : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50 border-l-2 border-transparent'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2.5">
                     <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#155EEF]' : 'text-slate-400'}`} />
-                    <span>{item.label}</span>
+                    <span className="truncate">{item.label}</span>
                   </div>
                   {typeof item.count === 'number' && item.count > 0 && (
-                    <span className="text-[10.5px] font-mono font-bold bg-blue-100 text-[#155EEF] px-1.5 py-0.2">
+                    <span className="text-[10px] font-mono font-bold bg-blue-100 text-[#155EEF] px-1.5 py-0.2 rounded-none">
                       {item.count}
+                    </span>
+                  )}
+                  {item.badge && (
+                    <span className="text-[9px] font-mono font-bold bg-emerald-100 text-emerald-800 px-1 py-0.2 rounded-none flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-none bg-emerald-600 animate-pulse" />
+                      {item.badge}
                     </span>
                   )}
                 </button>
@@ -556,47 +596,44 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
         </div>
 
         {/* Bottom Section */}
-        <div className="p-3 space-y-3 relative">
+        <div className="p-3 space-y-2.5 relative border-t border-slate-100 bg-slate-50/50 rounded-none">
           
-          {/* Futuristic Promo Card (Cylinder 3D device) */}
-          <div className="relative overflow-hidden bg-gradient-to-br from-[#F8FAFC] to-[#EFF6FF] border border-slate-200 p-3 text-left group">
-            <div className="flex items-center gap-2.5">
-              <div className="w-11 h-11 shrink-0 rounded-xs overflow-hidden border border-slate-200/80 bg-white flex items-center justify-center shadow-2xs">
-                <img 
-                  src="/sidebar-cylinder.jpg" 
-                  alt="Digital Future" 
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.style.display = 'none';
-                  }}
-                />
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-[11px] font-bold text-slate-900 leading-tight">
-                  Your products have a digital future.
-                </p>
-                <button className="text-[10.5px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 mt-1 transition-colors">
-                  <span>Upgrade Plan</span>
-                  <ArrowRight className="w-2.5 h-2.5" />
-                </button>
-              </div>
+          {/* Square Precision Node Card */}
+          <div className="bg-white border border-slate-200 p-3 text-left rounded-none shadow-2xs">
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-[9.5px] font-mono font-bold text-slate-500 flex items-center gap-1">
+                <Radio className="w-3 h-3 text-emerald-600 animate-pulse" />
+                Ledger Node #104
+              </span>
+              <span className="text-[9px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded-none">
+                SYNCED
+              </span>
             </div>
+            <p className="text-[11px] font-bold text-slate-900 leading-tight">
+              SHA-256 Tamper Guard
+            </p>
+            <p className="text-[9px] font-mono text-slate-400 mt-0.5">
+              Network Latency: 24ms
+            </p>
           </div>
 
           {/* Organization Switcher Dropdown Button */}
           <div className="relative">
             <div 
               onClick={() => setIsOrgDropdownOpen(!isOrgDropdownOpen)}
-              className="bg-white border border-slate-200 p-2.5 flex items-center justify-between cursor-pointer hover:bg-slate-50 transition-colors shadow-2xs"
+              className="p-2 bg-white border border-slate-200 hover:border-slate-300 rounded-none flex items-center justify-between cursor-pointer transition-colors shadow-2xs"
             >
-              <div className="flex items-center gap-2.5 min-w-0">
-                <div className="w-7 h-7 bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0">
+              <div className="flex items-center gap-2 truncate">
+                <div className="w-6 h-6 bg-slate-100 border border-slate-200 rounded-none flex items-center justify-center font-bold text-xs shrink-0">
                   {currentBusiness.icon}
                 </div>
-                <div className="min-w-0 text-left">
-                  <div className="text-[12px] font-bold text-slate-900 truncate">{displayCompany}</div>
-                  <div className="text-[10px] text-slate-500 truncate">{currentBusiness.categoryName}</div>
+                <div className="truncate text-left">
+                  <div className="text-xs font-bold text-slate-900 truncate leading-tight">
+                    {displayCompany}
+                  </div>
+                  <div className="text-[9px] font-mono text-slate-400 truncate">
+                    {displayCompanyId}
+                  </div>
                 </div>
               </div>
               <ChevronDown className={`w-3.5 h-3.5 text-slate-400 shrink-0 transition-transform ${isOrgDropdownOpen ? 'rotate-180' : ''}`} />
@@ -604,8 +641,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
             {/* Interactive Category Selector Popover */}
             {isOrgDropdownOpen && (
-              <div className="absolute bottom-full left-0 right-0 mb-1.5 bg-white border border-slate-200 shadow-xl z-50 p-1.5 space-y-1 max-h-64 overflow-y-auto">
-                <div className="px-2 py-1 text-[10px] font-bold font-mono text-slate-400 uppercase tracking-wider border-b border-slate-100">
+              <div className="absolute bottom-full left-0 right-0 mb-1 bg-white border border-slate-200 rounded-none shadow-xl z-50 p-1 space-y-0.5 max-h-64 overflow-y-auto">
+                <div className="px-2 py-1 text-[9.5px] font-bold font-mono text-slate-400 uppercase tracking-wider border-b border-slate-100">
                   Switch Business Industry
                 </div>
                 {Object.values(businessCategories).map((biz) => (
@@ -615,7 +652,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       setCurrentCategoryKey(biz.id);
                       setIsOrgDropdownOpen(false);
                     }}
-                    className={`w-full flex items-center justify-between px-2.5 py-1.5 text-xs text-left transition-colors cursor-pointer ${
+                    className={`w-full flex items-center justify-between px-2 py-1.5 text-xs text-left transition-colors cursor-pointer rounded-none ${
                       currentCategoryKey === biz.id ? 'bg-[#EFF8FF] text-[#155EEF] font-bold' : 'text-slate-700 hover:bg-slate-50'
                     }`}
                   >
@@ -634,9 +671,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
           </div>
 
           {/* Footer Version Info */}
-          <div className="flex items-center justify-between text-[10px] text-slate-400 px-1 pt-1 font-mono">
-            <span>VeriPass</span>
-            <span>v1.0.0</span>
+          <div className="flex items-center justify-between text-[9.5px] text-slate-400 px-0.5 font-mono">
+            <span>VeriPass Enterprise</span>
+            <span>v2.4.0</span>
           </div>
 
         </div>
@@ -649,9 +686,9 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         
         {/* TOP NAVBAR / HEADER */}
-        <header className="h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0">
+        <header className="h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0 rounded-none">
           
-          {/* Search Bar */}
+          {/* Search Bar with Keyboard Shortcut */}
           <div className="relative w-full max-w-md">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input 
@@ -659,24 +696,38 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
               placeholder="Search products, certificates, customers, IDs..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-[#155EEF] text-xs pl-9 pr-4 py-2 text-slate-800 placeholder-slate-400 focus:outline-none transition-all rounded-none"
+              className="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-[#155EEF] text-xs pl-9 pr-14 py-2 text-slate-800 placeholder-slate-400 focus:outline-none transition-all rounded-none shadow-2xs"
             />
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[9.5px] font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded-none text-slate-400 shadow-2xs">
+              Ctrl+K
+            </kbd>
           </div>
 
           {/* Right Header Actions */}
           <div className="flex items-center gap-3 sm:gap-4">
             
+            {/* Quick Action Add Product */}
             <button
               onClick={() => setActiveTab('add-product')}
-              className="px-3.5 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+              className="px-3.5 py-2 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer rounded-none shadow-2xs active:translate-y-0.5"
             >
               <Plus className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Add Product</span>
             </button>
 
-            {/* Notification Bell */}
-            <button className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">
+            {/* Quick QR Studio */}
+            <button
+              onClick={() => setActiveTab('qrcodes')}
+              className="hidden md:flex px-3 py-2 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 font-semibold text-xs items-center gap-1.5 transition-colors cursor-pointer rounded-none"
+            >
+              <QrCode className="w-3.5 h-3.5 text-[#155EEF]" />
+              <span>QR Studio</span>
+            </button>
+
+            {/* Notification Bell with pulse indicator */}
+            <button className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 rounded-none transition-colors cursor-pointer border border-transparent hover:border-slate-200">
               <Bell className="w-4 h-4" />
+              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#155EEF] rounded-none ring-2 ring-white" />
             </button>
 
             <div className="h-6 w-[1px] bg-slate-200" />
@@ -685,16 +736,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             <div className="relative">
               <div 
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                className="flex items-center gap-2.5 cursor-pointer group"
+                className="flex items-center gap-2.5 cursor-pointer group p-1 rounded-none hover:bg-slate-50 transition-all"
               >
-                <div className="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center font-mono ring-2 ring-transparent group-hover:ring-[#155EEF] transition-all">
+                <div className="w-8 h-8 rounded-none bg-slate-950 text-white font-bold text-xs flex items-center justify-center font-mono border border-slate-800 group-hover:border-[#155EEF] transition-all shadow-xs">
                   {userInitials}
                 </div>
                 <div className="hidden sm:block text-left">
                   <div className="text-xs font-bold text-slate-900 group-hover:text-[#155EEF] transition-colors leading-tight">
                     {displayName}
                   </div>
-                  <div className="text-[10.5px] text-slate-400 font-medium truncate max-w-[120px]">
+                  <div className="text-[10px] text-slate-400 font-medium truncate max-w-[120px]">
                     {displayCompany}
                   </div>
                 </div>
@@ -703,19 +754,33 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
               {/* User Dropdown Menu */}
               {isUserMenuOpen && (
-                <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 shadow-xl z-50 p-2 text-left rounded-none">
+                <div className="absolute right-0 top-full mt-1.5 w-56 bg-white border border-slate-200 rounded-none shadow-xl z-50 p-2 text-left">
                   <div className="px-2 py-1.5 border-b border-slate-100 mb-1">
                     <div className="text-xs font-bold text-slate-900 truncate">{displayName}</div>
                     <div className="text-[10.5px] font-mono text-slate-400 truncate">{displayEmail}</div>
-                    <div className="text-[10px] text-[#155EEF] font-semibold mt-0.5">{displayCompany}</div>
+                    <div className="inline-flex items-center gap-1 text-[9.5px] font-semibold text-[#155EEF] bg-blue-50 px-1.5 py-0.5 rounded-none mt-1">
+                      <ShieldCheck className="w-3 h-3" />
+                      <span>{displayCompany}</span>
+                    </div>
                   </div>
+
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      setActiveTab('settings');
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-slate-700 hover:bg-slate-50 rounded-none transition-colors font-medium cursor-pointer"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-slate-400" />
+                    <span>Settings</span>
+                  </button>
 
                   <button
                     onClick={() => {
                       setIsUserMenuOpen(false);
                       signOut();
                     }}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors font-medium cursor-pointer rounded-none"
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 rounded-none transition-colors font-medium cursor-pointer mt-1"
                   >
                     <LogOut className="w-3.5 h-3.5" />
                     <span>Sign Out</span>
@@ -731,7 +796,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
         {/* ======================================================= */}
         {/* MAIN BODY DASHBOARD CONTENT BY TAB */}
         {/* ======================================================= */}
-        <main className="flex-1 p-5 sm:p-6 lg:p-7 space-y-6 max-w-[1580px] w-full mx-auto">
+        <main className="flex-1 p-5 sm:p-6 lg:p-7 space-y-6 max-w-[1600px] w-full mx-auto">
           
           {/* TAB 1: ADD PRODUCT & QR FULL PAGE VIEW */}
           {activeTab === 'add-product' && (
@@ -789,210 +854,210 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
           {/* TAB 6: DASHBOARD MAIN OVERVIEW */}
           {activeTab === 'dashboard' && (
             <>
-              {/* ROW 1: WELCOME HERO CARD + 2x2 STATS GRID */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+              {/* ========================================================= */}
+              {/* EXECUTIVE COMMAND HERO BAR (SQUARE HIGH-TECH STYLE) */}
+              {/* ========================================================= */}
+              <div className="relative overflow-hidden bg-slate-950 border border-slate-800 rounded-none p-6 sm:p-7 text-white shadow-lg">
                 
-                {/* 1A. Welcome Hero Card (Seamless 3D Geometric Architectural Stage) */}
-                <div className="lg:col-span-6 xl:col-span-7 bg-white border border-slate-200 p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden shadow-xs min-h-[260px]">
+                {/* Square Background Geometric Grid Accent */}
+                <div 
+                  className="absolute inset-0 pointer-events-none opacity-10 select-none"
+                  style={{
+                    backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
+                    backgroundSize: '24px 24px'
+                  }}
+                />
+
+                <div className="relative z-10 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
                   
-                  {/* SEAMLESS 3D ARCHITECTURAL GEOMETRIC BACKGROUND (RIGHT) */}
-                  <div className="absolute top-0 right-0 bottom-0 h-full w-full sm:w-[55%] md:w-[50%] lg:w-[48%] pointer-events-none select-none overflow-hidden flex items-center justify-end">
-                    
-                    {currentCategoryKey === 'jewelry' || currentCategoryKey === 'watches' || currentCategoryKey === 'fashion' || currentCategoryKey === 'pharma' || currentCategoryKey === 'wine' || currentCategoryKey === 'automotive' ? (
-                      <div 
-                        className="relative w-full h-full flex items-center justify-end"
-                        style={{
-                          maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)',
-                          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)'
-                        }}
-                      >
-                        <img 
-                          src="/hero-3d-pedestal.png" 
-                          alt="Product 3D Pedestal Stage" 
-                          className="w-full h-full object-cover object-right"
-                        />
-                      </div>
-                    ) : (
-                      <div 
-                        className="relative w-full h-full flex items-center justify-end"
-                        style={{
-                          maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)',
-                          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)'
-                        }}
-                      >
-                        <img 
-                          src="/sidebar-cylinder.jpg" 
-                          alt="Quantum Cyber Device Stage" 
-                          className="w-full h-full object-cover object-right"
-                        />
-                      </div>
-                    )}
-
-                  </div>
-
-                  {/* Top Text Content (Left Aligned) */}
-                  <div className="relative z-10 max-w-[65%] text-left">
-                    <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest font-bold text-slate-400 mb-2">
-                      <span className="w-1.5 h-1.5 bg-[#155EEF] rounded-full" />
-                      <span>BUSINESS OVERVIEW</span>
+                  {/* Left Greeting & Organization Status */}
+                  <div className="text-left max-w-xl">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
+                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[10px] font-mono font-bold bg-[#155EEF]/20 text-[#53B1FD] border border-[#155EEF]/40">
+                        <span className="w-1.5 h-1.5 rounded-none bg-[#53B1FD] animate-pulse" />
+                        VAULT ONLINE
+                      </span>
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {displayCompany} • ID: {displayCompanyId}
+                      </span>
                     </div>
 
-                    <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight leading-tight">
-                      Welcome back, {displayName.split(' ')[0]} 👋
+                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+                      Enterprise Command Center
                     </h1>
-                    <p className="text-xs sm:text-[13px] text-slate-500 font-normal mt-1 leading-relaxed">
-                      Your cryptographic passport infrastructure is online and operational.
+                    <p className="text-xs sm:text-[13px] text-slate-300 font-normal mt-1 leading-relaxed">
+                      Real-time cryptographic passport infrastructure, digital asset twin custody, and tamper-proof verification ledger.
                     </p>
+
+                    {/* Quick Launch Action Pills */}
+                    <div className="flex flex-wrap items-center gap-2 mt-4 pt-1">
+                      <button
+                        onClick={() => setActiveTab('add-product')}
+                        className="px-3.5 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs rounded-none flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Issue Passport</span>
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab('qrcodes')}
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <QrCode className="w-3.5 h-3.5 text-[#53B1FD]" />
+                        <span>QR Studio</span>
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab('certificates')}
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <FileCheck2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <span>Issue Certificate</span>
+                      </button>
+
+                      <button
+                        onClick={() => setActiveTab('logs')}
+                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
+                      >
+                        <ScrollText className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Security Logs</span>
+                      </button>
+                    </div>
                   </div>
 
-                  {/* Bottom Row inside Hero: Organization Tag (Left) + Floating Latest Product Badge (Right) */}
-                  <div className="mt-8 flex items-end justify-between gap-4 relative z-10">
-                    
-                    {/* Organization ID Tag (Bottom Left) */}
-                    <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 p-3 flex items-center justify-between gap-3 max-w-[280px] w-full shadow-xs">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 bg-slate-50 border border-slate-200 flex items-center justify-center font-bold text-sm">
-                          {currentBusiness.icon}
-                        </div>
-                        <div className="text-left">
-                          <div className="text-xs font-bold text-slate-900">{displayCompany}</div>
-                          <div className="text-[10px] font-mono text-slate-400">Company ID: {displayCompanyId}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-none flex items-center gap-1">
-                          <span>👑</span> Active Plan
+                  {/* Right Holographic Live Telemetry Badge */}
+                  <div className="flex items-center gap-3">
+                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-none min-w-[240px] text-left">
+                      <div className="flex items-center justify-between text-[10.5px] font-mono text-slate-400 mb-2">
+                        <span className="flex items-center gap-1">
+                          <Cpu className="w-3.5 h-3.5 text-[#53B1FD]" />
+                          Security Score
                         </span>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        <span className="text-emerald-400 font-bold">100% SECURE</span>
+                      </div>
+                      <div className="w-full bg-slate-800 h-2 rounded-none overflow-hidden mb-2">
+                        <div className="bg-[#155EEF] h-full w-full rounded-none" />
+                      </div>
+                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                        <span>Quantum Guard: Active</span>
+                        <span className="text-[#53B1FD] font-semibold">{totalProductsCount} Assets</span>
                       </div>
                     </div>
-
-                    {/* Floating "Latest Product" Card */}
-                    <div 
-                      onClick={() => latestProduct ? setSelectedPassportProduct(latestProduct) : setActiveTab('add-product')}
-                      className="hidden sm:block bg-white/95 backdrop-blur-md border border-slate-200/90 p-2.5 sm:p-3 shadow-md text-left max-w-[200px] w-full cursor-pointer hover:border-[#155EEF] transition-colors"
-                    >
-                      <div className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Latest Product</div>
-                      <div className="text-[11.5px] font-bold text-slate-900 flex items-center gap-1.5 mt-0.5 truncate">
-                        <span className="text-xs">◎</span>
-                        <span className="truncate">{latestProduct ? latestProduct.name : 'No Products Added'}</span>
-                      </div>
-                      <div className="text-[10.5px] font-mono font-semibold text-[#155EEF] flex items-center gap-1 mt-1">
-                        <span>{latestProduct ? latestProduct.id : '+ Add Product'}</span>
-                        <ArrowRight className="w-3 h-3" />
-                      </div>
-                    </div>
-
-                  </div>
-
-                </div>
-
-                {/* 1B. 2x2 Metric Stats Grid (Right 5 Columns) */}
-                <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between space-y-3">
-                  
-                  {/* Date Filter Dropdown */}
-                  <div className="flex items-center justify-end">
-                    <div className="inline-flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs cursor-pointer hover:bg-slate-50">
-                      <span className="font-mono text-[11px]">Sep 1, 2026 - Sep 30, 2026</span>
-                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                    </div>
-                  </div>
-
-                  {/* 2x2 Grid */}
-                  <div className="grid grid-cols-2 gap-3 flex-1">
-                    {stats.map((stat, idx) => {
-                      const Icon = stat.icon;
-                      return (
-                        <div 
-                          key={idx} 
-                          className="bg-white border border-slate-200 p-4 flex flex-col justify-between relative overflow-hidden shadow-xs hover:border-slate-300 transition-colors"
-                        >
-                          <div className="flex items-start justify-between">
-                            <div className="w-8 h-8 rounded-none bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF]">
-                              <Icon className="w-4 h-4" />
-                            </div>
-                            {/* Mini Sparkline SVG */}
-                            <div className="w-16 h-7">
-                              <svg viewBox="0 0 120 30" className="w-full h-full overflow-visible">
-                                <path
-                                  d={stat.sparkline}
-                                  fill="none"
-                                  stroke="#155EEF"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                />
-                              </svg>
-                            </div>
-                          </div>
-
-                          <div className="mt-3 text-left">
-                            <div className="text-[11px] font-medium text-slate-500">{stat.title}</div>
-                            <div className="text-xl font-black text-slate-950 tracking-tight mt-0.5">{stat.value}</div>
-                            <div className="flex items-center gap-1 text-[10.5px] mt-1">
-                              <span className="font-bold text-emerald-600 flex items-center">
-                                {stat.change}
-                              </span>
-                              <span className="text-slate-400">{stat.trend}</span>
-                            </div>
-                          </div>
-                        </div>
-                      );
-                    })}
                   </div>
 
                 </div>
 
               </div>
 
-              {/* ROW 2: SCAN ANALYTICS (8 COLS) + PRODUCT HEALTH & STATUS (4 COLS) */}
+              {/* ========================================================= */}
+              {/* ROW 1: 4-COLUMN SQUARE STATS DECK */}
+              {/* ========================================================= */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
+                {stats.map((stat, idx) => {
+                  const Icon = stat.icon;
+                  return (
+                    <div 
+                      key={idx} 
+                      className="bg-white border border-slate-200 p-4 sm:p-5 flex flex-col justify-between relative overflow-hidden shadow-xs hover:border-slate-300 transition-colors text-left rounded-none group"
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className={`w-9 h-9 rounded-none border flex items-center justify-center ${stat.bgColor} ${stat.textColor} shadow-2xs`}>
+                          <Icon className="w-4 h-4" />
+                        </div>
+                        {/* Mini Sparkline SVG */}
+                        <div className="w-18 h-7">
+                          <svg viewBox="0 0 120 30" className="w-full h-full overflow-visible">
+                            <path
+                              d={stat.sparkline}
+                              fill="none"
+                              stroke="#155EEF"
+                              strokeWidth="2.5"
+                              strokeLinecap="square"
+                            />
+                          </svg>
+                        </div>
+                      </div>
+
+                      <div className="mt-4">
+                        <div className="text-[11px] font-medium text-slate-500">{stat.title}</div>
+                        <div className="text-2xl font-black text-slate-950 tracking-tight mt-0.5">{stat.value}</div>
+                        <div className="flex items-center justify-between text-[10.5px] mt-2 pt-2 border-t border-slate-100">
+                          <span className="font-bold text-emerald-700 flex items-center gap-0.5">
+                            <ArrowUp className="w-3 h-3" />
+                            {stat.change}
+                          </span>
+                          <span className="text-slate-400 font-mono text-[9.5px] uppercase tracking-wider">{stat.subtitle}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* ========================================================= */}
+              {/* ROW 2: SQUARE TELEMETRY (8 COLS) + INTEGRITY GAUGE (4 COLS) */}
+              {/* ========================================================= */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                 
-                {/* 2A. Scan Analytics & Verification Trajectory (8 Columns) */}
-                <div className="lg:col-span-8 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+                {/* 2A. Real-time Telemetry & Verification Volume (8 Columns) */}
+                <div className="lg:col-span-8 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between rounded-none">
                   
-                  {/* Header */}
-                  <div className="flex items-center justify-between mb-4">
+                  {/* Header & Timeframe Switcher */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
                     <div className="text-left">
-                      <div className="inline-flex items-center gap-1 text-[10px] font-mono text-blue-600 font-bold uppercase tracking-wider mb-0.5">
-                        <Activity className="w-3 h-3" />
-                        <span>Telemetry Trajectory</span>
+                      <div className="inline-flex items-center gap-1.5 text-[10px] font-mono text-[#155EEF] font-bold uppercase tracking-wider mb-0.5">
+                        <Activity className="w-3.5 h-3.5" />
+                        <span>Live Verification Stream</span>
                       </div>
-                      <h3 className="text-sm font-bold text-slate-950">Scan & Verification Volume</h3>
-                      <p className="text-[11px] text-slate-400">Total consumer verifications and security handshakes over time</p>
+                      <h3 className="text-base font-bold text-slate-950">Cryptographic Verification Trajectory</h3>
+                      <p className="text-xs text-slate-400">Authentications, QR handshakes, and cryptographic nonce matching</p>
                     </div>
-                    <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs text-slate-700 cursor-pointer hover:bg-slate-100 shadow-2xs">
-                      <span className="text-[11px] font-medium">{timeRange}</span>
-                      <ChevronDown className="w-3 h-3 text-slate-400" />
+
+                    {/* Timeframe Filter Tabs */}
+                    <div className="flex items-center bg-slate-100 p-0.5 rounded-none text-xs font-semibold text-slate-600 self-start sm:self-auto border border-slate-200">
+                      {(['24h', '7d', '30d', '90d', 'all'] as const).map((range) => (
+                        <button
+                          key={range}
+                          onClick={() => setTimeRange(range)}
+                          className={`px-3 py-1 rounded-none text-xs transition-all cursor-pointer uppercase font-mono ${
+                            timeRange === range
+                              ? 'bg-[#155EEF] text-white font-bold shadow-2xs'
+                              : 'hover:text-slate-900 hover:bg-slate-200/60'
+                          }`}
+                        >
+                          {range}
+                        </button>
+                      ))}
                     </div>
                   </div>
 
-                  {/* Chart Canvas with SVG Line & Gradient */}
-                  <div className="relative w-full h-52 sm:h-56 pt-4">
+                  {/* Chart Canvas with Smooth Stepped Area Curve */}
+                  <div className="relative w-full h-56 sm:h-64 pt-4">
                     
                     {/* Y-Axis Grid Lines & Values */}
-                    <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-mono text-slate-300 pointer-events-none pb-6">
+                    <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-mono text-slate-300 pointer-events-none pb-7">
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>2,000</span>
+                        <span>2,500</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>1,500</span>
+                        <span>1,875</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>1,000</span>
+                        <span>1,250</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                        <span>500</span>
+                        <span>625</span>
                       </div>
                       <div className="flex items-center justify-between border-b border-slate-100 pb-1">
                         <span>0</span>
                       </div>
                     </div>
 
-                    {/* SVG Area & Square Stepped Line */}
-                    <svg viewBox="0 0 700 160" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
+                    {/* SVG Area & Smooth Stepped Line */}
+                    <svg viewBox="0 0 700 180" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
                       <defs>
-                        <linearGradient id="scanSquareGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                          <stop offset="0%" stopColor="#155EEF" stopOpacity="0.12" />
+                        <linearGradient id="telemetryBlueGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#155EEF" stopOpacity="0.16" />
                           <stop offset="100%" stopColor="#155EEF" stopOpacity="0.00" />
                         </linearGradient>
                       </defs>
@@ -1000,117 +1065,129 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       {totalScansCount > 0 ? (
                         <>
                           <path
-                            d="M 0 155 H 120 V 125 H 260 V 90 H 420 V 55 H 550 V 35 H 700 V 160 H 0 Z"
-                            fill="url(#scanSquareGradient)"
+                            d="M 0 170 H 100 V 135 H 220 V 95 H 360 V 65 H 490 V 35 H 610 V 15 H 700 V 180 H 0 Z"
+                            fill="url(#telemetryBlueGradient)"
                           />
                           <path
-                            d="M 0 155 H 120 V 125 H 260 V 90 H 420 V 55 H 550 V 35 H 700"
+                            d="M 0 170 H 100 V 135 H 220 V 95 H 360 V 65 H 490 V 35 H 610 V 15 H 700"
                             fill="none"
                             stroke="#155EEF"
                             strokeWidth="2.5"
                             strokeLinecap="square"
                           />
-                          <rect x="546" y="31" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
+                          <rect x="606" y="11" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
                         </>
                       ) : (
                         <>
-                          <path d="M 0 155 H 700 V 160 H 0 Z" fill="url(#scanSquareGradient)" />
-                          <path d="M 0 155 H 700" fill="none" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="square" />
-                          <rect x="500" y="151" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
+                          <path d="M 0 175 H 700 V 180 H 0 Z" fill="url(#telemetryBlueGradient)" />
+                          <path d="M 0 175 H 700" fill="none" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="square" />
+                          <rect x="550" y="171" width="8" height="8" fill="#94A3B8" stroke="#FFFFFF" strokeWidth="2" />
                         </>
                       )}
                     </svg>
 
-                    {/* Floating Square Tooltip */}
+                    {/* Floating Pulse Indicator */}
                     <div 
-                      className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-[10.5px] font-mono shadow-lg -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
-                      style={{ left: '72%', top: totalScansCount > 0 ? '30%' : '85%' }}
+                      className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-xs font-mono shadow-xl -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
+                      style={{ left: '85%', top: totalScansCount > 0 ? '15%' : '88%' }}
                     >
-                      <div className="text-slate-400 text-[9px] font-medium">Sep 22, 2026</div>
+                      <div className="text-slate-400 text-[9px]">Peak Telemetry</div>
                       <div className="font-bold text-white text-xs mt-0.5">{totalScansCount} scans</div>
                       <div className="w-2 h-2 bg-slate-950 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-slate-700" />
                     </div>
 
                     {/* X-Axis labels */}
                     <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mt-2 px-1">
-                      <span>Sep 1</span>
-                      <span>Sep 5</span>
-                      <span>Sep 10</span>
-                      <span>Sep 15</span>
-                      <span className="font-bold text-[#155EEF]">Sep 20</span>
-                      <span>Sep 25</span>
-                      <span>Sep 30</span>
+                      <span>Day 1</span>
+                      <span>Day 5</span>
+                      <span>Day 10</span>
+                      <span>Day 15</span>
+                      <span>Day 20</span>
+                      <span className="font-bold text-[#155EEF]">Today</span>
                     </div>
 
+                  </div>
+
+                  {/* Summary Metric Strip Underneath Chart */}
+                  <div className="grid grid-cols-3 gap-3 pt-4 mt-4 border-t border-slate-100 text-left">
+                    <div>
+                      <div className="text-[10px] font-mono text-slate-400 uppercase">Avg Response Time</div>
+                      <div className="text-sm font-bold text-slate-900 mt-0.5">24 ms</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono text-slate-400 uppercase">Tamper Flag Rate</div>
+                      <div className="text-sm font-bold text-emerald-700 mt-0.5">0.00% (Clean)</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] font-mono text-slate-400 uppercase">Integrity Confidence</div>
+                      <div className="text-sm font-bold text-[#155EEF] mt-0.5">99.98% Cryptographic</div>
+                    </div>
                   </div>
 
                 </div>
 
-                {/* 2B. Product Health & Status Distribution (4 Columns) */}
-                <div className="lg:col-span-4 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+                {/* 2B. Cryptographic Security & Identity Health Gauge (4 Columns) */}
+                <div className="lg:col-span-4 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between text-left rounded-none">
                   
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div className="text-left">
-                      <h3 className="text-sm font-bold text-slate-950">Passport Integrity Status</h3>
-                      <p className="text-[11px] text-slate-400">Cryptographic health of inventory</p>
+                    <div>
+                      <h3 className="text-sm font-bold text-slate-950">Security Health Index</h3>
+                      <p className="text-[11px] text-slate-400">Cryptographic sub-systems check</p>
                     </div>
-                    <span className="text-[10px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
-                      100% HEALTH
+                    <span className="text-[9.5px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-none">
+                      100% ARMED
                     </span>
                   </div>
 
-                  {/* Donut Chart Graphics */}
-                  <div className="relative w-36 h-36 mx-auto my-3 flex items-center justify-center">
+                  {/* Circular Radial Gauge */}
+                  <div className="relative w-38 h-38 mx-auto my-3 flex items-center justify-center">
                     <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                      <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="12" fill="none" />
-                      {totalProductsCount > 0 && (
-                        <circle
-                          cx="50"
-                          cy="50"
-                          r="40"
-                          stroke="#155EEF"
-                          strokeWidth="12"
-                          fill="none"
-                          strokeDasharray="251.2"
-                          strokeDashoffset={251.2 * (1 - verifiedProductsCount / totalProductsCount)}
-                          strokeLinecap="round"
-                        />
-                      )}
+                      <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="11" fill="none" />
+                      <circle
+                        cx="50"
+                        cy="50"
+                        r="40"
+                        stroke="#155EEF"
+                        strokeWidth="11"
+                        fill="none"
+                        strokeDasharray="251.2"
+                        strokeDashoffset={251.2 * (1 - (totalProductsCount > 0 ? verifiedProductsCount / totalProductsCount : 1))}
+                        strokeLinecap="butt"
+                      />
                     </svg>
 
                     {/* Donut Center text */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <span className="text-xl font-black text-slate-950 leading-none">{totalProductsCount}</span>
-                      <span className="text-[10px] text-slate-400 font-medium mt-1">Total Passports</span>
+                      <ShieldCheck className="w-5 h-5 text-[#155EEF] mb-0.5" />
+                      <span className="text-xl font-black text-slate-950 leading-none">100%</span>
+                      <span className="text-[9.5px] text-slate-400 font-medium mt-0.5">Tamper Proof</span>
                     </div>
                   </div>
 
-                  {/* Legend List */}
-                  <div className="space-y-2 text-xs text-left pt-3 border-t border-slate-100">
-                    <div className="flex items-center justify-between">
+                  {/* Subsystems Checklist */}
+                  <div className="space-y-1.5 text-xs pt-3 border-t border-slate-100">
+                    <div className="flex items-center justify-between p-2 rounded-none bg-slate-50 border border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className={`w-2 h-2 rounded-full ${verifiedProductsCount > 0 ? 'bg-[#155EEF]' : 'bg-slate-300'}`} />
-                        <span className="text-slate-700 font-medium">Verified Original</span>
+                        <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-slate-700 font-medium">SHA-256 Nonce Matching</span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900">
-                        {verifiedProductsCount} <span className="font-normal text-slate-400">({totalProductsCount > 0 ? Math.round((verifiedProductsCount / totalProductsCount) * 100) : 0}%)</span>
-                      </span>
+                      <span className="font-mono text-[9px] font-bold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded-none">VALID</span>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded-none bg-slate-50 border border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-slate-600">Pending Anchor</span>
+                        <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-slate-700 font-medium">Geo-Fence Guard</span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
+                      <span className="font-mono text-[9px] font-bold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded-none">ARMED</span>
                     </div>
 
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between p-2 rounded-none bg-slate-50 border border-slate-100">
                       <div className="flex items-center gap-2">
-                        <span className="w-2 h-2 rounded-full bg-slate-300" />
-                        <span className="text-slate-600">Fraud Flagged</span>
+                        <CheckCheck className="w-3.5 h-3.5 text-emerald-600" />
+                        <span className="text-slate-700 font-medium">DID Custody Protocol</span>
                       </div>
-                      <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
+                      <span className="font-mono text-[9px] font-bold text-emerald-700 bg-emerald-100/60 px-1.5 py-0.2 rounded-none">ACTIVE</span>
                     </div>
                   </div>
 
@@ -1118,73 +1195,91 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
               </div>
 
-              {/* ROW 3: RECENT PRODUCTS (7 COLS) + ACTIVITY FEED & QUICK ACTIONS (5 COLS) */}
+              {/* ========================================================= */}
+              {/* ROW 3: RECENT PASSPORTS (7 COLS) + LIVE ACTIVITY STREAM (5 COLS) */}
+              {/* ========================================================= */}
               <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                 
-                {/* 3A. Recent Products Table (7 Columns) */}
-                <div className="lg:col-span-7 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between">
+                {/* 3A. Recent Cryptographic Passports (7 Columns) */}
+                <div className="lg:col-span-7 bg-white border border-slate-200 p-6 shadow-xs flex flex-col justify-between text-left rounded-none">
                   
                   <div className="flex items-center justify-between mb-4 border-b border-slate-100 pb-3">
                     <div>
-                      <h3 className="text-sm font-bold text-slate-950">Recent Cryptographic Passports</h3>
-                      <p className="text-[11px] text-slate-400">Latest serialized products anchored to ledger</p>
+                      <h3 className="text-base font-bold text-slate-950">Active Digital Passports</h3>
+                      <p className="text-xs text-slate-400">Serialized luxury assets secured by cryptographic hashes</p>
                     </div>
                     <button 
                       onClick={() => setActiveTab('products')}
-                      className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 cursor-pointer"
+                      className="text-xs font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 cursor-pointer"
                     >
-                      <span>View All Products</span>
-                      <ArrowRight className="w-3 h-3" />
+                      <span>View All Passports</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
 
                   {products.length === 0 ? (
-                    <div className="py-12 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
-                      <div className="w-11 h-11 rounded-none bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-3">
+                    <div className="py-12 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2 rounded-none">
+                      <div className="w-11 h-11 rounded-none bg-[#EFF8FF] border border-blue-200 flex items-center justify-center text-[#155EEF] mb-3 shadow-xs">
                         <PackageOpen className="w-5 h-5" />
                       </div>
-                      <h4 className="text-xs font-bold text-slate-900">No products registered yet</h4>
-                      <p className="text-[11px] text-slate-500 max-w-xs mt-0.5">
-                        Issue your first cryptographic passport to begin tracking product authenticity.
+                      <h4 className="text-xs font-bold text-slate-900">No cryptographic products registered yet</h4>
+                      <p className="text-[11px] text-slate-500 max-w-sm mt-0.5">
+                        Register your first product to generate an immutable cryptographic passport and high-res vector QR code.
                       </p>
                       <button 
                         onClick={() => setActiveTab('add-product')}
-                        className="mt-3.5 px-4 py-2 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                        className="mt-3.5 px-4 py-2 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>Add Product</span>
+                        <span>Issue First Passport</span>
                       </button>
                     </div>
                   ) : (
                     <div className="w-full overflow-x-auto">
                       <table className="w-full text-left text-xs">
                         <thead>
-                          <tr className="border-b border-slate-100 text-[10.5px] font-mono text-slate-400 uppercase tracking-wider">
-                            <th className="pb-2.5 font-semibold">Product Name</th>
-                            <th className="pb-2.5 font-semibold">Passport ID</th>
-                            <th className="pb-2.5 font-semibold">Category</th>
-                            <th className="pb-2.5 font-semibold">Status</th>
-                            <th className="pb-2.5 font-semibold text-right">Actions</th>
+                          <tr className="border-b border-slate-100 text-[10px] font-mono text-slate-400 uppercase tracking-wider">
+                            <th className="pb-3 font-semibold">Product Name</th>
+                            <th className="pb-3 font-semibold">Passport ID</th>
+                            <th className="pb-3 font-semibold">Category</th>
+                            <th className="pb-3 font-semibold">Status</th>
+                            <th className="pb-3 font-semibold text-right">Actions</th>
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100 font-sans">
                           {products.slice(0, 5).map((prod) => (
-                            <tr key={prod.id} className="hover:bg-slate-50 transition-colors">
+                            <tr key={prod.id} className="hover:bg-slate-50 transition-colors group">
                               <td className="py-3">
-                                <span className="font-bold text-slate-900">{prod.name}</span>
+                                <div className="font-bold text-slate-900">{prod.name}</div>
+                                <div className="text-[9.5px] font-mono text-slate-400">{prod.sku}</div>
                               </td>
-                              <td className="py-3 font-mono text-[11px] text-[#155EEF] font-semibold">{prod.id}</td>
-                              <td className="py-3 text-slate-600 text-[11.5px]">{prod.category}</td>
                               <td className="py-3">
-                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
+                                <div className="flex items-center gap-1.5">
+                                  <span className="font-mono text-[11px] text-[#155EEF] font-semibold">{prod.id}</span>
+                                  <button
+                                    onClick={() => copyPassportId(prod.id)}
+                                    className="text-slate-300 hover:text-slate-600 p-0.5 cursor-pointer"
+                                    title="Copy Passport ID"
+                                  >
+                                    {copiedId === prod.id ? (
+                                      <Check className="w-3 h-3 text-emerald-600" />
+                                    ) : (
+                                      <Copy className="w-3 h-3" />
+                                    )}
+                                  </button>
+                                </div>
+                              </td>
+                              <td className="py-3 text-slate-600 text-[11px]">{prod.category}</td>
+                              <td className="py-3">
+                                <span className="inline-flex items-center gap-1 text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.2 rounded-none">
                                   <span>✓</span> {prod.status}
                                 </span>
                               </td>
                               <td className="py-3 text-right">
                                 <button
                                   onClick={() => setSelectedPassportProduct(prod)}
-                                  className="text-slate-400 hover:text-[#155EEF] p-1 transition-colors cursor-pointer"
-                                  title="View Passport"
+                                  className="text-slate-400 hover:text-[#155EEF] p-1 rounded-none hover:bg-blue-50 transition-colors cursor-pointer"
+                                  title="Inspect Digital Passport"
                                 >
                                   <Eye className="w-4 h-4" />
                                 </button>
@@ -1198,32 +1293,40 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                 </div>
 
-                {/* 3B. Live Activity & Quick Actions (5 Columns) */}
-                <div className="lg:col-span-5 flex flex-col justify-between space-y-4">
+                {/* 3B. Live Security Stream & Quick Launch (5 Columns) */}
+                <div className="lg:col-span-5 flex flex-col justify-between space-y-4 text-left">
                   
-                  {/* Recent Activity */}
-                  <div className="bg-white border border-slate-200 p-5 shadow-xs flex-1">
+                  {/* Live Security Events Feed */}
+                  <div className="bg-white border border-slate-200 p-5 shadow-xs flex-1 rounded-none">
                     <div className="flex items-center justify-between mb-3 border-b border-slate-100 pb-2">
-                      <h3 className="text-xs font-bold text-slate-950 uppercase font-mono tracking-wider">Live Security Events</h3>
-                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-none bg-emerald-500 animate-pulse" />
+                        <h3 className="text-xs font-bold text-slate-950 uppercase font-mono tracking-wider">Live Security Audit Feed</h3>
+                      </div>
+                      <button
+                        onClick={() => setActiveTab('logs')}
+                        className="text-[11px] font-semibold text-[#155EEF] hover:underline cursor-pointer"
+                      >
+                        All Logs
+                      </button>
                     </div>
 
                     {activities.length === 0 ? (
-                      <div className="py-6 flex flex-col items-center justify-center text-center px-4 bg-slate-50/50 border border-slate-100">
+                      <div className="py-7 flex flex-col items-center justify-center text-center px-4 bg-slate-50/50 rounded-none border border-slate-100">
                         <Activity className="w-4 h-4 text-slate-400 mb-1" />
-                        <p className="text-[10.5px] text-slate-400">No activity recorded yet</p>
+                        <p className="text-[10.5px] text-slate-400">Telemetry feed standby</p>
                       </div>
                     ) : (
-                      <div className="space-y-2 text-left max-h-48 overflow-y-auto">
+                      <div className="space-y-1.5 text-left max-h-52 overflow-y-auto pr-1">
                         {activities.slice(0, 4).map((act) => (
-                          <div key={act.id} className="flex items-start gap-2.5 p-2 bg-slate-50 border border-slate-100">
-                            <div className="w-5 h-5 rounded-full bg-blue-100 text-[#155EEF] flex items-center justify-center shrink-0 mt-0.5">
+                          <div key={act.id} className="flex items-start gap-2.5 p-2 bg-slate-50 hover:bg-slate-100/80 border border-slate-100 rounded-none transition-colors">
+                            <div className="w-5 h-5 rounded-none bg-blue-100 text-[#155EEF] flex items-center justify-center shrink-0 mt-0.5">
                               <ShieldCheck className="w-3 h-3" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="text-[11px] font-bold text-slate-900 truncate">{act.title}</div>
+                              <div className="text-[11.5px] font-bold text-slate-900 truncate">{act.title}</div>
                               <div className="text-[9.5px] font-mono text-slate-400 flex items-center justify-between mt-0.5">
-                                <span>{act.productId}</span>
+                                <span className="text-[#155EEF] font-semibold">{act.productId}</span>
                                 <span>{act.timestamp}</span>
                               </div>
                             </div>
@@ -1233,13 +1336,13 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     )}
                   </div>
 
-                  {/* Quick Actions 2x2 Grid */}
-                  <div className="bg-white border border-slate-200 p-4 shadow-xs text-left">
-                    <div className="text-xs font-bold text-slate-900 mb-2.5">Quick Actions</div>
+                  {/* Operations Matrix */}
+                  <div className="bg-white border border-slate-200 p-4 shadow-xs rounded-none">
+                    <div className="text-xs font-bold text-slate-900 mb-2.5">Core Operations</div>
                     <div className="grid grid-cols-2 gap-2">
                       <button 
                         onClick={() => setActiveTab('add-product')}
-                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 rounded-none text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5 text-[#155EEF]" />
                         <span>Add Product</span>
@@ -1247,7 +1350,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                       <button 
                         onClick={() => setActiveTab('qrcodes')}
-                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 rounded-none text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
                         <Scan className="w-3.5 h-3.5 text-[#155EEF]" />
                         <span>QR Studio</span>
@@ -1255,7 +1358,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                       <button 
                         onClick={() => setActiveTab('certificates')}
-                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 rounded-none text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
                         <FileCheck2 className="w-3.5 h-3.5 text-[#155EEF]" />
                         <span>Certificates</span>
@@ -1263,7 +1366,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                       <button 
                         onClick={() => setActiveTab('customers')}
-                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 rounded-none text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
                         <Users className="w-3.5 h-3.5 text-[#155EEF]" />
                         <span>Custodians</span>
@@ -1275,36 +1378,43 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
               </div>
 
-              {/* ROW 4: BOTTOM WIDE BANNER */}
-              <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-[#0F172A] border border-slate-800 p-6 sm:p-7 relative overflow-hidden shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
-                <div className="absolute top-0 right-1/4 w-72 h-full bg-[#155EEF]/10 blur-3xl pointer-events-none" />
+              {/* ========================================================= */}
+              {/* ROW 4: ENTERPRISE TRUST & VALUE BANNER (SQUARE) */}
+              {/* ========================================================= */}
+              <div className="w-full bg-slate-950 border border-slate-800 rounded-none p-6 sm:p-7 relative overflow-hidden shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6 text-left">
+                <div className="absolute top-0 right-1/4 w-80 h-full bg-[#155EEF]/10 blur-3xl pointer-events-none" />
 
-                <div className="text-left relative z-10">
+                <div className="relative z-10 max-w-xl">
+                  <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[9.5px] font-mono font-bold bg-white/10 text-slate-300 border border-white/10 mb-2">
+                    <Sparkles className="w-3 h-3 text-amber-400" />
+                    IMMUTABLE PROVENANCE
+                  </div>
                   <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                    More Trust. More Value.
+                    Secure Product Authenticity & Secondary Value
                   </h2>
-                  <p className="text-xs sm:text-sm text-slate-400 font-normal mt-1 max-w-xl">
-                    Digital product passports build trust, reduce counterfeits and unlock new lifecycle revenue opportunities for luxury brands.
+                  <p className="text-xs sm:text-[13px] text-slate-400 font-normal mt-1 leading-relaxed">
+                    VeriPass cryptographic digital twins eradicate counterfeits, verify secondary market transfers, and build lasting consumer confidence.
                   </p>
                   <div className="mt-4">
                     <button 
                       onClick={() => setActiveTab('add-product')}
-                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs rounded-none flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
                     >
-                      <span>Issue New Passport</span>
+                      <span>Deploy New Cryptographic Passport</span>
                       <ArrowRight className="w-3.5 h-3.5 text-[#155EEF]" />
                     </button>
                   </div>
                 </div>
 
                 <div className="relative z-10 flex items-center gap-3">
-                  <div className="w-36 h-20 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 border border-slate-700 p-3 flex flex-col justify-between shadow-xl">
+                  <div className="w-44 h-24 bg-slate-900 border border-slate-800 rounded-none p-3 flex flex-col justify-between shadow-xl">
                     <div className="flex items-center justify-between">
-                      <span className="text-[10px] font-mono text-slate-400">VERIPASS</span>
-                      <span className="text-xs">🔒</span>
+                      <span className="text-[9.5px] font-mono text-slate-400">VERIPASS VAULT</span>
+                      <ShieldCheck className="w-4 h-4 text-[#53B1FD]" />
                     </div>
                     <div className="text-right">
-                      <span className="text-[11px] font-mono font-bold text-[#155EEF] tracking-widest">VP-PASS</span>
+                      <div className="text-[9.5px] font-mono text-emerald-400 font-bold">256-BIT SHA</div>
+                      <div className="text-[11px] font-mono font-bold text-[#155EEF] tracking-widest">VP-SECURED</div>
                     </div>
                   </div>
                 </div>
@@ -1313,7 +1423,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             </>
           )}
 
-          {/* TAB 6: ANALYTICS MANAGEMENT */}
+          {/* TAB 7: ANALYTICS MANAGEMENT */}
           {activeTab === 'analytics' && (
             <AnalyticsView
               products={products}
@@ -1321,14 +1431,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             />
           )}
 
-          {/* TAB 7: LOGS & SECURITY TELEMETRY */}
+          {/* TAB 8: LOGS & SECURITY TELEMETRY */}
           {activeTab === 'logs' && (
             <LogsView
               products={products}
             />
           )}
 
-          {/* TAB 8: SETTINGS & ENTERPRISE CONFIG */}
+          {/* TAB 9: SETTINGS & ENTERPRISE CONFIG */}
           {activeTab === 'settings' && (
             <SettingsView
               companyName={displayCompany}
