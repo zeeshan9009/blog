@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { GlobalScanMap } from './GlobalScanMap';
+import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
   Box,
@@ -31,7 +32,8 @@ import {
   ChevronRight,
   Lock,
   Globe2,
-  Check
+  Check,
+  LogOut
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -221,13 +223,41 @@ const businessCategories: Record<string, BusinessData> = {
 };
 
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, initialCategory = 'jewelry' }) => {
+  const { user, profile, signOut } = useAuth();
   const [currentCategoryKey, setCurrentCategoryKey] = useState<string>(initialCategory);
   const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings'>('dashboard');
   const [timeRange, setTimeRange] = useState('Last 30 days');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  // Dynamically map registered business type to visual category
+  useEffect(() => {
+    if (profile?.businessType) {
+      const bt = profile.businessType.toLowerCase();
+      if (bt.includes('watch')) setCurrentCategoryKey('watches');
+      else if (bt.includes('fashion') || bt.includes('apparel')) setCurrentCategoryKey('fashion');
+      else if (bt.includes('electronic')) setCurrentCategoryKey('electronics');
+      else if (bt.includes('pharma') || bt.includes('health')) setCurrentCategoryKey('pharma');
+      else if (bt.includes('wine') || bt.includes('spirit')) setCurrentCategoryKey('wine');
+      else if (bt.includes('auto')) setCurrentCategoryKey('automotive');
+      else if (bt.includes('jewel')) setCurrentCategoryKey('jewelry');
+    }
+  }, [profile?.businessType]);
 
   const currentBusiness = businessCategories[currentCategoryKey] || businessCategories.jewelry;
+
+  const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Ahmed Khan';
+  const displayCompany = profile?.companyName || user?.user_metadata?.company_name || currentBusiness.companyName;
+  const displayCompanyId = profile?.companyId || user?.user_metadata?.company_id || currentBusiness.companyId;
+  const displayEmail = profile?.email || user?.email || 'admin@veripass.id';
+  const userInitials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .map((n: string) => n[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase() || 'AK';
 
   // Sidebar items
   const sidebarItems = [
@@ -512,19 +542,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
             <div className="h-6 w-[1px] bg-slate-200" />
 
-            {/* User Profile */}
-            <div className="flex items-center gap-2.5 cursor-pointer group">
-              <div className="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center font-mono">
-                AK
-              </div>
-              <div className="hidden sm:block text-left">
-                <div className="text-xs font-bold text-slate-900 group-hover:text-[#155EEF] transition-colors leading-tight">
-                  Ahmed Khan
+            {/* User Profile Dropdown */}
+            <div className="relative">
+              <div 
+                onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                className="flex items-center gap-2.5 cursor-pointer group"
+              >
+                <div className="w-8 h-8 rounded-full bg-slate-950 text-white font-bold text-xs flex items-center justify-center font-mono ring-2 ring-transparent group-hover:ring-[#155EEF] transition-all">
+                  {userInitials}
                 </div>
-                <div className="text-[10.5px] text-slate-400 font-medium">
-                  Admin
+                <div className="hidden sm:block text-left">
+                  <div className="text-xs font-bold text-slate-900 group-hover:text-[#155EEF] transition-colors leading-tight">
+                    {displayName}
+                  </div>
+                  <div className="text-[10.5px] text-slate-400 font-medium">
+                    {displayCompany}
+                  </div>
                 </div>
+                <ChevronDown className={`w-3.5 h-3.5 text-slate-400 hidden sm:block transition-transform ${isUserMenuOpen ? 'rotate-180' : ''}`} />
               </div>
+
+              {/* User Dropdown Menu */}
+              {isUserMenuOpen && (
+                <div className="absolute right-0 top-full mt-2 w-52 bg-white border border-slate-200 shadow-xl z-50 p-2 text-left rounded-none">
+                  <div className="px-2 py-1.5 border-b border-slate-100 mb-1">
+                    <div className="text-xs font-bold text-slate-900 truncate">{displayName}</div>
+                    <div className="text-[10.5px] font-mono text-slate-400 truncate">{displayEmail}</div>
+                    <div className="text-[10px] text-[#155EEF] font-semibold mt-0.5">{displayCompany}</div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      setIsUserMenuOpen(false);
+                      signOut();
+                    }}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 transition-colors font-medium cursor-pointer rounded-none"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
             </div>
 
           </div>
@@ -593,7 +651,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                 {/* Headline */}
                 <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight leading-tight">
-                  Welcome back, Ahmed 👋
+                  Welcome back, {displayName.split(' ')[0]} 👋
                 </h1>
                 <p className="text-xs sm:text-[13px] text-slate-500 font-normal mt-1 leading-relaxed">
                   Here’s what’s happening with your product identity system today.
@@ -610,8 +668,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                       {currentBusiness.icon}
                     </div>
                     <div className="text-left">
-                      <div className="text-xs font-bold text-slate-900">{currentBusiness.companyName}</div>
-                      <div className="text-[10px] font-mono text-slate-400">Company ID: {currentBusiness.companyId}</div>
+                      <div className="text-xs font-bold text-slate-900">{displayCompany}</div>
+                      <div className="text-[10px] font-mono text-slate-400">Company ID: {displayCompanyId}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-1">

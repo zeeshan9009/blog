@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { OneUrl } from './components/OneUrl';
@@ -11,8 +12,9 @@ import { Footer } from './components/Footer';
 import { AuthPage } from './components/AuthPage';
 import { DashboardPage } from './components/DashboardPage';
 
-export default function App() {
+function MainApp() {
   const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'processing' | 'dashboard' | null>(null);
+  const { user } = useAuth();
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -99,5 +101,13 @@ export default function App() {
       {/* 9. Bottom Footer */}
       <Footer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainApp />
+    </AuthProvider>
   );
 }
