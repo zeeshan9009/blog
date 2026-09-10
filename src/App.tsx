@@ -21,9 +21,19 @@ function MainApp() {
     const handleHashChange = () => {
       const hash = window.location.hash;
       if (hash === '#login' || hash === '#signin') {
-        setAuthMode('signin');
-      } else if (hash === '#signup' || hash === '#get-started' || hash === '#start-building') {
-        setAuthMode('signup');
+        if (user) {
+          window.location.hash = '#dashboard';
+          setAuthMode('dashboard');
+        } else {
+          setAuthMode('signin');
+        }
+      } else if (hash === '#signup' || hash === '#get-started' || hash === '#start-building' || hash === '#create') {
+        if (user) {
+          window.location.hash = '#dashboard';
+          setAuthMode('dashboard');
+        } else {
+          setAuthMode('signup');
+        }
       } else if (hash === '#processing' || hash === '#verify') {
         setAuthMode('processing');
       } else if (hash === '#dashboard' || hash === '#app') {
@@ -38,18 +48,20 @@ function MainApp() {
     handleHashChange();
     window.addEventListener('hashchange', handleHashChange);
     return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+  }, [user]);
 
   const handleOpenAuth = (mode: 'signin' | 'signup' | 'dashboard') => {
+    if (mode === 'dashboard' || (user && (mode === 'signin' || mode === 'signup'))) {
+      window.location.hash = '#dashboard';
+      setAuthMode('dashboard');
+      return;
+    }
     if (mode === 'signin') {
       window.location.hash = '#login';
       setAuthMode('signin');
     } else if (mode === 'signup') {
       window.location.hash = '#signup';
       setAuthMode('signup');
-    } else if (mode === 'dashboard') {
-      window.location.hash = '#dashboard';
-      setAuthMode('dashboard');
     }
   };
 
@@ -77,9 +89,9 @@ function MainApp() {
             backButtonText="Back to Home"
             currentPlanId="business"
             onSelectPlan={(planId) => {
-              if (planId === 'enterprise') {
-                window.location.hash = '#signup';
-                setAuthMode('signup');
+              if (user) {
+                window.location.hash = '#dashboard';
+                setAuthMode('dashboard');
               } else {
                 window.location.hash = '#signup';
                 setAuthMode('signup');

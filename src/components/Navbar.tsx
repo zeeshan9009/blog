@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, ChevronDown, Menu, X, ShieldCheck, Sparkles, Layers, Cpu, Globe, Lock, BookOpen } from 'lucide-react';
+import { ArrowRight, ChevronDown, Menu, X, ShieldCheck, Sparkles, Layers, Cpu, Globe, Lock, BookOpen, LayoutDashboard, LogOut } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export interface NavItem {
   label: string;
@@ -94,11 +95,12 @@ const navItems: NavItem[] = [
 ];
 
 interface NavbarProps {
-  onOpenAuth?: (mode: 'signin' | 'signup') => void;
+  onOpenAuth?: (mode: 'signin' | 'signup' | 'dashboard') => void;
   onOpenPricing?: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => {
+  const { user, profile, signOut } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -217,20 +219,44 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => 
 
           {/* Right Action Buttons - Square UI */}
           <div className="hidden md:flex items-center gap-3">
-            <button
-              onClick={() => onOpenAuth ? onOpenAuth('signin') : (window.location.hash = '#login')}
-              className="text-[14px] font-medium text-neutral-700 hover:text-neutral-950 px-4 py-2 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
-            >
-              Log in
-            </button>
+            {user ? (
+              <div className="flex items-center gap-2.5">
+                <button
+                  onClick={() => onOpenAuth ? onOpenAuth('dashboard') : (window.location.hash = '#dashboard')}
+                  className="group inline-flex items-center justify-center gap-2 px-4 py-2 rounded-none text-xs font-bold uppercase tracking-wider text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 shadow-xs active:translate-y-0.5 cursor-pointer"
+                >
+                  <LayoutDashboard className="w-3.5 h-3.5" />
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
+                </button>
 
-            <button
-              onClick={() => onOpenAuth ? onOpenAuth('signup') : (window.location.hash = '#get-started')}
-              className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 hover:shadow-xs active:translate-y-0.5 cursor-pointer"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1" />
-            </button>
+                <button
+                  onClick={() => signOut()}
+                  className="text-[13px] font-semibold text-slate-600 hover:text-red-600 px-3 py-2 rounded-none border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1.5"
+                  title="Sign Out"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => onOpenAuth ? onOpenAuth('signin') : (window.location.hash = '#login')}
+                  className="text-[14px] font-medium text-neutral-700 hover:text-neutral-950 px-4 py-2 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
+                >
+                  Log in
+                </button>
+
+                <button
+                  onClick={() => onOpenAuth ? onOpenAuth('signup') : (window.location.hash = '#get-started')}
+                  className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 hover:shadow-xs active:translate-y-0.5 cursor-pointer"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1" />
+                </button>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button - Square */}
@@ -276,25 +302,53 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => 
           </div>
 
           <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-col gap-2.5">
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (onOpenAuth) onOpenAuth('signin');
-              }}
-              className="w-full text-center py-2.5 text-sm font-semibold text-neutral-800 rounded-none border border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
-            >
-              Log in
-            </button>
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                if (onOpenAuth) onOpenAuth('signup');
-              }}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors cursor-pointer"
-            >
-              <span>Get Started</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
+            {user ? (
+              <>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenAuth) onOpenAuth('dashboard');
+                    else window.location.hash = '#dashboard';
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors cursor-pointer"
+                >
+                  <LayoutDashboard className="w-4 h-4" />
+                  <span>Go to Dashboard</span>
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    signOut();
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-none transition-colors cursor-pointer"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
+                </button>
+              </>
+            ) : (
+              <>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenAuth) onOpenAuth('signin');
+                  }}
+                  className="w-full text-center py-2.5 text-sm font-semibold text-neutral-800 rounded-none border border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
+                >
+                  Log in
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    if (onOpenAuth) onOpenAuth('signup');
+                  }}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors cursor-pointer"
+                >
+                  <span>Get Started</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </>
+            )}
           </div>
         </div>
       )}
