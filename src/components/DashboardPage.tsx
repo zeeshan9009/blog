@@ -33,7 +33,9 @@ import {
   Lock,
   Globe2,
   Check,
-  LogOut
+  LogOut,
+  PackageOpen,
+  Inbox
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -41,7 +43,7 @@ interface DashboardPageProps {
   initialCategory?: string;
 }
 
-// Business categories data structure
+// Business categories data structure for zero-state visuals
 interface BusinessData {
   id: string;
   categoryName: string;
@@ -54,15 +56,6 @@ interface BusinessData {
     category: string;
   };
   heroImage: string;
-  fallbackEmoji: string;
-  products: Array<{
-    name: string;
-    id: string;
-    category: string;
-    status: string;
-    date: string;
-    icon: string;
-  }>;
 }
 
 const businessCategories: Record<string, BusinessData> = {
@@ -73,20 +66,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-8472',
     icon: '💎',
     latestProduct: {
-      title: '18K Diamond Ring',
-      id: 'VP-2026-BF4K29',
-      category: 'Ring'
+      title: 'No Products Added',
+      id: 'VP-EMPTY-00',
+      category: 'Jewelry'
     },
-    heroImage: '/hero-3d-pedestal.png',
-    fallbackEmoji: '💍',
-    products: [
-      { name: '18K Diamond Ring', id: 'VP-2026-BF4K29', category: 'Ring', status: 'Verified', date: 'Sep 28, 2026', icon: '💍' },
-      { name: 'Gold Necklace', id: 'VP-2026-GN3921', category: 'Necklace', status: 'Verified', date: 'Sep 27, 2026', icon: '📿' },
-      { name: 'Luxury Watch', id: 'VP-2026-WT7710', category: 'Watch', status: 'Verified', date: 'Sep 26, 2026', icon: '⌚' },
-      { name: 'Diamond Earrings', id: 'VP-2026-ER6654', category: 'Earrings', status: 'Pending', date: 'Sep 25, 2026', icon: '✨' },
-      { name: 'Gold Bracelet', id: 'VP-2026-BR4432', category: 'Bracelet', status: 'Verified', date: 'Sep 24, 2026', icon: '💫' },
-      { name: "Men's Ring", id: 'VP-2026-MR1187', category: 'Ring', status: 'Verified', date: 'Sep 23, 2026', icon: '🔘' }
-    ]
+    heroImage: '/hero-3d-pedestal.png'
   },
   watches: {
     id: 'watches',
@@ -95,20 +79,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-9912',
     icon: '⌚',
     latestProduct: {
-      title: 'Tourbillon Titanium 42mm',
-      id: 'VP-2026-WT9012',
-      category: 'Chronograph'
+      title: 'No Watches Added',
+      id: 'VP-EMPTY-00',
+      category: 'Timepiece'
     },
-    heroImage: '/hero-3d-pedestal.png',
-    fallbackEmoji: '⌚',
-    products: [
-      { name: 'Tourbillon Titanium 42mm', id: 'VP-2026-WT9012', category: 'Chronograph', status: 'Verified', date: 'Sep 28, 2026', icon: '⌚' },
-      { name: 'Nautilus Rose Gold', id: 'VP-2026-NR4419', category: 'Dress Watch', status: 'Verified', date: 'Sep 27, 2026', icon: '⏱️' },
-      { name: 'Carbon Diver 300M', id: 'VP-2026-CD1104', category: 'Diver', status: 'Verified', date: 'Sep 26, 2026', icon: '🌊' },
-      { name: 'Perpetual Calendar', id: 'VP-2026-PC8802', category: 'Complication', status: 'Pending', date: 'Sep 25, 2026', icon: '📅' },
-      { name: 'Ceramic Skeleton', id: 'VP-2026-CS3319', category: 'Skeleton', status: 'Verified', date: 'Sep 24, 2026', icon: '⚙️' },
-      { name: 'Vintage Heritage 1958', id: 'VP-2026-VH5501', category: 'Vintage', status: 'Verified', date: 'Sep 23, 2026', icon: '🕰️' }
-    ]
+    heroImage: '/hero-3d-pedestal.png'
   },
   fashion: {
     id: 'fashion',
@@ -117,20 +92,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-3410',
     icon: '👜',
     latestProduct: {
-      title: 'Monogram Leather Tote',
-      id: 'VP-2026-HC8821',
-      category: 'Leather Goods'
+      title: 'No Items Added',
+      id: 'VP-EMPTY-00',
+      category: 'Apparel'
     },
-    heroImage: '/hero-3d-pedestal.png',
-    fallbackEmoji: '👜',
-    products: [
-      { name: 'Monogram Leather Tote', id: 'VP-2026-HC8821', category: 'Leather Goods', status: 'Verified', date: 'Sep 28, 2026', icon: '👜' },
-      { name: 'Silk Evening Gown', id: 'VP-2026-SG7702', category: 'Couture', status: 'Verified', date: 'Sep 27, 2026', icon: '👗' },
-      { name: 'Cashmere Tailored Coat', id: 'VP-2026-CC1049', category: 'Outerwear', status: 'Verified', date: 'Sep 26, 2026', icon: '🧥' },
-      { name: 'Hand-stitched Oxford', id: 'VP-2026-HO9932', category: 'Footwear', status: 'Pending', date: 'Sep 25, 2026', icon: '👞' },
-      { name: 'Silk Twill Scarf', id: 'VP-2026-ST4410', category: 'Accessories', status: 'Verified', date: 'Sep 24, 2026', icon: '🧣' },
-      { name: 'Velvet Clutch Noir', id: 'VP-2026-VC6621', category: 'Handbags', status: 'Verified', date: 'Sep 23, 2026', icon: '👛' }
-    ]
+    heroImage: '/hero-3d-pedestal.png'
   },
   electronics: {
     id: 'electronics',
@@ -139,20 +105,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-1084',
     icon: '⚡',
     latestProduct: {
-      title: 'Neural AR Headset Pro',
-      id: 'VP-2026-EQ4033',
-      category: 'Hardware'
+      title: 'No Devices Added',
+      id: 'VP-EMPTY-00',
+      category: 'Electronics'
     },
-    heroImage: '/sidebar-cylinder.jpg',
-    fallbackEmoji: '⚡',
-    products: [
-      { name: 'Neural AR Headset Pro', id: 'VP-2026-EQ4033', category: 'Hardware', status: 'Verified', date: 'Sep 28, 2026', icon: '🥽' },
-      { name: 'Quantum Core Processor', id: 'VP-2026-QC9910', category: 'Semiconductor', status: 'Verified', date: 'Sep 27, 2026', icon: '💻' },
-      { name: 'Spatial Audio Nodes', id: 'VP-2026-SA4419', category: 'Audio', status: 'Verified', date: 'Sep 26, 2026', icon: '🎧' },
-      { name: 'Haptic Glove Sensor', id: 'VP-2026-HG2201', category: 'Sensory', status: 'Pending', date: 'Sep 25, 2026', icon: '🧤' },
-      { name: 'Zero-Latency Hub', id: 'VP-2026-ZL8809', category: 'Network', status: 'Verified', date: 'Sep 24, 2026', icon: '📡' },
-      { name: 'Biometric Smart Ring', id: 'VP-2026-BR1190', category: 'Wearable', status: 'Verified', date: 'Sep 23, 2026', icon: '💍' }
-    ]
+    heroImage: '/sidebar-cylinder.jpg'
   },
   pharma: {
     id: 'pharma',
@@ -161,20 +118,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-7731',
     icon: '🧬',
     latestProduct: {
-      title: 'Cellular Peptide Serum',
-      id: 'VP-2026-PH5512',
-      category: 'Biotech'
+      title: 'No Formulations Added',
+      id: 'VP-EMPTY-00',
+      category: 'Clinical'
     },
-    heroImage: '/hero-3d-pedestal.png',
-    fallbackEmoji: '🧬',
-    products: [
-      { name: 'Cellular Peptide Serum', id: 'VP-2026-PH5512', category: 'Biotech', status: 'Verified', date: 'Sep 28, 2026', icon: '🧪' },
-      { name: 'Genomic Therapy Vial', id: 'VP-2026-GT8819', category: 'Therapeutics', status: 'Verified', date: 'Sep 27, 2026', icon: '💉' },
-      { name: 'Neuro-Enhancer Formulation', id: 'VP-2026-NE2201', category: 'Nootropic', status: 'Verified', date: 'Sep 26, 2026', icon: '💊' },
-      { name: 'Immune Complex Vaccine', id: 'VP-2026-IC9904', category: 'Immunology', status: 'Pending', date: 'Sep 25, 2026', icon: '🔬' },
-      { name: 'Regenerative Stem Bio-Gel', id: 'VP-2026-RS3311', category: 'RegenMed', status: 'Verified', date: 'Sep 24, 2026', icon: '🧬' },
-      { name: 'Cold-Chain Insulin Batch', id: 'VP-2026-CI4420', category: 'Clinical', status: 'Verified', date: 'Sep 23, 2026', icon: '❄️' }
-    ]
+    heroImage: '/hero-3d-pedestal.png'
   },
   wine: {
     id: 'wine',
@@ -183,20 +131,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-6041',
     icon: '🍷',
     latestProduct: {
-      title: 'Vintage 2018 Grand Cru',
-      id: 'VP-2026-WN3390',
-      category: 'Bordeaux'
+      title: 'No Vintages Added',
+      id: 'VP-EMPTY-00',
+      category: 'Spirits'
     },
-    heroImage: '/hero-3d-pedestal.png',
-    fallbackEmoji: '🍷',
-    products: [
-      { name: 'Vintage 2018 Grand Cru', id: 'VP-2026-WN3390', category: 'Bordeaux', status: 'Verified', date: 'Sep 28, 2026', icon: '🍷' },
-      { name: 'Single Malt 30Y Highland', id: 'VP-2026-SM9901', category: 'Whisky', status: 'Verified', date: 'Sep 27, 2026', icon: '🥃' },
-      { name: 'Prestige Cuvée Blanc', id: 'VP-2026-PC1120', category: 'Champagne', status: 'Verified', date: 'Sep 26, 2026', icon: '🍾' },
-      { name: 'Limited Mezcal Ancestral', id: 'VP-2026-MA8802', category: 'Artisanal', status: 'Pending', date: 'Sep 25, 2026', icon: '🏺' },
-      { name: 'Cabernet Franc Reserve', id: 'VP-2026-CF4419', category: 'Red Wine', status: 'Verified', date: 'Sep 24, 2026', icon: '🍇' },
-      { name: 'Aged Cognac XO Imperial', id: 'VP-2026-AC6631', category: 'Cognac', status: 'Verified', date: 'Sep 23, 2026', icon: '🍸' }
-    ]
+    heroImage: '/hero-3d-pedestal.png'
   },
   automotive: {
     id: 'automotive',
@@ -205,20 +144,11 @@ const businessCategories: Record<string, BusinessData> = {
     companyId: 'COMP-2209',
     icon: '🏎️',
     latestProduct: {
-      title: 'Carbon Ceramic Rotor',
-      id: 'VP-2026-AP7721',
-      category: 'Motorsport'
+      title: 'No Parts Added',
+      id: 'VP-EMPTY-00',
+      category: 'Automotive'
     },
-    heroImage: '/hero-3d-pedestal.png',
-    fallbackEmoji: '🏎️',
-    products: [
-      { name: 'Carbon Ceramic Rotor', id: 'VP-2026-AP7721', category: 'Motorsport', status: 'Verified', date: 'Sep 28, 2026', icon: '⚙️' },
-      { name: 'Forged Titanium Con-Rod', id: 'VP-2026-TC1109', category: 'Powertrain', status: 'Verified', date: 'Sep 27, 2026', icon: '🔩' },
-      { name: 'Aero Carbon Wing Mk.IV', id: 'VP-2026-AW8820', category: 'Aerodynamics', status: 'Verified', date: 'Sep 26, 2026', icon: '🏎️' },
-      { name: 'Inconel Exhaust Manifold', id: 'VP-2026-IE4412', category: 'Exhaust', status: 'Pending', date: 'Sep 25, 2026', icon: '🔥' },
-      { name: 'Sequential Gearset 6-Speed', id: 'VP-2026-SG9904', category: 'Transmission', status: 'Verified', date: 'Sep 24, 2026', icon: '🕹️' },
-      { name: 'Electronic Differential ECU', id: 'VP-2026-ED3301', category: 'Electronics', status: 'Verified', date: 'Sep 23, 2026', icon: '⚡' }
-    ]
+    heroImage: '/hero-3d-pedestal.png'
   }
 };
 
@@ -230,6 +160,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+
+  // Real products and activities initialized to empty arrays (ZERO DATA)
+  const [products, setProducts] = useState<any[]>([]);
+  const [activities, setActivities] = useState<any[]>([]);
 
   // Dynamically map registered business type to visual category
   useEffect(() => {
@@ -247,7 +181,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
   const currentBusiness = businessCategories[currentCategoryKey] || businessCategories.jewelry;
 
-  const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Ahmed Khan';
+  const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Admin User';
   const displayCompany = profile?.companyName || user?.user_metadata?.company_name || currentBusiness.companyName;
   const displayCompanyId = profile?.companyId || user?.user_metadata?.company_id || currentBusiness.companyId;
   const displayEmail = profile?.email || user?.email || 'admin@veripass.id';
@@ -257,7 +191,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     .map((n: string) => n[0])
     .join('')
     .slice(0, 2)
-    .toUpperCase() || 'AK';
+    .toUpperCase() || 'AU';
 
   // Sidebar items
   const sidebarItems = [
@@ -272,99 +206,53 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  // Metric Stats
+  // Zero-State Metric Stats
   const stats = [
     {
       title: 'Total Products',
-      value: '1,250',
-      change: '+12%',
+      value: '0',
+      change: '0%',
       trend: 'vs last 30 days',
       icon: Box,
-      sparkline: 'M0 24 H 30 V 18 H 60 V 12 H 90 V 6 H 120',
+      sparkline: 'M0 24 H 120',
       color: '#155EEF'
     },
     {
       title: 'Verified Products',
-      value: '1,180',
-      change: '+10%',
+      value: '0',
+      change: '0%',
       trend: 'vs last 30 days',
       icon: ShieldCheck,
-      sparkline: 'M0 24 H 25 V 20 H 55 V 14 H 85 V 8 H 120',
+      sparkline: 'M0 24 H 120',
       color: '#155EEF'
     },
     {
       title: 'Total Scans',
-      value: '8,430',
-      change: '+28%',
+      value: '0',
+      change: '0%',
       trend: 'vs last 30 days',
       icon: Scan,
-      sparkline: 'M0 26 H 25 V 22 H 50 V 16 H 80 V 10 H 120',
+      sparkline: 'M0 24 H 120',
       color: '#155EEF'
     },
     {
       title: 'Active QR Codes',
-      value: '1,250',
-      change: '+14%',
+      value: '0',
+      change: '0%',
       trend: 'vs last 30 days',
       icon: QrCode,
-      sparkline: 'M0 25 H 30 V 20 H 60 V 15 H 90 V 8 H 120',
+      sparkline: 'M0 24 H 120',
       color: '#155EEF'
     }
   ];
 
-  // Recent Activity Feed Data
-  const recentActivities = [
-    {
-      icon: CheckCircle2,
-      iconBg: 'bg-emerald-50 text-emerald-600 border border-emerald-200',
-      title: 'Product verified',
-      desc: `${currentBusiness.latestProduct.title} (${currentBusiness.latestProduct.id})`,
-      time: '2 hours ago'
-    },
-    {
-      icon: QrCode,
-      iconBg: 'bg-blue-50 text-blue-600 border border-blue-200',
-      title: 'QR scanned',
-      desc: 'By Customer in Dubai, UAE',
-      time: '3 hours ago'
-    },
-    {
-      icon: Plus,
-      iconBg: 'bg-teal-50 text-teal-600 border border-teal-200',
-      title: 'New product added',
-      desc: `${currentBusiness.products[1]?.name || 'Item'} (${currentBusiness.products[1]?.id || 'VP-2026'})`,
-      time: '5 hours ago'
-    },
-    {
-      icon: UserCheck,
-      iconBg: 'bg-purple-50 text-purple-600 border border-purple-200',
-      title: 'Ownership transfer',
-      desc: 'Verified on VeriPass Public Ledger',
-      time: '1 day ago'
-    },
-    {
-      icon: FileText,
-      iconBg: 'bg-sky-50 text-sky-600 border border-sky-200',
-      title: 'Certificate verified',
-      desc: 'Cryptographic Authenticity Key (#DIA-8842)',
-      time: '1 day ago'
-    },
-    {
-      icon: AlertTriangle,
-      iconBg: 'bg-red-50 text-red-600 border border-red-200',
-      title: 'Suspicious activity detected',
-      desc: 'Multiple scans from unusual IP location',
-      time: '1 day ago'
-    }
-  ];
-
-  // Global Scan Locations Data
+  // Zero-State Country Breakdown
   const scanLocations = [
-    { country: 'Pakistan', flag: '🇵🇰', count: '3,482', percent: 41 },
-    { country: 'UAE', flag: '🇦🇪', count: '1,842', percent: 22 },
-    { country: 'USA', flag: '🇺🇸', count: '1,205', percent: 14 },
-    { country: 'UK', flag: '🇬🇧', count: '842', percent: 10 },
-    { country: 'Others', flag: '🌐', count: '1,059', percent: 13 }
+    { country: 'Pakistan', flag: '🇵🇰', count: '0', percent: 0 },
+    { country: 'UAE', flag: '🇦🇪', count: '0', percent: 0 },
+    { country: 'USA', flag: '🇺🇸', count: '0', percent: 0 },
+    { country: 'UK', flag: '🇬🇧', count: '0', percent: 0 },
+    { country: 'Others', flag: '🌐', count: '0', percent: 0 }
   ];
 
   return (
@@ -461,7 +349,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                   {currentBusiness.icon}
                 </div>
                 <div className="min-w-0 text-left">
-                  <div className="text-[12px] font-bold text-slate-900 truncate">{currentBusiness.companyName}</div>
+                  <div className="text-[12px] font-bold text-slate-900 truncate">{displayCompany}</div>
                   <div className="text-[10px] text-slate-500 truncate">{currentBusiness.categoryName}</div>
                 </div>
               </div>
@@ -537,7 +425,6 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             {/* Notification Bell */}
             <button className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">
               <Bell className="w-4 h-4" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white" />
             </button>
 
             <div className="h-6 w-[1px] bg-slate-200" />
@@ -555,7 +442,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                   <div className="text-xs font-bold text-slate-900 group-hover:text-[#155EEF] transition-colors leading-tight">
                     {displayName}
                   </div>
-                  <div className="text-[10.5px] text-slate-400 font-medium">
+                  <div className="text-[10.5px] text-slate-400 font-medium truncate max-w-[120px]">
                     {displayCompany}
                   </div>
                 </div>
@@ -654,7 +541,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                   Welcome back, {displayName.split(' ')[0]} 👋
                 </h1>
                 <p className="text-xs sm:text-[13px] text-slate-500 font-normal mt-1 leading-relaxed">
-                  Here’s what’s happening with your product identity system today.
+                  Your cryptographic passport infrastructure is online and operational.
                 </p>
               </div>
 
@@ -727,8 +614,8 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                             <path
                               d={stat.sparkline}
                               fill="none"
-                              stroke="#155EEF"
-                              strokeWidth="2.2"
+                              stroke="#94A3B8"
+                              strokeWidth="2"
                               strokeLinecap="round"
                             />
                           </svg>
@@ -739,8 +626,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                         <div className="text-[11px] font-medium text-slate-500">{stat.title}</div>
                         <div className="text-xl font-black text-slate-950 tracking-tight mt-0.5">{stat.value}</div>
                         <div className="flex items-center gap-1 text-[10.5px] mt-1">
-                          <span className="font-bold text-emerald-600 flex items-center">
-                            <ArrowUp className="w-2.5 h-2.5 mr-0.5" />
+                          <span className="font-bold text-slate-400 flex items-center">
                             {stat.change}
                           </span>
                           <span className="text-slate-400">{stat.trend}</span>
@@ -797,73 +683,41 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                   </div>
                 </div>
 
-                {/* SVG Area & Square Stepped Line */}
+                {/* SVG Area & Square Stepped Line (Zero State Flat Line) */}
                 <svg viewBox="0 0 600 150" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
                   <defs>
                     <linearGradient id="scanSquareGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#155EEF" stopOpacity="0.28" />
+                      <stop offset="0%" stopColor="#155EEF" stopOpacity="0.10" />
                       <stop offset="100%" stopColor="#155EEF" stopOpacity="0.00" />
                     </linearGradient>
                   </defs>
 
                   {/* Square Stepped Area Fill */}
                   <path
-                    d="M 0 138 
-                       H 60 V 132 
-                       H 120 V 122 
-                       H 180 V 110 
-                       H 240 V 92 
-                       H 300 V 70 
-                       H 360 V 48 
-                       H 420 V 32 
-                       H 480 V 58 
-                       H 540 V 46 
-                       H 600 
-                       V 150 H 0 Z"
+                    d="M 0 145 H 600 V 150 H 0 Z"
                     fill="url(#scanSquareGradient)"
                   />
 
                   {/* Square Stepped Line Stroke */}
                   <path
-                    d="M 0 138 
-                       H 60 V 132 
-                       H 120 V 122 
-                       H 180 V 110 
-                       H 240 V 92 
-                       H 300 V 70 
-                       H 360 V 48 
-                       H 420 V 32 
-                       H 480 V 58 
-                       H 540 V 46 
-                       H 600"
+                    d="M 0 145 H 600"
                     fill="none"
-                    stroke="#155EEF"
-                    strokeWidth="3"
+                    stroke="#CBD5E1"
+                    strokeWidth="2.5"
                     strokeLinecap="square"
-                    strokeLinejoin="miter"
                   />
 
-                  {/* Square Step Nodes */}
-                  <rect x="57" y="129" width="6" height="6" fill="#155EEF" />
-                  <rect x="117" y="119" width="6" height="6" fill="#155EEF" />
-                  <rect x="177" y="107" width="6" height="6" fill="#155EEF" />
-                  <rect x="237" y="89" width="6" height="6" fill="#155EEF" />
-                  <rect x="297" y="67" width="6" height="6" fill="#155EEF" />
-                  <rect x="357" y="45" width="6" height="6" fill="#155EEF" />
-                  <rect x="477" y="55" width="6" height="6" fill="#155EEF" />
-                  <rect x="537" y="43" width="6" height="6" fill="#155EEF" />
-
-                  {/* Active Square Tooltip Pin at Sep 22 */}
-                  <rect x="415" y="27" width="10" height="10" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2.5" />
+                  {/* Active Tooltip Pin at current day */}
+                  <rect x="420" y="141" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
                 </svg>
 
-                {/* Floating Square Tooltip over Sep 22 */}
+                {/* Floating Square Tooltip over current point */}
                 <div 
                   className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-[10.5px] font-mono shadow-lg -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
-                  style={{ left: '70%', top: '26%' }}
+                  style={{ left: '71%', top: '80%' }}
                 >
                   <div className="text-slate-400 text-[9px] font-medium">Sep 22, 2026</div>
-                  <div className="font-bold text-white text-xs mt-0.5">1,482 scans</div>
+                  <div className="font-bold text-white text-xs mt-0.5">0 scans</div>
                   <div className="w-2 h-2 bg-slate-950 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-slate-700" />
                 </div>
 
@@ -889,52 +743,16 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                 <h3 className="text-sm font-bold text-slate-950">Product Status</h3>
               </div>
 
-              {/* Donut Chart Graphics */}
+              {/* Donut Chart Graphics (Zero Data Neutral Ring) */}
               <div className="relative w-36 h-36 mx-auto my-2 flex items-center justify-center">
                 <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  {/* Gray background ring */}
+                  {/* Gray neutral background ring */}
                   <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="12" fill="none" />
-                  {/* Verified Ring (Green 94%) */}
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="40" 
-                    stroke="#10B981" 
-                    strokeWidth="12" 
-                    fill="none" 
-                    strokeDasharray="251.2" 
-                    strokeDashoffset="15" 
-                    strokeLinecap="round" 
-                  />
-                  {/* Pending Ring (Yellow 4%) */}
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="40" 
-                    stroke="#F59E0B" 
-                    strokeWidth="12" 
-                    fill="none" 
-                    strokeDasharray="251.2" 
-                    strokeDashoffset="241" 
-                    strokeLinecap="round" 
-                  />
-                  {/* Flagged Ring (Red 1%) */}
-                  <circle 
-                    cx="50" 
-                    cy="50" 
-                    r="40" 
-                    stroke="#EF4444" 
-                    strokeWidth="12" 
-                    fill="none" 
-                    strokeDasharray="251.2" 
-                    strokeDashoffset="248" 
-                    strokeLinecap="round" 
-                  />
                 </svg>
 
                 {/* Donut Center text */}
                 <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-lg font-black text-slate-950 leading-none">1,250</span>
+                  <span className="text-lg font-black text-slate-950 leading-none">0</span>
                   <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Products</span>
                 </div>
               </div>
@@ -943,26 +761,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
               <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#10B981]" />
+                    <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="text-slate-600">Verified</span>
                   </div>
-                  <span className="font-mono font-bold text-slate-900">1,180 <span className="font-normal text-slate-400">(94%)</span></span>
+                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#F59E0B]" />
+                    <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="text-slate-600">Pending</span>
                   </div>
-                  <span className="font-mono font-bold text-slate-900">45 <span className="font-normal text-slate-400">(4%)</span></span>
+                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
                 </div>
 
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-[#EF4444]" />
+                    <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="text-slate-600">Flagged</span>
                   </div>
-                  <span className="font-mono font-bold text-slate-900">12 <span className="font-normal text-slate-400">(1%)</span></span>
+                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -970,7 +788,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     <span className="w-2 h-2 rounded-full bg-slate-300" />
                     <span className="text-slate-600">Expired</span>
                   </div>
-                  <span className="font-mono font-bold text-slate-900">13 <span className="font-normal text-slate-400">(1%)</span></span>
+                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
                 </div>
               </div>
 
@@ -1015,7 +833,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
           {/* ===================================================== */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
             
-            {/* 3A. Recent Products Table - 6 Columns */}
+            {/* 3A. Recent Products Table (Clean Zero-State) - 6 Columns */}
             <div className="lg:col-span-6 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
               
               <div className="flex items-center justify-between mb-3">
@@ -1026,75 +844,63 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                 </button>
               </div>
 
-              {/* Table */}
-              <div className="w-full overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead>
-                    <tr className="border-b border-slate-100 text-[10.5px] font-mono text-slate-400 uppercase tracking-wider">
-                      <th className="pb-2 font-semibold">Product</th>
-                      <th className="pb-2 font-semibold">ID</th>
-                      <th className="pb-2 font-semibold">Category</th>
-                      <th className="pb-2 font-semibold">Status</th>
-                      <th className="pb-2 font-semibold">Created</th>
-                      <th className="pb-2 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {currentBusiness.products.map((prod, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                        
-                        {/* Product Thumbnail & Name */}
-                        <td className="py-2.5 flex items-center gap-2.5">
-                          <div className="w-7 h-7 bg-slate-100 border border-slate-200 flex items-center justify-center text-xs shrink-0">
-                            {prod.icon}
-                          </div>
-                          <span className="font-bold text-slate-900 truncate max-w-[130px]">{prod.name}</span>
-                        </td>
-
-                        {/* ID */}
-                        <td className="py-2.5 font-mono text-[11px] text-slate-500">
-                          {prod.id}
-                        </td>
-
-                        {/* Category */}
-                        <td className="py-2.5 text-slate-600 text-[11.5px]">
-                          {prod.category}
-                        </td>
-
-                        {/* Status Badge */}
-                        <td className="py-2.5">
-                          {prod.status === 'Verified' ? (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
-                              <span>✓</span> Verified
-                            </span>
-                          ) : (
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-1.5 py-0.5">
-                              <span>★</span> Pending
-                            </span>
-                          )}
-                        </td>
-
-                        {/* Created Date */}
-                        <td className="py-2.5 font-mono text-[11px] text-slate-400">
-                          {prod.date}
-                        </td>
-
-                        {/* Actions */}
-                        <td className="py-2.5 text-right">
-                          <button className="text-slate-400 hover:text-slate-800 p-1">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </button>
-                        </td>
-
+              {/* Empty State when 0 products */}
+              {products.length === 0 ? (
+                <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
+                  <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-2.5">
+                    <PackageOpen className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-900">No products registered yet</h4>
+                  <p className="text-[11px] text-slate-500 max-w-xs mt-0.5">
+                    Issue your first cryptographic passport to begin tracking product authenticity.
+                  </p>
+                  <button className="mt-3 px-3 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs">
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Product</span>
+                  </button>
+                </div>
+              ) : (
+                <div className="w-full overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead>
+                      <tr className="border-b border-slate-100 text-[10.5px] font-mono text-slate-400 uppercase tracking-wider">
+                        <th className="pb-2 font-semibold">Product</th>
+                        <th className="pb-2 font-semibold">ID</th>
+                        <th className="pb-2 font-semibold">Category</th>
+                        <th className="pb-2 font-semibold">Status</th>
+                        <th className="pb-2 font-semibold">Created</th>
+                        <th className="pb-2 font-semibold text-right">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {products.map((prod, idx) => (
+                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                          <td className="py-2.5 flex items-center gap-2.5">
+                            <span className="font-bold text-slate-900">{prod.name}</span>
+                          </td>
+                          <td className="py-2.5 font-mono text-[11px] text-slate-500">{prod.id}</td>
+                          <td className="py-2.5 text-slate-600 text-[11.5px]">{prod.category}</td>
+                          <td className="py-2.5">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
+                              <span>✓</span> {prod.status}
+                            </span>
+                          </td>
+                          <td className="py-2.5 font-mono text-[11px] text-slate-400">{prod.date}</td>
+                          <td className="py-2.5 text-right">
+                            <button className="text-slate-400 hover:text-slate-800 p-1">
+                              <MoreHorizontal className="w-4 h-4" />
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
 
             </div>
 
-            {/* 3B. Recent Activity Feed - 3 Columns */}
+            {/* 3B. Recent Activity Feed (Clean Zero-State) - 3 Columns */}
             <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
               
               <div className="flex items-center justify-between mb-3">
@@ -1105,30 +911,26 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                 </button>
               </div>
 
-              {/* Feed items */}
-              <div className="space-y-3 text-left">
-                {recentActivities.map((act, idx) => {
-                  const Icon = act.icon;
-                  return (
+              {/* Zero-State Activity */}
+              {activities.length === 0 ? (
+                <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
+                  <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                    <Activity className="w-4 h-4" />
+                  </div>
+                  <h4 className="text-xs font-bold text-slate-800">No activity recorded</h4>
+                  <p className="text-[10.5px] text-slate-400 max-w-[180px] mt-0.5 leading-snug">
+                    Live verifications and QR scans will appear here automatically.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 text-left">
+                  {activities.map((act, idx) => (
                     <div key={idx} className="flex items-start gap-2.5">
-                      <div className={`w-6 h-6 rounded-none flex items-center justify-center shrink-0 mt-0.5 ${act.iconBg}`}>
-                        <Icon className="w-3.5 h-3.5" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-[12px] font-bold text-slate-900 leading-tight truncate">
-                          {act.title}
-                        </div>
-                        <div className="text-[11px] text-slate-500 truncate mt-0.5">
-                          {act.desc}
-                        </div>
-                        <div className="text-[9.5px] font-mono text-slate-400 mt-0.5">
-                          {act.time}
-                        </div>
-                      </div>
+                      <div className="text-xs">{act.title}</div>
                     </div>
-                  );
-                })}
-              </div>
+                  ))}
+                </div>
+              )}
 
             </div>
 

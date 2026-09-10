@@ -22,14 +22,22 @@ const defaultMarkers: ScanLocationMarker[] = [
   { id: 'jp-tokyo', name: 'Japan', city: 'Tokyo', country: 'Japan', flag: '🇯🇵', x: 86.8, y: 41.5, scans: 229 },
 ];
 
-export const GlobalScanMap: React.FC = () => {
+interface GlobalScanMapProps {
+  markers?: ScanLocationMarker[];
+}
+
+export const GlobalScanMap: React.FC<GlobalScanMapProps> = ({ markers = [] }) => {
   const [hoveredMarker, setHoveredMarker] = useState<ScanLocationMarker | null>(null);
   const [activeRealtimePing, setActiveRealtimePing] = useState<{ x: number; y: number; city: string; flag: string } | null>(null);
 
-  // Simulate Supabase Realtime scan events arriving every 5s
+  // Realtime scan telemetry listener (only runs when active scan points exist)
   useEffect(() => {
+    if (!markers || markers.length === 0) return;
+
     const interval = setInterval(() => {
-      const randomMarker = defaultMarkers[Math.floor(Math.random() * defaultMarkers.length)];
+      const randomMarker = markers[Math.floor(Math.random() * markers.length)];
+      if (!randomMarker) return;
+      
       setActiveRealtimePing({
         x: randomMarker.x + (Math.random() * 2 - 1),
         y: randomMarker.y + (Math.random() * 2 - 1),
@@ -45,7 +53,7 @@ export const GlobalScanMap: React.FC = () => {
     }, 4500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [markers]);
 
   return (
     <div className="relative w-full h-32 sm:h-36 bg-[#F8FAFC] border border-slate-100 rounded-none overflow-hidden my-1 flex items-center justify-center select-none group">
@@ -102,7 +110,7 @@ export const GlobalScanMap: React.FC = () => {
       )}
 
       {/* Interactive Markers */}
-      {defaultMarkers.map((marker) => (
+      {markers.map((marker) => (
         <div
           key={marker.id}
           onMouseEnter={() => setHoveredMarker(marker)}
@@ -137,10 +145,19 @@ export const GlobalScanMap: React.FC = () => {
         </div>
       ))}
 
+      {/* Empty State Overlay if 0 markers */}
+      {markers.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <span className="px-2.5 py-1 bg-white/90 backdrop-blur-xs border border-slate-200 text-[10.5px] font-mono font-medium text-slate-500 shadow-2xs">
+            0 Active Scan Nodes
+          </span>
+        </div>
+      )}
+
       {/* Bottom subtle status label */}
       <div className="absolute bottom-1 right-2 flex items-center gap-1.5 text-[9px] font-mono text-slate-400">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-        <span>Supabase Realtime Geolocation Stream</span>
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+        <span>Realtime Telemetry Standby</span>
       </div>
 
     </div>
