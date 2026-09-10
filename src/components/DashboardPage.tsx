@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { GlobalScanMap } from './GlobalScanMap';
 import { useAuth } from '../context/AuthContext';
+import { Product } from '../types/product';
+import { AddProductPage } from './AddProductPage';
+import { ProductPassportModal } from './ProductPassportModal';
+import { QrCodeHub } from './QrCodeHub';
+import { ProductsView } from './ProductsView';
+import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
   Box,
@@ -35,7 +41,9 @@ import {
   Check,
   LogOut,
   PackageOpen,
-  Inbox
+  Inbox,
+  Eye,
+  Trash2
 } from 'lucide-react';
 
 interface DashboardPageProps {
@@ -43,18 +51,13 @@ interface DashboardPageProps {
   initialCategory?: string;
 }
 
-// Business categories data structure for zero-state visuals
+// Business categories data structure for visual themes
 interface BusinessData {
   id: string;
   categoryName: string;
   companyName: string;
   companyId: string;
   icon: string;
-  latestProduct: {
-    title: string;
-    id: string;
-    category: string;
-  };
   heroImage: string;
 }
 
@@ -65,11 +68,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'Albadar Jewellers',
     companyId: 'COMP-8472',
     icon: '💎',
-    latestProduct: {
-      title: 'No Products Added',
-      id: 'VP-EMPTY-00',
-      category: 'Jewelry'
-    },
     heroImage: '/hero-3d-pedestal.png'
   },
   watches: {
@@ -78,11 +76,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'Chronos Genève',
     companyId: 'COMP-9912',
     icon: '⌚',
-    latestProduct: {
-      title: 'No Watches Added',
-      id: 'VP-EMPTY-00',
-      category: 'Timepiece'
-    },
     heroImage: '/hero-3d-pedestal.png'
   },
   fashion: {
@@ -91,11 +84,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'AURA Haute Couture',
     companyId: 'COMP-3410',
     icon: '👜',
-    latestProduct: {
-      title: 'No Items Added',
-      id: 'VP-EMPTY-00',
-      category: 'Apparel'
-    },
     heroImage: '/hero-3d-pedestal.png'
   },
   electronics: {
@@ -104,11 +92,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'Nexus Quantum',
     companyId: 'COMP-1084',
     icon: '⚡',
-    latestProduct: {
-      title: 'No Devices Added',
-      id: 'VP-EMPTY-00',
-      category: 'Electronics'
-    },
     heroImage: '/sidebar-cylinder.jpg'
   },
   pharma: {
@@ -117,11 +100,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'BioVeda Labs',
     companyId: 'COMP-7731',
     icon: '🧬',
-    latestProduct: {
-      title: 'No Formulations Added',
-      id: 'VP-EMPTY-00',
-      category: 'Clinical'
-    },
     heroImage: '/hero-3d-pedestal.png'
   },
   wine: {
@@ -130,11 +108,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'Château Grand Reserve',
     companyId: 'COMP-6041',
     icon: '🍷',
-    latestProduct: {
-      title: 'No Vintages Added',
-      id: 'VP-EMPTY-00',
-      category: 'Spirits'
-    },
     heroImage: '/hero-3d-pedestal.png'
   },
   automotive: {
@@ -143,11 +116,6 @@ const businessCategories: Record<string, BusinessData> = {
     companyName: 'Apex Dynamics',
     companyId: 'COMP-2209',
     icon: '🏎️',
-    latestProduct: {
-      title: 'No Parts Added',
-      id: 'VP-EMPTY-00',
-      category: 'Automotive'
-    },
     heroImage: '/hero-3d-pedestal.png'
   }
 };
@@ -155,15 +123,33 @@ const businessCategories: Record<string, BusinessData> = {
 export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, initialCategory = 'jewelry' }) => {
   const { user, profile, signOut } = useAuth();
   const [currentCategoryKey, setCurrentCategoryKey] = useState<string>(initialCategory);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'add-product' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings'>('dashboard');
   const [timeRange, setTimeRange] = useState('Last 30 days');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
-  // Real products and activities initialized to empty arrays (ZERO DATA)
-  const [products, setProducts] = useState<any[]>([]);
-  const [activities, setActivities] = useState<any[]>([]);
+  // Passport preview modal state
+  const [selectedPassportProduct, setSelectedPassportProduct] = useState<Product | null>(null);
+
+  // Dynamic Products & Activities state (with LocalStorage cache & zero default)
+  const [products, setProducts] = useState<Product[]>(() => {
+    try {
+      const saved = localStorage.getItem('veripass_products');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
+
+  const [activities, setActivities] = useState<any[]>(() => {
+    try {
+      const saved = localStorage.getItem('veripass_activities');
+      return saved ? JSON.parse(saved) : [];
+    } catch {
+      return [];
+    }
+  });
 
   // Dynamically map registered business type to visual category
   useEffect(() => {
@@ -179,6 +165,97 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     }
   }, [profile?.businessType]);
 
+  // Load from Supabase on mount if authenticated
+  useEffect(() => {
+    const fetchSupabaseProducts = async () => {
+      if (!user) return;
+      try {
+        const { data, error } = await supabase
+          .from('products')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (!error && data && data.length > 0) {
+          const mapped: Product[] = data.map((d) => ({
+            id: d.id || d.passport_id,
+            sku: d.sku || 'SKU-DEFAULT',
+            name: d.name,
+            brand: d.brand || currentBusiness.companyName,
+            category: d.category || currentBusiness.categoryName,
+            description: d.description || '',
+            serialNumber: d.serial_number || 'SN-00',
+            batchNumber: d.batch_number || 'BATCH-01',
+            manufacturingDate: d.manufacturing_date || new Date().toISOString().split('T')[0],
+            originCountry: d.origin_country || 'Global',
+            status: d.status || 'verified',
+            passportHash: d.passport_hash || '0x000',
+            verificationCount: d.verification_count || 0,
+            qrCodeUrl: d.qr_code_url || `https://veripass.id/verify/${d.id}`,
+            createdAt: d.created_at || new Date().toISOString().split('T')[0],
+          }));
+          setProducts(mapped);
+          localStorage.setItem('veripass_products', JSON.stringify(mapped));
+        }
+      } catch (err) {
+        // Fallback to local storage state
+      }
+    };
+
+    fetchSupabaseProducts();
+  }, [user]);
+
+  // Add Product Handler
+  const handleAddProduct = async (newProduct: Product) => {
+    const updated = [newProduct, ...products];
+    setProducts(updated);
+    localStorage.setItem('veripass_products', JSON.stringify(updated));
+
+    // Register Activity
+    const newActivity = {
+      id: `act-${Date.now()}`,
+      title: `Issued cryptographic passport for ${newProduct.name}`,
+      productId: newProduct.id,
+      timestamp: 'Just now',
+      type: 'issue'
+    };
+    const updatedActivities = [newActivity, ...activities].slice(0, 10);
+    setActivities(updatedActivities);
+    localStorage.setItem('veripass_activities', JSON.stringify(updatedActivities));
+
+    // Sync to Supabase in background
+    try {
+      if (user) {
+        await supabase.from('products').insert([
+          {
+            id: newProduct.id,
+            name: newProduct.name,
+            sku: newProduct.sku,
+            brand: newProduct.brand,
+            category: newProduct.category,
+            description: newProduct.description,
+            serial_number: newProduct.serialNumber,
+            batch_number: newProduct.batchNumber,
+            manufacturing_date: newProduct.manufacturingDate,
+            origin_country: newProduct.originCountry,
+            status: newProduct.status,
+            passport_hash: newProduct.passportHash,
+            qr_code_url: newProduct.qrCodeUrl,
+            user_id: user.id
+          }
+        ]);
+      }
+    } catch {
+      // Offline / LocalStorage is already persisted
+    }
+  };
+
+  // Delete Product Handler
+  const handleDeleteProduct = (productId: string) => {
+    const updated = products.filter((p) => p.id !== productId);
+    setProducts(updated);
+    localStorage.setItem('veripass_products', JSON.stringify(updated));
+  };
+
   const currentBusiness = businessCategories[currentCategoryKey] || businessCategories.jewelry;
 
   const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Admin User';
@@ -193,11 +270,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     .slice(0, 2)
     .toUpperCase() || 'AU';
 
+  // Dynamic calculations
+  const totalProductsCount = products.length;
+  const verifiedProductsCount = products.filter((p) => p.status === 'verified').length;
+  const totalScansCount = products.reduce((sum, p) => sum + (p.verificationCount || 0), 0);
+  const activeQrCount = products.length;
+
+  const latestProduct = products.length > 0 ? products[0] : null;
+
   // Sidebar items
   const sidebarItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { id: 'products', label: 'Products', icon: Box },
-    { id: 'qrcodes', label: 'QR Codes', icon: QrCode },
+    { id: 'products', label: 'Products', icon: Box, count: totalProductsCount },
+    { id: 'qrcodes', label: 'QR Codes', icon: QrCode, count: activeQrCount },
     { id: 'certificates', label: 'Certificates', icon: FileCheck2 },
     { id: 'customers', label: 'Customers', icon: Users },
     { id: 'ownership', label: 'Ownership', icon: UserCheck },
@@ -206,47 +291,47 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
-  // Zero-State Metric Stats
+  // Dynamic Metric Stats
   const stats = [
     {
       title: 'Total Products',
-      value: '0',
-      change: '0%',
+      value: totalProductsCount.toString(),
+      change: totalProductsCount > 0 ? '+100%' : '0%',
       trend: 'vs last 30 days',
       icon: Box,
-      sparkline: 'M0 24 H 120',
+      sparkline: totalProductsCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120',
       color: '#155EEF'
     },
     {
       title: 'Verified Products',
-      value: '0',
-      change: '0%',
+      value: verifiedProductsCount.toString(),
+      change: verifiedProductsCount > 0 ? '+100%' : '0%',
       trend: 'vs last 30 days',
       icon: ShieldCheck,
-      sparkline: 'M0 24 H 120',
+      sparkline: verifiedProductsCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120',
       color: '#155EEF'
     },
     {
       title: 'Total Scans',
-      value: '0',
-      change: '0%',
+      value: totalScansCount.toString(),
+      change: totalScansCount > 0 ? '+100%' : '0%',
       trend: 'vs last 30 days',
       icon: Scan,
-      sparkline: 'M0 24 H 120',
+      sparkline: totalScansCount > 0 ? 'M0 24 Q 30 16, 60 10 T 120 2' : 'M0 24 H 120',
       color: '#155EEF'
     },
     {
       title: 'Active QR Codes',
-      value: '0',
-      change: '0%',
+      value: activeQrCount.toString(),
+      change: activeQrCount > 0 ? '+100%' : '0%',
       trend: 'vs last 30 days',
       icon: QrCode,
-      sparkline: 'M0 24 H 120',
+      sparkline: activeQrCount > 0 ? 'M0 24 Q 30 18, 60 12 T 120 4' : 'M0 24 H 120',
       color: '#155EEF'
     }
   ];
 
-  // Zero-State Country Breakdown
+  // Country Breakdown
   const scanLocations = [
     { country: 'Pakistan', flag: '🇵🇰', count: '0', percent: 0 },
     { country: 'UAE', flag: '🇦🇪', count: '0', percent: 0 },
@@ -289,20 +374,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
           <nav className="p-3 space-y-1">
             {sidebarItems.map((item) => {
               const Icon = item.icon;
-              const isActive = activeTab === item.id;
+              const isActive = activeTab === item.id || (item.id === 'products' && activeTab === 'add-product');
 
               return (
                 <button
                   key={item.id}
                   onClick={() => setActiveTab(item.id as any)}
-                  className={`w-full flex items-center gap-3 px-3.5 py-2 text-[13px] font-medium transition-all text-left cursor-pointer rounded-none ${
+                  className={`w-full flex items-center justify-between px-3.5 py-2 text-[13px] font-medium transition-all text-left cursor-pointer rounded-none ${
                     isActive
                       ? 'bg-[#EFF8FF] text-[#155EEF] font-semibold shadow-2xs border-l-2 border-[#155EEF]'
                       : 'text-slate-600 hover:text-slate-950 hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#155EEF]' : 'text-slate-400'}`} />
-                  <span>{item.label}</span>
+                  <div className="flex items-center gap-3">
+                    <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-[#155EEF]' : 'text-slate-400'}`} />
+                    <span>{item.label}</span>
+                  </div>
+                  {typeof item.count === 'number' && item.count > 0 && (
+                    <span className="text-[10.5px] font-mono font-bold bg-blue-100 text-[#155EEF] px-1.5 py-0.2">
+                      {item.count}
+                    </span>
+                  )}
                 </button>
               );
             })}
@@ -402,9 +494,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
       {/* ========================================================= */}
       <div className="flex-1 flex flex-col min-w-0 overflow-x-hidden">
         
-        {/* ======================================================= */}
         {/* TOP NAVBAR / HEADER */}
-        {/* ======================================================= */}
         <header className="h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0">
           
           {/* Search Bar */}
@@ -419,9 +509,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             />
           </div>
 
-          {/* Right Header Actions (Notification + User Profile) */}
-          <div className="flex items-center gap-4">
+          {/* Right Header Actions (Add Product Full Page Button + Notification + User Profile) */}
+          <div className="flex items-center gap-3 sm:gap-4">
             
+            {/* Direct Full-Page Add Product Action */}
+            <button
+              onClick={() => setActiveTab('add-product')}
+              className="px-3.5 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Add Product</span>
+            </button>
+
             {/* Notification Bell */}
             <button className="relative p-2 text-slate-500 hover:text-slate-900 hover:bg-slate-50 transition-colors cursor-pointer">
               <Bell className="w-4 h-4" />
@@ -477,584 +576,700 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
         </header>
 
         {/* ======================================================= */}
-        {/* MAIN BODY DASHBOARD GRIDS */}
+        {/* MAIN BODY DASHBOARD CONTENT BY TAB */}
         {/* ======================================================= */}
         <main className="flex-1 p-5 sm:p-6 lg:p-7 space-y-6 max-w-[1580px] w-full mx-auto">
           
-          {/* ===================================================== */}
-          {/* ROW 1: WELCOME HERO CARD + 2x2 STATS GRID */}
-          {/* ===================================================== */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            
-            {/* 1A. Welcome Hero Card (Seamless 3D Geometric Architectural Stage) */}
-            <div className="lg:col-span-6 xl:col-span-7 bg-white border border-slate-200 p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden shadow-xs min-h-[260px]">
-              
-              {/* ===================================================== */}
-              {/* SEAMLESS 3D ARCHITECTURAL GEOMETRIC BACKGROUND (RIGHT) */}
-              {/* ===================================================== */}
-              <div className="absolute top-0 right-0 bottom-0 h-full w-full sm:w-[55%] md:w-[50%] lg:w-[48%] pointer-events-none select-none overflow-hidden flex items-center justify-end">
+          {/* TAB 1: ADD PRODUCT & QR FULL PAGE VIEW (NO POPUP) */}
+          {activeTab === 'add-product' && (
+            <AddProductPage
+              onBack={() => setActiveTab('products')}
+              onAddProduct={handleAddProduct}
+              defaultCategory={currentBusiness.categoryName}
+              defaultBrand={displayCompany}
+            />
+          )}
+
+          {/* TAB 2: PRODUCTS FULL MANAGEMENT */}
+          {activeTab === 'products' && (
+            <ProductsView
+              products={products}
+              onOpenAddProduct={() => setActiveTab('add-product')}
+              onPreviewPassport={(p) => setSelectedPassportProduct(p)}
+              onOpenQrCodes={() => setActiveTab('qrcodes')}
+              onDeleteProduct={handleDeleteProduct}
+            />
+          )}
+
+          {/* TAB 3: QR CODES MANAGEMENT HUB */}
+          {activeTab === 'qrcodes' && (
+            <QrCodeHub
+              products={products}
+              onOpenAddProduct={() => setActiveTab('add-product')}
+              onPreviewPassport={(p) => setSelectedPassportProduct(p)}
+            />
+          )}
+
+          {/* TAB 4: DASHBOARD MAIN OVERVIEW */}
+          {activeTab === 'dashboard' && (
+            <>
+              {/* ROW 1: WELCOME HERO CARD + 2x2 STATS GRID */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                 
-                {/* 3D Geometric Image Overlay with Left Alpha Mask for perfect seamless blending */}
-                {currentCategoryKey === 'jewelry' || currentCategoryKey === 'watches' || currentCategoryKey === 'fashion' || currentCategoryKey === 'pharma' || currentCategoryKey === 'wine' || currentCategoryKey === 'automotive' ? (
-                  <div 
-                    className="relative w-full h-full flex items-center justify-end"
-                    style={{
-                      maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)',
-                      WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)'
-                    }}
-                  >
-                    <img 
-                      src="/hero-3d-pedestal.png" 
-                      alt="Product 3D Pedestal Stage" 
-                      className="w-full h-full object-cover object-right"
-                    />
+                {/* 1A. Welcome Hero Card (Seamless 3D Geometric Architectural Stage) */}
+                <div className="lg:col-span-6 xl:col-span-7 bg-white border border-slate-200 p-6 sm:p-7 flex flex-col justify-between relative overflow-hidden shadow-xs min-h-[260px]">
+                  
+                  {/* SEAMLESS 3D ARCHITECTURAL GEOMETRIC BACKGROUND (RIGHT) */}
+                  <div className="absolute top-0 right-0 bottom-0 h-full w-full sm:w-[55%] md:w-[50%] lg:w-[48%] pointer-events-none select-none overflow-hidden flex items-center justify-end">
+                    
+                    {currentCategoryKey === 'jewelry' || currentCategoryKey === 'watches' || currentCategoryKey === 'fashion' || currentCategoryKey === 'pharma' || currentCategoryKey === 'wine' || currentCategoryKey === 'automotive' ? (
+                      <div 
+                        className="relative w-full h-full flex items-center justify-end"
+                        style={{
+                          maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)',
+                          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)'
+                        }}
+                      >
+                        <img 
+                          src="/hero-3d-pedestal.png" 
+                          alt="Product 3D Pedestal Stage" 
+                          className="w-full h-full object-cover object-right"
+                        />
+                      </div>
+                    ) : (
+                      <div 
+                        className="relative w-full h-full flex items-center justify-end"
+                        style={{
+                          maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)',
+                          WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)'
+                        }}
+                      >
+                        <img 
+                          src="/sidebar-cylinder.jpg" 
+                          alt="Quantum Cyber Device Stage" 
+                          className="w-full h-full object-cover object-right"
+                        />
+                      </div>
+                    )}
+
                   </div>
-                ) : (
-                  /* High-Tech Quantum Cylinder for Electronics */
-                  <div 
-                    className="relative w-full h-full flex items-center justify-end"
-                    style={{
-                      maskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)',
-                      WebkitMaskImage: 'linear-gradient(to right, transparent 0%, rgba(0,0,0,0.4) 15%, rgba(0,0,0,1) 40%)'
-                    }}
-                  >
-                    <img 
-                      src="/sidebar-cylinder.jpg" 
-                      alt="Quantum Cyber Device Stage" 
-                      className="w-full h-full object-cover object-right"
-                    />
-                  </div>
-                )}
 
-              </div>
-
-              {/* Top Text Content (Left Aligned with high z-index) */}
-              <div className="relative z-10 max-w-[65%] text-left">
-                {/* Tag */}
-                <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest font-bold text-slate-400 mb-2">
-                  <span className="w-1.5 h-1.5 bg-[#155EEF] rounded-full" />
-                  <span>BUSINESS OVERVIEW</span>
-                </div>
-
-                {/* Headline */}
-                <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight leading-tight">
-                  Welcome back, {displayName.split(' ')[0]} 👋
-                </h1>
-                <p className="text-xs sm:text-[13px] text-slate-500 font-normal mt-1 leading-relaxed">
-                  Your cryptographic passport infrastructure is online and operational.
-                </p>
-              </div>
-
-              {/* Bottom Row inside Hero: Organization Tag (Left) + Floating Latest Product Badge (Right) */}
-              <div className="mt-8 flex items-end justify-between gap-4 relative z-10">
-                
-                {/* Organization ID Tag (Bottom Left) */}
-                <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 p-3 flex items-center justify-between gap-3 max-w-[280px] w-full shadow-xs">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 bg-slate-50 border border-slate-200 flex items-center justify-center font-bold text-sm">
-                      {currentBusiness.icon}
+                  {/* Top Text Content (Left Aligned) */}
+                  <div className="relative z-10 max-w-[65%] text-left">
+                    <div className="inline-flex items-center gap-1.5 text-[10px] font-mono uppercase tracking-widest font-bold text-slate-400 mb-2">
+                      <span className="w-1.5 h-1.5 bg-[#155EEF] rounded-full" />
+                      <span>BUSINESS OVERVIEW</span>
                     </div>
-                    <div className="text-left">
-                      <div className="text-xs font-bold text-slate-900">{displayCompany}</div>
-                      <div className="text-[10px] font-mono text-slate-400">Company ID: {displayCompanyId}</div>
+
+                    <h1 className="text-2xl sm:text-3xl font-black text-slate-950 tracking-tight leading-tight">
+                      Welcome back, {displayName.split(' ')[0]} 👋
+                    </h1>
+                    <p className="text-xs sm:text-[13px] text-slate-500 font-normal mt-1 leading-relaxed">
+                      Your cryptographic passport infrastructure is online and operational.
+                    </p>
+                  </div>
+
+                  {/* Bottom Row inside Hero: Organization Tag (Left) + Floating Latest Product Badge (Right) */}
+                  <div className="mt-8 flex items-end justify-between gap-4 relative z-10">
+                    
+                    {/* Organization ID Tag (Bottom Left) */}
+                    <div className="bg-white/95 backdrop-blur-md border border-slate-200/90 p-3 flex items-center justify-between gap-3 max-w-[280px] w-full shadow-xs">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 bg-slate-50 border border-slate-200 flex items-center justify-center font-bold text-sm">
+                          {currentBusiness.icon}
+                        </div>
+                        <div className="text-left">
+                          <div className="text-xs font-bold text-slate-900">{displayCompany}</div>
+                          <div className="text-[10px] font-mono text-slate-400">Company ID: {displayCompanyId}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-none flex items-center gap-1">
+                          <span>👑</span> Active Plan
+                        </span>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[9.5px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-none flex items-center gap-1">
-                      <span>👑</span> Active Plan
-                    </span>
-                    <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                  </div>
-                </div>
 
-                {/* Floating "Latest Product" Card (Bottom Right over 3D Pedestal) */}
-                <div className="hidden sm:block bg-white/95 backdrop-blur-md border border-slate-200/90 p-2.5 sm:p-3 shadow-md text-left max-w-[200px] w-full">
-                  <div className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Latest Product</div>
-                  <div className="text-[11.5px] font-bold text-slate-900 flex items-center gap-1.5 mt-0.5 truncate">
-                    <span className="text-xs">◎</span>
-                    <span className="truncate">{currentBusiness.latestProduct.title}</span>
-                  </div>
-                  <div className="text-[10.5px] font-mono font-semibold text-[#155EEF] flex items-center gap-1 mt-1">
-                    <span>{currentBusiness.latestProduct.id}</span>
-                    <ArrowRight className="w-3 h-3" />
-                  </div>
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* 1B. 2x2 Metric Stats Grid (Right 6 Columns) */}
-            <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between space-y-3">
-              
-              {/* Date Filter Dropdown */}
-              <div className="flex items-center justify-end">
-                <div className="inline-flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs cursor-pointer hover:bg-slate-50">
-                  <span className="font-mono text-[11px]">Sep 1, 2026 - Sep 30, 2026</span>
-                  <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-                </div>
-              </div>
-
-              {/* 2x2 Grid */}
-              <div className="grid grid-cols-2 gap-3 flex-1">
-                {stats.map((stat, idx) => {
-                  const Icon = stat.icon;
-                  return (
+                    {/* Floating "Latest Product" Card */}
                     <div 
-                      key={idx} 
-                      className="bg-white border border-slate-200 p-4 flex flex-col justify-between relative overflow-hidden shadow-xs hover:border-slate-300 transition-colors"
+                      onClick={() => latestProduct ? setSelectedPassportProduct(latestProduct) : setActiveTab('add-product')}
+                      className="hidden sm:block bg-white/95 backdrop-blur-md border border-slate-200/90 p-2.5 sm:p-3 shadow-md text-left max-w-[200px] w-full cursor-pointer hover:border-[#155EEF] transition-colors"
                     >
-                      <div className="flex items-start justify-between">
-                        <div className="w-8 h-8 rounded-none bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF]">
-                          <Icon className="w-4 h-4" />
-                        </div>
-                        {/* Mini Sparkline SVG */}
-                        <div className="w-16 h-7">
-                          <svg viewBox="0 0 120 30" className="w-full h-full overflow-visible">
-                            <path
-                              d={stat.sparkline}
-                              fill="none"
-                              stroke="#94A3B8"
-                              strokeWidth="2"
-                              strokeLinecap="round"
-                            />
-                          </svg>
-                        </div>
+                      <div className="text-[9.5px] font-bold text-slate-400 uppercase tracking-wider">Latest Product</div>
+                      <div className="text-[11.5px] font-bold text-slate-900 flex items-center gap-1.5 mt-0.5 truncate">
+                        <span className="text-xs">◎</span>
+                        <span className="truncate">{latestProduct ? latestProduct.name : 'No Products Added'}</span>
                       </div>
-
-                      <div className="mt-3 text-left">
-                        <div className="text-[11px] font-medium text-slate-500">{stat.title}</div>
-                        <div className="text-xl font-black text-slate-950 tracking-tight mt-0.5">{stat.value}</div>
-                        <div className="flex items-center gap-1 text-[10.5px] mt-1">
-                          <span className="font-bold text-slate-400 flex items-center">
-                            {stat.change}
-                          </span>
-                          <span className="text-slate-400">{stat.trend}</span>
-                        </div>
+                      <div className="text-[10.5px] font-mono font-semibold text-[#155EEF] flex items-center gap-1 mt-1">
+                        <span>{latestProduct ? latestProduct.id : '+ Add Product'}</span>
+                        <ArrowRight className="w-3 h-3" />
                       </div>
                     </div>
-                  );
-                })}
+
+                  </div>
+
+                </div>
+
+                {/* 1B. 2x2 Metric Stats Grid (Right 5 Columns) */}
+                <div className="lg:col-span-6 xl:col-span-5 flex flex-col justify-between space-y-3">
+                  
+                  {/* Date Filter Dropdown */}
+                  <div className="flex items-center justify-end">
+                    <div className="inline-flex items-center gap-2 bg-white border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 shadow-2xs cursor-pointer hover:bg-slate-50">
+                      <span className="font-mono text-[11px]">Sep 1, 2026 - Sep 30, 2026</span>
+                      <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                    </div>
+                  </div>
+
+                  {/* 2x2 Grid */}
+                  <div className="grid grid-cols-2 gap-3 flex-1">
+                    {stats.map((stat, idx) => {
+                      const Icon = stat.icon;
+                      return (
+                        <div 
+                          key={idx} 
+                          className="bg-white border border-slate-200 p-4 flex flex-col justify-between relative overflow-hidden shadow-xs hover:border-slate-300 transition-colors"
+                        >
+                          <div className="flex items-start justify-between">
+                            <div className="w-8 h-8 rounded-none bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF]">
+                              <Icon className="w-4 h-4" />
+                            </div>
+                            {/* Mini Sparkline SVG */}
+                            <div className="w-16 h-7">
+                              <svg viewBox="0 0 120 30" className="w-full h-full overflow-visible">
+                                <path
+                                  d={stat.sparkline}
+                                  fill="none"
+                                  stroke="#155EEF"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                />
+                              </svg>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 text-left">
+                            <div className="text-[11px] font-medium text-slate-500">{stat.title}</div>
+                            <div className="text-xl font-black text-slate-950 tracking-tight mt-0.5">{stat.value}</div>
+                            <div className="flex items-center gap-1 text-[10.5px] mt-1">
+                              <span className="font-bold text-emerald-600 flex items-center">
+                                {stat.change}
+                              </span>
+                              <span className="text-slate-400">{stat.trend}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                </div>
+
               </div>
 
-            </div>
-
-          </div>
-
-          {/* ===================================================== */}
-          {/* ROW 2: SCAN ANALYTICS + PRODUCT STATUS + GLOBAL LOCATIONS */}
-          {/* ===================================================== */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            
-            {/* 2A. Scan Analytics (Area Chart) - 6 Columns */}
-            <div className="lg:col-span-6 bg-white border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
-              
-              {/* Header */}
-              <div className="flex items-center justify-between mb-4">
-                <div className="text-left">
-                  <h3 className="text-sm font-bold text-slate-950">Scan Analytics</h3>
-                  <p className="text-[11px] text-slate-400">Total scans over the last 30 days</p>
-                </div>
-                <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs text-slate-700 cursor-pointer hover:bg-slate-100">
-                  <span className="text-[11px] font-medium">{timeRange}</span>
-                  <ChevronDown className="w-3 h-3 text-slate-400" />
-                </div>
-              </div>
-
-              {/* Chart Canvas with SVG Line & Gradient */}
-              <div className="relative w-full h-48 sm:h-52 pt-4">
+              {/* ROW 2: SCAN ANALYTICS + PRODUCT STATUS + GLOBAL LOCATIONS */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
                 
-                {/* Y-Axis Grid Lines & Values */}
-                <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-mono text-slate-300 pointer-events-none pb-6">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                    <span>2K</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                    <span>1.5K</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                    <span>1K</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                    <span>500</span>
-                  </div>
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-1">
-                    <span>0</span>
-                  </div>
-                </div>
-
-                {/* SVG Area & Square Stepped Line (Zero State Flat Line) */}
-                <svg viewBox="0 0 600 150" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="scanSquareGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                      <stop offset="0%" stopColor="#155EEF" stopOpacity="0.10" />
-                      <stop offset="100%" stopColor="#155EEF" stopOpacity="0.00" />
-                    </linearGradient>
-                  </defs>
-
-                  {/* Square Stepped Area Fill */}
-                  <path
-                    d="M 0 145 H 600 V 150 H 0 Z"
-                    fill="url(#scanSquareGradient)"
-                  />
-
-                  {/* Square Stepped Line Stroke */}
-                  <path
-                    d="M 0 145 H 600"
-                    fill="none"
-                    stroke="#CBD5E1"
-                    strokeWidth="2.5"
-                    strokeLinecap="square"
-                  />
-
-                  {/* Active Tooltip Pin at current day */}
-                  <rect x="420" y="141" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
-                </svg>
-
-                {/* Floating Square Tooltip over current point */}
-                <div 
-                  className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-[10.5px] font-mono shadow-lg -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
-                  style={{ left: '71%', top: '80%' }}
-                >
-                  <div className="text-slate-400 text-[9px] font-medium">Sep 22, 2026</div>
-                  <div className="font-bold text-white text-xs mt-0.5">0 scans</div>
-                  <div className="w-2 h-2 bg-slate-950 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-slate-700" />
-                </div>
-
-                {/* X-Axis labels */}
-                <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mt-2 px-1">
-                  <span>Sep 1</span>
-                  <span>Sep 5</span>
-                  <span>Sep 10</span>
-                  <span>Sep 15</span>
-                  <span className="font-bold text-[#155EEF]">Sep 20</span>
-                  <span>Sep 25</span>
-                  <span>Sep 30</span>
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* 2B. Product Status Donut Chart - 3 Columns */}
-            <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-              
-              <div className="text-left mb-2">
-                <h3 className="text-sm font-bold text-slate-950">Product Status</h3>
-              </div>
-
-              {/* Donut Chart Graphics (Zero Data Neutral Ring) */}
-              <div className="relative w-36 h-36 mx-auto my-2 flex items-center justify-center">
-                <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
-                  {/* Gray neutral background ring */}
-                  <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="12" fill="none" />
-                </svg>
-
-                {/* Donut Center text */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                  <span className="text-lg font-black text-slate-950 leading-none">0</span>
-                  <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Products</span>
-                </div>
-              </div>
-
-              {/* Legend List */}
-              <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-300" />
-                    <span className="text-slate-600">Verified</span>
-                  </div>
-                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-300" />
-                    <span className="text-slate-600">Pending</span>
-                  </div>
-                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-300" />
-                    <span className="text-slate-600">Flagged</span>
-                  </div>
-                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-slate-300" />
-                    <span className="text-slate-600">Expired</span>
-                  </div>
-                  <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
-                </div>
-              </div>
-
-            </div>
-
-            {/* 2C. Global Scan Locations - 3 Columns */}
-            <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-              
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-slate-950">Global Scan Locations</h3>
-                <button className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1">
-                  <span>View Details</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Interactive World Map with Realtime Simulated Supabase Scans */}
-              <GlobalScanMap />
-
-              {/* Country Breakdown Rows */}
-              <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
-                {scanLocations.map((loc, idx) => (
-                  <div key={idx} className="flex items-center justify-between text-[11.5px]">
-                    <div className="flex items-center gap-2">
-                      <span>{loc.flag}</span>
-                      <span className="text-slate-700 font-medium">{loc.country}</span>
+                {/* 2A. Scan Analytics (Area Chart) - 6 Columns */}
+                <div className="lg:col-span-6 bg-white border border-slate-200 p-5 sm:p-6 shadow-xs flex flex-col justify-between">
+                  
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="text-left">
+                      <h3 className="text-sm font-bold text-slate-950">Scan Analytics</h3>
+                      <p className="text-[11px] text-slate-400">Total scans over the last 30 days</p>
                     </div>
-                    <div className="flex items-center gap-2 font-mono">
-                      <span className="font-bold text-slate-900">{loc.count}</span>
-                      <span className="text-slate-400 text-[10px] w-7 text-right">{loc.percent}%</span>
+                    <div className="inline-flex items-center gap-1.5 bg-slate-50 border border-slate-200 px-2.5 py-1 text-xs text-slate-700 cursor-pointer hover:bg-slate-100">
+                      <span className="text-[11px] font-medium">{timeRange}</span>
+                      <ChevronDown className="w-3 h-3 text-slate-400" />
                     </div>
                   </div>
-                ))}
-              </div>
 
-            </div>
+                  {/* Chart Canvas with SVG Line & Gradient */}
+                  <div className="relative w-full h-48 sm:h-52 pt-4">
+                    
+                    {/* Y-Axis Grid Lines & Values */}
+                    <div className="absolute inset-0 flex flex-col justify-between text-[10px] font-mono text-slate-300 pointer-events-none pb-6">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                        <span>2K</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                        <span>1.5K</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                        <span>1K</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                        <span>500</span>
+                      </div>
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-1">
+                        <span>0</span>
+                      </div>
+                    </div>
 
-          </div>
+                    {/* SVG Area & Square Stepped Line */}
+                    <svg viewBox="0 0 600 150" className="w-full h-full overflow-visible relative z-10" preserveAspectRatio="none">
+                      <defs>
+                        <linearGradient id="scanSquareGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                          <stop offset="0%" stopColor="#155EEF" stopOpacity="0.10" />
+                          <stop offset="100%" stopColor="#155EEF" stopOpacity="0.00" />
+                        </linearGradient>
+                      </defs>
 
-          {/* ===================================================== */}
-          {/* ROW 3: RECENT PRODUCTS TABLE + ACTIVITY FEED + BULK QR */}
-          {/* ===================================================== */}
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
-            
-            {/* 3A. Recent Products Table (Clean Zero-State) - 6 Columns */}
-            <div className="lg:col-span-6 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-              
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-slate-950">Recent Products</h3>
-                <button className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1">
-                  <span>View All</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
+                      {totalScansCount > 0 ? (
+                        <>
+                          <path
+                            d="M 0 145 H 100 V 120 H 220 V 90 H 350 V 60 H 450 V 40 H 600 V 150 H 0 Z"
+                            fill="url(#scanSquareGradient)"
+                          />
+                          <path
+                            d="M 0 145 H 100 V 120 H 220 V 90 H 350 V 60 H 450 V 40 H 600"
+                            fill="none"
+                            stroke="#155EEF"
+                            strokeWidth="2.5"
+                            strokeLinecap="square"
+                          />
+                          <rect x="446" y="36" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
+                        </>
+                      ) : (
+                        <>
+                          <path d="M 0 145 H 600 V 150 H 0 Z" fill="url(#scanSquareGradient)" />
+                          <path d="M 0 145 H 600" fill="none" stroke="#CBD5E1" strokeWidth="2.5" strokeLinecap="square" />
+                          <rect x="420" y="141" width="8" height="8" fill="#155EEF" stroke="#FFFFFF" strokeWidth="2" />
+                        </>
+                      )}
+                    </svg>
 
-              {/* Empty State when 0 products */}
-              {products.length === 0 ? (
-                <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
-                  <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-2.5">
-                    <PackageOpen className="w-5 h-5" />
+                    {/* Floating Square Tooltip over current point */}
+                    <div 
+                      className="absolute z-20 bg-slate-950 text-white px-2.5 py-1 text-[10.5px] font-mono shadow-lg -translate-x-1/2 -translate-y-full pointer-events-none rounded-none border border-slate-700"
+                      style={{ left: '71%', top: totalScansCount > 0 ? '35%' : '80%' }}
+                    >
+                      <div className="text-slate-400 text-[9px] font-medium">Sep 22, 2026</div>
+                      <div className="font-bold text-white text-xs mt-0.5">{totalScansCount} scans</div>
+                      <div className="w-2 h-2 bg-slate-950 rotate-45 absolute -bottom-1 left-1/2 -translate-x-1/2 border-r border-b border-slate-700" />
+                    </div>
+
+                    {/* X-Axis labels */}
+                    <div className="flex items-center justify-between text-[10px] font-mono text-slate-400 mt-2 px-1">
+                      <span>Sep 1</span>
+                      <span>Sep 5</span>
+                      <span>Sep 10</span>
+                      <span>Sep 15</span>
+                      <span className="font-bold text-[#155EEF]">Sep 20</span>
+                      <span>Sep 25</span>
+                      <span>Sep 30</span>
+                    </div>
+
                   </div>
-                  <h4 className="text-xs font-bold text-slate-900">No products registered yet</h4>
-                  <p className="text-[11px] text-slate-500 max-w-xs mt-0.5">
-                    Issue your first cryptographic passport to begin tracking product authenticity.
-                  </p>
-                  <button className="mt-3 px-3 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs">
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add Product</span>
-                  </button>
+
                 </div>
-              ) : (
-                <div className="w-full overflow-x-auto">
-                  <table className="w-full text-left text-xs">
-                    <thead>
-                      <tr className="border-b border-slate-100 text-[10.5px] font-mono text-slate-400 uppercase tracking-wider">
-                        <th className="pb-2 font-semibold">Product</th>
-                        <th className="pb-2 font-semibold">ID</th>
-                        <th className="pb-2 font-semibold">Category</th>
-                        <th className="pb-2 font-semibold">Status</th>
-                        <th className="pb-2 font-semibold">Created</th>
-                        <th className="pb-2 font-semibold text-right">Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {products.map((prod, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-2.5 flex items-center gap-2.5">
-                            <span className="font-bold text-slate-900">{prod.name}</span>
-                          </td>
-                          <td className="py-2.5 font-mono text-[11px] text-slate-500">{prod.id}</td>
-                          <td className="py-2.5 text-slate-600 text-[11.5px]">{prod.category}</td>
-                          <td className="py-2.5">
-                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
-                              <span>✓</span> {prod.status}
-                            </span>
-                          </td>
-                          <td className="py-2.5 font-mono text-[11px] text-slate-400">{prod.date}</td>
-                          <td className="py-2.5 text-right">
-                            <button className="text-slate-400 hover:text-slate-800 p-1">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </button>
-                          </td>
-                        </tr>
+
+                {/* 2B. Product Status Donut Chart - 3 Columns */}
+                <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                  
+                  <div className="text-left mb-2">
+                    <h3 className="text-sm font-bold text-slate-950">Product Status</h3>
+                  </div>
+
+                  {/* Donut Chart Graphics */}
+                  <div className="relative w-36 h-36 mx-auto my-2 flex items-center justify-center">
+                    <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+                      <circle cx="50" cy="50" r="40" stroke="#F1F5F9" strokeWidth="12" fill="none" />
+                      {totalProductsCount > 0 && (
+                        <circle
+                          cx="50"
+                          cy="50"
+                          r="40"
+                          stroke="#155EEF"
+                          strokeWidth="12"
+                          fill="none"
+                          strokeDasharray="251.2"
+                          strokeDashoffset={251.2 * (1 - verifiedProductsCount / totalProductsCount)}
+                          strokeLinecap="round"
+                        />
+                      )}
+                    </svg>
+
+                    {/* Donut Center text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <span className="text-lg font-black text-slate-950 leading-none">{totalProductsCount}</span>
+                      <span className="text-[10px] text-slate-400 font-medium mt-0.5">Total Products</span>
+                    </div>
+                  </div>
+
+                  {/* Legend List */}
+                  <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className={`w-2 h-2 rounded-full ${verifiedProductsCount > 0 ? 'bg-[#155EEF]' : 'bg-slate-300'}`} />
+                        <span className="text-slate-600">Verified</span>
+                      </div>
+                      <span className="font-mono font-bold text-slate-900">
+                        {verifiedProductsCount} <span className="font-normal text-slate-400">({totalProductsCount > 0 ? Math.round((verifiedProductsCount / totalProductsCount) * 100) : 0}%)</span>
+                      </span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-slate-300" />
+                        <span className="text-slate-600">Pending</span>
+                      </div>
+                      <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-slate-300" />
+                        <span className="text-slate-600">Flagged</span>
+                      </div>
+                      <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-slate-300" />
+                        <span className="text-slate-600">Expired</span>
+                      </div>
+                      <span className="font-mono font-bold text-slate-900">0 <span className="font-normal text-slate-400">(0%)</span></span>
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* 2C. Global Scan Locations - 3 Columns */}
+                <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-slate-950">Global Scan Locations</h3>
+                    <button 
+                      onClick={() => setActiveTab('logs')}
+                      className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>View Details</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Interactive World Map with Realtime Telemetry Standby */}
+                  <GlobalScanMap />
+
+                  {/* Country Breakdown Rows */}
+                  <div className="space-y-1.5 text-xs text-left pt-2 border-t border-slate-100">
+                    {scanLocations.map((loc, idx) => (
+                      <div key={idx} className="flex items-center justify-between text-[11.5px]">
+                        <div className="flex items-center gap-2">
+                          <span>{loc.flag}</span>
+                          <span className="text-slate-700 font-medium">{loc.country}</span>
+                        </div>
+                        <div className="flex items-center gap-2 font-mono">
+                          <span className="font-bold text-slate-900">{loc.count}</span>
+                          <span className="text-slate-400 text-[10px] w-7 text-right">{loc.percent}%</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* ROW 3: RECENT PRODUCTS TABLE + ACTIVITY FEED + BULK QR */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+                
+                {/* 3A. Recent Products Table - 6 Columns */}
+                <div className="lg:col-span-6 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-slate-950">Recent Products</h3>
+                    <button 
+                      onClick={() => setActiveTab('products')}
+                      className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1 cursor-pointer"
+                    >
+                      <span>View All</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {/* Empty State vs List */}
+                  {products.length === 0 ? (
+                    <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
+                      <div className="w-10 h-10 rounded-full bg-blue-50 border border-blue-100 flex items-center justify-center text-[#155EEF] mb-2.5">
+                        <PackageOpen className="w-5 h-5" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-900">No products registered yet</h4>
+                      <p className="text-[11px] text-slate-500 max-w-xs mt-0.5">
+                        Issue your first cryptographic passport to begin tracking product authenticity.
+                      </p>
+                      <button 
+                        onClick={() => setActiveTab('add-product')}
+                        className="mt-3 px-3 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        <span>Add Product</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="w-full overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead>
+                          <tr className="border-b border-slate-100 text-[10.5px] font-mono text-slate-400 uppercase tracking-wider">
+                            <th className="pb-2 font-semibold">Product</th>
+                            <th className="pb-2 font-semibold">ID</th>
+                            <th className="pb-2 font-semibold">Category</th>
+                            <th className="pb-2 font-semibold">Status</th>
+                            <th className="pb-2 font-semibold text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {products.slice(0, 5).map((prod) => (
+                            <tr key={prod.id} className="hover:bg-slate-50 transition-colors">
+                              <td className="py-2.5">
+                                <span className="font-bold text-slate-900">{prod.name}</span>
+                              </td>
+                              <td className="py-2.5 font-mono text-[11px] text-[#155EEF] font-semibold">{prod.id}</td>
+                              <td className="py-2.5 text-slate-600 text-[11.5px]">{prod.category}</td>
+                              <td className="py-2.5">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5">
+                                  <span>✓</span> {prod.status}
+                                </span>
+                              </td>
+                              <td className="py-2.5 text-right">
+                                <button
+                                  onClick={() => setSelectedPassportProduct(prod)}
+                                  className="text-slate-400 hover:text-[#155EEF] p-1 transition-colors cursor-pointer"
+                                  title="View Passport"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+
+                </div>
+
+                {/* 3B. Recent Activity Feed - 3 Columns */}
+                <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
+                  
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-bold text-slate-950">Recent Activity</h3>
+                    <button className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1">
+                      <span>View All</span>
+                      <ArrowRight className="w-3 h-3" />
+                    </button>
+                  </div>
+
+                  {activities.length === 0 ? (
+                    <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
+                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
+                        <Activity className="w-4 h-4" />
+                      </div>
+                      <h4 className="text-xs font-bold text-slate-800">No activity recorded</h4>
+                      <p className="text-[10.5px] text-slate-400 max-w-[180px] mt-0.5 leading-snug">
+                        Live verifications and QR scans will appear here automatically.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3 text-left">
+                      {activities.map((act) => (
+                        <div key={act.id} className="flex items-start gap-2.5 p-2 bg-slate-50/80 border border-slate-100">
+                          <div className="w-6 h-6 rounded-full bg-blue-100 text-[#155EEF] flex items-center justify-center shrink-0 mt-0.5">
+                            <ShieldCheck className="w-3.5 h-3.5" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="text-[11px] font-bold text-slate-900 truncate">{act.title}</div>
+                            <div className="text-[9.5px] font-mono text-slate-400 flex items-center justify-between mt-0.5">
+                              <span>{act.productId}</span>
+                              <span>{act.timestamp}</span>
+                            </div>
+                          </div>
+                        </div>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-
-            </div>
-
-            {/* 3B. Recent Activity Feed (Clean Zero-State) - 3 Columns */}
-            <div className="lg:col-span-3 bg-white border border-slate-200 p-5 shadow-xs flex flex-col justify-between">
-              
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-bold text-slate-950">Recent Activity</h3>
-                <button className="text-[11px] font-bold text-[#155EEF] hover:text-[#124bbf] flex items-center gap-1">
-                  <span>View All</span>
-                  <ArrowRight className="w-3 h-3" />
-                </button>
-              </div>
-
-              {/* Zero-State Activity */}
-              {activities.length === 0 ? (
-                <div className="py-10 flex flex-col items-center justify-center text-center px-4 border border-dashed border-slate-200 bg-slate-50/50 my-2">
-                  <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-2">
-                    <Activity className="w-4 h-4" />
-                  </div>
-                  <h4 className="text-xs font-bold text-slate-800">No activity recorded</h4>
-                  <p className="text-[10.5px] text-slate-400 max-w-[180px] mt-0.5 leading-snug">
-                    Live verifications and QR scans will appear here automatically.
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-3 text-left">
-                  {activities.map((act, idx) => (
-                    <div key={idx} className="flex items-start gap-2.5">
-                      <div className="text-xs">{act.title}</div>
                     </div>
-                  ))}
+                  )}
+
                 </div>
-              )}
 
-            </div>
+                {/* 3C. Right Stack: Bulk QR Card + Quick Actions - 3 Columns */}
+                <div className="lg:col-span-3 flex flex-col justify-between space-y-3">
+                  
+                  {/* Generate QR Codes in Bulk (Dark Card) */}
+                  <div className="bg-slate-950 text-white border border-slate-800 p-4 relative overflow-hidden shadow-md flex flex-col justify-between">
+                    
+                    {/* Background QR Card Image */}
+                    <div className="absolute right-0 top-0 bottom-0 w-28 opacity-40 overflow-hidden pointer-events-none">
+                      <img 
+                        src="/bulk-qr-tag.jpg" 
+                        alt="Bulk QR Tag" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.style.display = 'none';
+                        }}
+                      />
+                    </div>
 
-            {/* 3C. Right Stack: Bulk QR Card + Quick Actions - 3 Columns */}
-            <div className="lg:col-span-3 flex flex-col justify-between space-y-3">
-              
-              {/* Generate QR Codes in Bulk (Dark Card) */}
-              <div className="bg-slate-950 text-white border border-slate-800 p-4 relative overflow-hidden shadow-md flex flex-col justify-between">
+                    <div className="relative z-10 text-left">
+                      <h4 className="text-sm font-bold text-white leading-tight">
+                        Generate<br />QR Codes in Bulk
+                      </h4>
+                      <p className="text-[11px] text-slate-400 mt-1 max-w-[170px] leading-relaxed">
+                        Save hours of manual work. Create and download QR codes for all your products at once.
+                      </p>
+                    </div>
+
+                    <div className="relative z-10 mt-4">
+                      <button 
+                        onClick={() => setActiveTab('qrcodes')}
+                        className="px-3 py-1.5 bg-white text-slate-950 hover:bg-slate-100 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs"
+                      >
+                        <span>Open QR Studio</span>
+                        <ArrowRight className="w-3 h-3 text-[#155EEF]" />
+                      </button>
+                    </div>
+
+                  </div>
+
+                  {/* Quick Actions 2x2 Grid */}
+                  <div className="bg-white border border-slate-200 p-4 shadow-xs text-left">
+                    <div className="text-xs font-bold text-slate-900 mb-2.5">Quick Actions</div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button 
+                        onClick={() => setActiveTab('add-product')}
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Plus className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <span>Add Product</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setActiveTab('qrcodes')}
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <Scan className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <span>View QRs</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setActiveTab('certificates')}
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <FileText className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <span>Certificates</span>
+                      </button>
+
+                      <button 
+                        onClick={() => setActiveTab('analytics')}
+                        className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer"
+                      >
+                        <BarChart3 className="w-3.5 h-3.5 text-[#155EEF]" />
+                        <span>Reports</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* System Status Pill */}
+                  <div className="bg-white border border-slate-200 p-2.5 flex items-center justify-between text-[10.5px] font-mono text-slate-500 shadow-2xs">
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      <span className="text-slate-800 font-bold">All Systems Operational</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-slate-400">
+                      <span>API 99.99%</span>
+                      <span>•</span>
+                      <span>SSL</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+
+              {/* ROW 4: BOTTOM WIDE BANNER (More Trust. More Value.) */}
+              <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-[#0F172A] border border-slate-800 p-6 sm:p-7 relative overflow-hidden shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
                 
-                {/* Background QR Card Image */}
-                <div className="absolute right-0 top-0 bottom-0 w-28 opacity-40 overflow-hidden pointer-events-none">
-                  <img 
-                    src="/bulk-qr-tag.jpg" 
-                    alt="Bulk QR Tag" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.style.display = 'none';
-                    }}
-                  />
-                </div>
+                {/* Background geometric lighting */}
+                <div className="absolute top-0 right-1/4 w-72 h-full bg-[#155EEF]/10 blur-3xl pointer-events-none" />
 
-                <div className="relative z-10 text-left">
-                  <h4 className="text-sm font-bold text-white leading-tight">
-                    Generate<br />QR Codes in Bulk
-                  </h4>
-                  <p className="text-[11px] text-slate-400 mt-1 max-w-[170px] leading-relaxed">
-                    Save hours of manual work. Create and download QR codes for all your products at once.
+                <div className="text-left relative z-10">
+                  <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    More Trust. More Value.
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-400 font-normal mt-1 max-w-xl">
+                    Digital product passports build trust, reduce counterfeits and unlock new lifecycle revenue opportunities for luxury brands.
                   </p>
+                  <div className="mt-4">
+                    <button 
+                      onClick={() => setActiveTab('add-product')}
+                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs"
+                    >
+                      <span>Issue New Passport</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-[#155EEF]" />
+                    </button>
+                  </div>
                 </div>
 
-                <div className="relative z-10 mt-4">
-                  <button className="px-3 py-1.5 bg-white text-slate-950 hover:bg-slate-100 font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer shadow-xs">
-                    <span>Bulk Generate</span>
-                    <ArrowRight className="w-3 h-3 text-[#155EEF]" />
-                  </button>
+                {/* Right Metallic Card Emblem */}
+                <div className="relative z-10 flex items-center gap-3">
+                  <div className="w-36 h-20 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 border border-slate-700 p-3 flex flex-col justify-between shadow-xl">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono text-slate-400">VERIPASS</span>
+                      <span className="text-xs">🔒</span>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[11px] font-mono font-bold text-[#155EEF] tracking-widest">VP-PASS</span>
+                    </div>
+                  </div>
                 </div>
 
               </div>
+            </>
+          )}
 
-              {/* Quick Actions 2x2 Grid */}
-              <div className="bg-white border border-slate-200 p-4 shadow-xs text-left">
-                <div className="text-xs font-bold text-slate-900 mb-2.5">Quick Actions</div>
-                <div className="grid grid-cols-2 gap-2">
-                  <button className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer">
-                    <Plus className="w-3.5 h-3.5 text-[#155EEF]" />
-                    <span>Add Product</span>
-                  </button>
-
-                  <button className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer">
-                    <Scan className="w-3.5 h-3.5 text-[#155EEF]" />
-                    <span>Scan QR</span>
-                  </button>
-
-                  <button className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer">
-                    <FileText className="w-3.5 h-3.5 text-[#155EEF]" />
-                    <span>Upload Certificates</span>
-                  </button>
-
-                  <button className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 text-[11px] font-semibold text-slate-700 transition-colors cursor-pointer">
-                    <BarChart3 className="w-3.5 h-3.5 text-[#155EEF]" />
-                    <span>View Reports</span>
-                  </button>
-                </div>
+          {/* OTHER TABS FALLBACK */}
+          {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'qrcodes' && activeTab !== 'add-product' && (
+            <div className="bg-white border border-slate-200 p-10 text-center flex flex-col items-center justify-center space-y-3">
+              <div className="w-12 h-12 bg-blue-50 border border-blue-100 text-[#155EEF] flex items-center justify-center font-bold">
+                <Layers className="w-6 h-6" />
               </div>
-
-              {/* System Status Pill */}
-              <div className="bg-white border border-slate-200 p-2.5 flex items-center justify-between text-[10.5px] font-mono text-slate-500 shadow-2xs">
-                <div className="flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-slate-800 font-bold">All Systems Operational</span>
-                </div>
-                <div className="flex items-center gap-2 text-slate-400">
-                  <span>API 99.99%</span>
-                  <span>•</span>
-                  <span>SSL</span>
-                </div>
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* ===================================================== */}
-          {/* ROW 4: BOTTOM WIDE BANNER (More Trust. More Value.) */}
-          {/* ===================================================== */}
-          <div className="w-full bg-gradient-to-r from-slate-950 via-slate-900 to-[#0F172A] border border-slate-800 p-6 sm:p-7 relative overflow-hidden shadow-lg flex flex-col sm:flex-row items-center justify-between gap-6">
-            
-            {/* Background geometric lighting */}
-            <div className="absolute top-0 right-1/4 w-72 h-full bg-[#155EEF]/10 blur-3xl pointer-events-none" />
-
-            <div className="text-left relative z-10">
-              <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
-                More Trust. More Value.
+              <h2 className="text-lg font-black text-slate-950 uppercase tracking-tight">
+                {activeTab} Management
               </h2>
-              <p className="text-xs sm:text-sm text-slate-400 font-normal mt-1 max-w-xl">
-                Digital product passports build trust, reduce counterfeits and unlock new lifecycle revenue opportunities for luxury brands.
+              <p className="text-xs text-slate-500 max-w-md">
+                This module connects directly with your enterprise cryptographic ledger to synchronize {activeTab} data.
               </p>
-              <div className="mt-4">
-                <button className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-950 font-bold text-xs flex items-center gap-2 transition-colors cursor-pointer shadow-xs">
-                  <span>Explore Features</span>
-                  <ArrowRight className="w-3.5 h-3.5 text-[#155EEF]" />
+              <div className="pt-3 flex items-center gap-3">
+                <button
+                  onClick={() => setActiveTab('dashboard')}
+                  className="px-4 py-2 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Return to Dashboard
+                </button>
+                <button
+                  onClick={() => setActiveTab('add-product')}
+                  className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
+                >
+                  Add Product
                 </button>
               </div>
             </div>
-
-            {/* Right Metallic Card Emblem */}
-            <div className="relative z-10 flex items-center gap-3">
-              <div className="w-36 h-20 bg-gradient-to-tr from-slate-900 via-slate-800 to-slate-700 border border-slate-700 p-3 flex flex-col justify-between shadow-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-slate-400">VERIPASS</span>
-                  <span className="text-xs">🔒</span>
-                </div>
-                <div className="text-right">
-                  <span className="text-[11px] font-mono font-bold text-[#155EEF] tracking-widest">VP-PASS</span>
-                </div>
-              </div>
-            </div>
-
-          </div>
+          )}
 
         </main>
 
       </div>
+
+      {/* CONSUMER DIGITAL PASSPORT MODAL (For when user clicks View Passport) */}
+      <ProductPassportModal
+        isOpen={!!selectedPassportProduct}
+        product={selectedPassportProduct}
+        onClose={() => setSelectedPassportProduct(null)}
+      />
 
     </div>
   );
