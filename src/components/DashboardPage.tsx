@@ -391,43 +391,85 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
   // Transfer Ownership Handler
   const handleTransferOwnership = (transfer: OwnershipTransfer) => {
-    // Add new customer if needed or update counts
+    // 1. Update Customers (remove product from old owner, add to new owner)
+    let recipientFound = false;
     const updatedCustomers = customers.map((c) => {
       if (c.id === transfer.fromCustomerId) {
-        return { ...c, ownedProductsCount: Math.max(0, (c.ownedProductsCount || 1) - 1) };
+        const filteredIds = (c.ownedProductIds || []).filter((pid) => pid !== transfer.productId);
+        return {
+          ...c,
+          ownedProductsCount: Math.max(0, (c.ownedProductsCount || 1) - 1),
+          ownedProductIds: filteredIds
+        };
+      }
+      if (c.id === transfer.toCustomerId) {
+        recipientFound = true;
+        const currentIds = c.ownedProductIds || [];
+        const nextIds = currentIds.includes(transfer.productId) ? currentIds : [...currentIds, transfer.productId];
+        return {
+          ...c,
+          ownedProductsCount: nextIds.length,
+          ownedProductIds: nextIds
+        };
       }
       return c;
     });
 
-    const newRecipient: Customer = {
-      id: transfer.toCustomerId,
-      fullName: transfer.toCustomerName,
-      email: `${transfer.toCustomerName.toLowerCase().replace(/\s+/g, '.')}@privateclient.id`,
-      country: 'Global Verified',
-      city: 'Capital',
-      tier: 'Verified Buyer',
-      registeredDate: transfer.transferDate,
-      ownedProductsCount: 1,
-      ownedProductIds: [transfer.productId],
-      totalScans: 0,
-      status: 'active',
-      walletAddress: `0x${transfer.txHash.slice(0, 10)}...${transfer.txHash.slice(-6)}`
-    };
-
-    const finalCustomers = [newRecipient, ...updatedCustomers];
+    let finalCustomers = updatedCustomers;
+    if (!recipientFound) {
+      const newRecipient: Customer = {
+        id: transfer.toCustomerId,
+        fullName: transfer.toCustomerName,
+        email: transfer.toCustomerEmail,
+        country: 'Pakistan',
+        city: 'Verified Location',
+        tier: 'Verified Buyer',
+        registeredDate: transfer.transferDate,
+        ownedProductsCount: 1,
+        ownedProductIds: [transfer.productId],
+        status: 'verified'
+      };
+      finalCustomers = [newRecipient, ...updatedCustomers];
+    }
     setCustomers(finalCustomers);
     localStorage.setItem('veripass_customers', JSON.stringify(finalCustomers));
 
-    // Update certificates status if linked
+    // 2. Update Product (current owner + append ownership history)
+    const updatedProducts = products.map((p) => {
+      if (p.id === transfer.productId) {
+        const newHistoryRecord = {
+          id: `hist-${Date.now()}`,
+          date: transfer.transferDate,
+          fromName: transfer.fromCustomerName,
+          toName: transfer.toCustomerName,
+          eventType: 'transfer' as const,
+          notes: transfer.notes || 'Secondary market verified ownership transfer'
+        };
+        const existingHistory = p.ownershipHistory || [];
+        return {
+          ...p,
+          currentOwnerId: transfer.toCustomerId,
+          currentOwnerName: transfer.toCustomerName,
+          currentOwnerEmail: transfer.toCustomerEmail,
+          ownershipHistory: [newHistoryRecord, ...existingHistory]
+        };
+      }
+      return p;
+    });
+    setProducts(updatedProducts);
+    localStorage.setItem('veripass_products', JSON.stringify(updatedProducts));
+
+    // 3. Update certificates status if linked
     const updatedCertificates = certificates.map((cert) => {
       if (cert.productId === transfer.productId) {
-        return { ...cert, status: 'transferred' as CertificateStatus };
+        return { ...cert, status: 'transferred' as CertificateStatus, recipientName: transfer.toCustomerName, recipientEmail: transfer.toCustomerEmail };
       }
       return cert;
     });
     setCertificates(updatedCertificates);
     localStorage.setItem('veripass_certificates', JSON.stringify(updatedCertificates));
 
+    // 4. Register Activity
     const newActivity = {
       id: `act-${Date.now()}`,
       title: `Transferred ownership of ${transfer.productName} to ${transfer.toCustomerName}`,
@@ -868,6 +910,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
               onAddCustomer={handleAddCustomer}
               onTransferOwnership={handleTransferOwnership}
               onDeleteCustomer={handleDeleteCustomer}
+              onViewPassport={(p) => setSelectedPassportProduct(p)}
             />
           )}
 

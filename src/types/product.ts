@@ -1,5 +1,14 @@
 export type ProductStatus = 'verified' | 'pending' | 'flagged' | 'expired';
 
+export interface OwnershipHistoryRecord {
+  id: string;
+  date: string;
+  fromName: string;
+  toName: string;
+  eventType: 'initial_registration' | 'transfer' | 'custody_update';
+  notes?: string;
+}
+
 export interface Product {
   id: string;
   sku: string;
@@ -19,6 +28,10 @@ export interface Product {
   createdAt: string;
   specs?: Record<string, string>;
   warrantyMonths?: number;
+  currentOwnerId?: string;
+  currentOwnerName?: string;
+  currentOwnerEmail?: string;
+  ownershipHistory?: OwnershipHistoryRecord[];
 }
 
 export interface QRCodeConfig {

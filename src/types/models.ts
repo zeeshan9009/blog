@@ -22,6 +22,8 @@ export interface Certificate {
   notes?: string;
 }
 
+export type CustomerTier = 'Standard' | 'VIP Collector' | 'Institutional' | 'Verified Buyer';
+
 export interface Customer {
   id: string;
   fullName: string;
@@ -29,24 +31,25 @@ export interface Customer {
   phone?: string;
   country: string;
   city: string;
-  tier: 'Standard' | 'VIP Collector' | 'Institutional' | 'Verified Buyer';
+  tier?: CustomerTier;
   registeredDate: string;
   ownedProductsCount: number;
   ownedProductIds: string[];
-  totalScans: number;
-  status: 'active' | 'pending' | 'flagged';
-  walletAddress?: string;
+  status: 'active' | 'verified' | 'pending' | 'flagged';
+  notes?: string;
 }
 
 export interface OwnershipTransfer {
   id: string;
   productId: string;
   productName: string;
+  serialNumber?: string;
   fromCustomerId: string;
   fromCustomerName: string;
   toCustomerId: string;
   toCustomerName: string;
+  toCustomerEmail: string;
   transferDate: string;
-  txHash: string;
   status: 'completed' | 'pending' | 'rejected';
+  notes?: string;
 }
