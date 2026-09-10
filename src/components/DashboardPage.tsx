@@ -537,14 +537,14 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   // Sidebar navigation configuration
   const sidebarItems = [
     { id: 'dashboard', label: 'Overview', icon: LayoutDashboard, badge: 'Live' },
-    { id: 'products', label: 'Products & Passports', icon: Box, count: totalProductsCount },
-    { id: 'qrcodes', label: 'QR Vector Studio', icon: QrCode, count: activeQrCount },
-    { id: 'certificates', label: 'Authenticity Certs', icon: FileCheck2, count: certificatesCount },
-    { id: 'customers', label: 'Custodians & VIPs', icon: Users, count: customersCount },
-    { id: 'ownership', label: 'Ownership Ledger', icon: UserCheck },
-    { id: 'analytics', label: 'Telemetry & BI', icon: BarChart3 },
-    { id: 'logs', label: 'Security Audit Trail', icon: ScrollText },
-    { id: 'settings', label: 'Enterprise Config', icon: Settings },
+    { id: 'products', label: 'Products', icon: Box, count: totalProductsCount },
+    { id: 'qrcodes', label: 'QR Codes', icon: QrCode, count: activeQrCount },
+    { id: 'certificates', label: 'Certificates', icon: FileCheck2, count: certificatesCount },
+    { id: 'customers', label: 'Customers', icon: Users, count: customersCount },
+    { id: 'ownership', label: 'Ownership Transfer', icon: UserCheck },
+    { id: 'analytics', label: 'Analytics', icon: BarChart3 },
+    { id: 'logs', label: 'Security Logs', icon: ScrollText },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   // Dynamic Metric KPI Deck
@@ -1450,7 +1450,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                         className="flex items-center gap-2 p-2 border border-slate-200 hover:border-[#155EEF] hover:bg-blue-50/50 rounded-none text-xs font-semibold text-slate-700 transition-colors cursor-pointer"
                       >
                         <Users className="w-3.5 h-3.5 text-[#155EEF]" />
-                        <span>Custodians</span>
+                        <span>Customers</span>
                       </button>
                     </div>
                   </div>
