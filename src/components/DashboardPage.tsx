@@ -11,6 +11,7 @@ import { CustomersView } from './CustomersView';
 import { AnalyticsView } from './AnalyticsView';
 import { LogsView } from './LogsView';
 import { SettingsView, EnterpriseSettings } from './SettingsView';
+import { CommandPaletteModal } from './CommandPaletteModal';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
@@ -145,6 +146,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Global Ctrl+K / Cmd+K Command Palette Keyboard Listener
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Passport preview modal state
   const [selectedPassportProduct, setSelectedPassportProduct] = useState<Product | null>(null);
@@ -748,17 +763,20 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
         {/* TOP NAVBAR / HEADER */}
         <header className="h-16 bg-white border-b border-slate-200 px-6 sm:px-8 flex items-center justify-between sticky top-0 z-20 shrink-0 rounded-none">
           
-          {/* Search Bar with Keyboard Shortcut */}
-          <div className="relative w-full max-w-md">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          {/* Search Bar with Keyboard Shortcut & Command Palette Trigger */}
+          <div 
+            onClick={() => setIsCommandPaletteOpen(true)}
+            className="relative w-full max-w-md cursor-pointer group"
+          >
+            <Search className="w-4 h-4 text-slate-400 group-hover:text-[#155EEF] absolute left-3.5 top-1/2 -translate-y-1/2 transition-colors" />
             <input 
               type="text"
-              placeholder="Search products, certificates, customers, IDs..."
+              readOnly
+              placeholder="Search products, certificates, customers, commands... (Ctrl+K)"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-slate-50 hover:bg-slate-100/80 focus:bg-white border border-slate-200 focus:border-[#155EEF] text-xs pl-9 pr-14 py-2 text-slate-800 placeholder-slate-400 focus:outline-none transition-all rounded-none shadow-2xs"
+              className="w-full bg-slate-50 hover:bg-slate-100/80 group-hover:border-[#155EEF] border border-slate-200 text-xs pl-9 pr-14 py-2 text-slate-800 placeholder-slate-400 focus:outline-none transition-all rounded-none shadow-2xs cursor-pointer select-none"
             />
-            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[9.5px] font-mono bg-white border border-slate-200 px-1.5 py-0.5 rounded-none text-slate-400 shadow-2xs">
+            <kbd className="absolute right-3 top-1/2 -translate-y-1/2 text-[9.5px] font-mono font-bold bg-white border border-slate-200 px-1.5 py-0.5 rounded-none text-slate-400 group-hover:text-[#155EEF] group-hover:border-blue-200 shadow-2xs transition-colors">
               Ctrl+K
             </kbd>
           </div>
@@ -1524,6 +1542,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
         isOpen={!!selectedPassportProduct}
         product={selectedPassportProduct}
         onClose={() => setSelectedPassportProduct(null)}
+      />
+
+      {/* GLOBAL COMMAND PALETTE SEARCH MODAL (CTRL+K) */}
+      <CommandPaletteModal
+        isOpen={isCommandPaletteOpen}
+        onClose={() => setIsCommandPaletteOpen(false)}
+        products={products}
+        certificates={certificates}
+        customers={customers}
+        onSelectProduct={(p) => setSelectedPassportProduct(p)}
+        onNavigateTab={(tab) => setActiveTab(tab)}
       />
 
     </div>
