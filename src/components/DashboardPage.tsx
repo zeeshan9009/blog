@@ -883,7 +883,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     </div>
 
                     <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
-                      Enterprise Command Center
+                      Welcome back, {displayName.split(' ')[0]} 👋
                     </h1>
                     <p className="text-xs sm:text-[13px] text-slate-300 font-normal mt-1 leading-relaxed">
                       Real-time cryptographic passport infrastructure, digital asset twin custody, and tamper-proof verification ledger.
