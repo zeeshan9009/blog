@@ -95,9 +95,10 @@ const navItems: NavItem[] = [
 
 interface NavbarProps {
   onOpenAuth?: (mode: 'signin' | 'signup') => void;
+  onOpenPricing?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
+export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -155,6 +156,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
               >
                 <a
                   href={item.href}
+                  onClick={(e) => {
+                    if (item.label === 'Pricing') {
+                      e.preventDefault();
+                      if (onOpenPricing) {
+                        onOpenPricing();
+                      } else {
+                        window.location.hash = '#pricing';
+                      }
+                    }
+                  }}
                   className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-medium transition-colors rounded-none border border-transparent ${activeDropdown === item.label
                       ? 'text-neutral-950 bg-neutral-100 border-neutral-300'
                       : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-50 hover:border-neutral-200'
@@ -244,7 +255,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
               <div key={item.label}>
                 <a
                   href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
+                  onClick={(e) => {
+                    setMobileMenuOpen(false);
+                    if (item.label === 'Pricing') {
+                      e.preventDefault();
+                      if (onOpenPricing) {
+                        onOpenPricing();
+                      } else {
+                        window.location.hash = '#pricing';
+                      }
+                    }
+                  }}
                   className="flex items-center justify-between px-3.5 py-2.5 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 text-sm font-medium text-neutral-800 hover:text-blue-600 transition-colors"
                 >
                   <span>{item.label}</span>

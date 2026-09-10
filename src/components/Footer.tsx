@@ -2,6 +2,7 @@ import React from 'react';
 
 const footerLinks = [
   { label: 'Product', href: '#product' },
+  { label: 'Pricing', href: '#pricing' },
   { label: 'Company', href: '#company' },
   { label: 'Developers', href: '#developers' },
   { label: 'Resources', href: '#resources' },

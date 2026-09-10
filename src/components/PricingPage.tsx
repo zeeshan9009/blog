@@ -27,12 +27,14 @@ import {
 
 interface PricingPageProps {
   onBack?: () => void;
+  backButtonText?: string;
   onSelectPlan?: (planId: string) => void;
   currentPlanId?: string;
 }
 
 export const PricingPage: React.FC<PricingPageProps> = ({
   onBack,
+  backButtonText = 'Back to Dashboard',
   onSelectPlan,
   currentPlanId = 'starter'
 }) => {
@@ -244,7 +246,7 @@ export const PricingPage: React.FC<PricingPageProps> = ({
             className="absolute top-6 left-6 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 text-slate-300 transition-colors cursor-pointer rounded-none"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Back to Dashboard</span>
+            <span>{backButtonText}</span>
           </button>
         )}
 

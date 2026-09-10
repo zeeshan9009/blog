@@ -11,9 +11,10 @@ import { CtaBanner } from './components/CtaBanner';
 import { Footer } from './components/Footer';
 import { AuthPage } from './components/AuthPage';
 import { DashboardPage } from './components/DashboardPage';
+import { PricingPage } from './components/PricingPage';
 
 function MainApp() {
-  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'processing' | 'dashboard' | null>(null);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'processing' | 'dashboard' | 'pricing' | null>(null);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -27,6 +28,8 @@ function MainApp() {
         setAuthMode('processing');
       } else if (hash === '#dashboard' || hash === '#app') {
         setAuthMode('dashboard');
+      } else if (hash === '#pricing' || hash === '#plans') {
+        setAuthMode('pricing');
       } else {
         setAuthMode(null);
       }
@@ -50,6 +53,11 @@ function MainApp() {
     }
   };
 
+  const handleOpenPricing = () => {
+    window.location.hash = '#pricing';
+    setAuthMode('pricing');
+  };
+
   const handleCloseAuth = () => {
     window.location.hash = '';
     setAuthMode(null);
@@ -57,6 +65,31 @@ function MainApp() {
 
   if (authMode === 'dashboard') {
     return <DashboardPage onBackToHome={handleCloseAuth} />;
+  }
+
+  if (authMode === 'pricing') {
+    return (
+      <div className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-[#155EEF] selection:text-white flex flex-col font-sans">
+        <Navbar onOpenAuth={handleOpenAuth} onOpenPricing={handleOpenPricing} />
+        <main className="flex-1 max-w-[1500px] w-full mx-auto px-4 sm:px-8 py-8 sm:py-12">
+          <PricingPage
+            onBack={handleCloseAuth}
+            backButtonText="Back to Home"
+            currentPlanId="business"
+            onSelectPlan={(planId) => {
+              if (planId === 'enterprise') {
+                window.location.hash = '#signup';
+                setAuthMode('signup');
+              } else {
+                window.location.hash = '#signup';
+                setAuthMode('signup');
+              }
+            }}
+          />
+        </main>
+        <Footer />
+      </div>
+    );
   }
 
   if (authMode) {
@@ -75,7 +108,7 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-white text-neutral-900 selection:bg-blue-600 selection:text-white flex flex-col font-sans">
       {/* 1. Header / Navbar */}
-      <Navbar onOpenAuth={handleOpenAuth} />
+      <Navbar onOpenAuth={handleOpenAuth} onOpenPricing={handleOpenPricing} />
 
       {/* 2. Hero Section */}
       <Hero />
