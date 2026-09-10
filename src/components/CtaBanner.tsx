@@ -26,16 +26,16 @@ export const CtaBanner: React.FC = () => {
           {/* CENTER: Description & CTA Button */}
           {/* ========================================================= */}
           <div className="w-full lg:w-[32%] flex flex-col items-start text-left">
-            <p className="text-xs sm:text-[13px] text-neutral-600 font-normal leading-relaxed mb-4 max-w-xs">
+            <p className="text-sm sm:text-base text-neutral-600 font-normal leading-relaxed mb-5 max-w-sm">
               Give every physical product a permanent place on the internet.
             </p>
 
             <a
               href="#start-building"
-              className="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-none bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] text-white font-bold text-xs uppercase tracking-wider transition-all duration-150 shadow-xs active:translate-y-0.5"
+              className="inline-flex items-center justify-center gap-2.5 px-7 py-3.5 sm:px-8 sm:py-4 rounded-none bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] text-white font-bold text-sm sm:text-base uppercase tracking-wider transition-all duration-150 shadow-xs active:translate-y-0.5"
             >
               <span>START BUILDING</span>
-              <ArrowRight className="w-4 h-4" />
+              <ArrowRight className="w-5 h-5" />
             </a>
           </div>
 

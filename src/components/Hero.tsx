@@ -225,31 +225,13 @@ export const Hero: React.FC = () => {
 
               </div>
 
-              {/* 2. Overlapping Smartphone Scanner Mockup */}
-              <div className="absolute right-28 sm:right-32 -bottom-6 sm:-bottom-8 w-36 sm:w-40 bg-[#0F172A] rounded-2xl p-2 shadow-2xl border border-neutral-800 z-20">
-                <div className="w-12 h-2.5 bg-neutral-900 rounded-full mx-auto mb-1.5" />
-
-                <div className="relative bg-slate-900 rounded-xl p-2 border border-slate-800 text-center">
-                  <div className="flex items-center justify-between text-[9px] font-mono text-emerald-400 mb-1">
-                    <span className="animate-pulse">Scanning...</span>
-                  </div>
-
-                  <div className="w-10 h-10 mx-auto mb-1 flex items-center justify-center">
-                    <img
-                      src="/diamond-ring.jpg"
-                      alt="Ring Preview"
-                      className="w-9 h-9 object-contain brightness-95"
-                    />
-                  </div>
-
-                  <div className="relative p-1.5 bg-slate-950 border border-slate-800 mx-auto w-18 h-18 flex items-center justify-center">
-                    <div className="absolute top-0 left-0 w-2.5 h-2.5 border-t-2 border-l-2 border-emerald-400" />
-                    <div className="absolute top-0 right-0 w-2.5 h-2.5 border-t-2 border-r-2 border-emerald-400" />
-                    <div className="absolute bottom-0 left-0 w-2.5 h-2.5 border-b-2 border-l-2 border-emerald-400" />
-                    <div className="absolute bottom-0 right-0 w-2.5 h-2.5 border-b-2 border-r-2 border-emerald-400" />
-                    <QrCode className="w-12 h-12 text-white opacity-90" />
-                  </div>
-                </div>
+              {/* 2. Overlapping Smartphone Scanner Mockup using mobile.png */}
+              <div className="absolute right-24 sm:right-28 -bottom-6 sm:-bottom-10 w-36 sm:w-44 z-20 pointer-events-none select-none">
+                <img
+                  src="/mobile.png"
+                  alt="Mobile Scanning Mockup"
+                  className="w-full h-auto object-contain drop-shadow-[0_20px_35px_rgba(0,0,0,0.45)]"
+                />
               </div>
 
               {/* 3. Stacked Stat Cards on Right Side (Natural flow, within width) */}

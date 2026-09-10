@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 SEO Rank Tracker
+Copyright (c) 2026 VeriPass® (Product Identity Infrastructure)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

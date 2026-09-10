@@ -93,7 +93,11 @@ const navItems: NavItem[] = [
   }
 ];
 
-export const Navbar: React.FC = () => {
+interface NavbarProps {
+  onOpenAuth?: (mode: 'signin' | 'signup') => void;
+}
+
+export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -202,20 +206,20 @@ export const Navbar: React.FC = () => {
 
           {/* Right Action Buttons - Square UI */}
           <div className="hidden md:flex items-center gap-3">
-            <a
-              href="#login"
-              className="text-[14px] font-medium text-neutral-700 hover:text-neutral-950 px-4 py-2 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 transition-colors"
+            <button
+              onClick={() => onOpenAuth ? onOpenAuth('signin') : (window.location.hash = '#login')}
+              className="text-[14px] font-medium text-neutral-700 hover:text-neutral-950 px-4 py-2 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
             >
               Log in
-            </a>
+            </button>
 
-            <a
-              href="#get-started"
-              className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 hover:shadow-xs active:translate-y-0.5"
+            <button
+              onClick={() => onOpenAuth ? onOpenAuth('signup') : (window.location.hash = '#get-started')}
+              className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 hover:shadow-xs active:translate-y-0.5 cursor-pointer"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1" />
-            </a>
+            </button>
           </div>
 
           {/* Mobile Menu Button - Square */}
@@ -251,21 +255,25 @@ export const Navbar: React.FC = () => {
           </div>
 
           <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-col gap-2.5">
-            <a
-              href="#login"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full text-center py-2.5 text-sm font-semibold text-neutral-800 rounded-none border border-neutral-200 hover:bg-neutral-50 transition-colors"
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (onOpenAuth) onOpenAuth('signin');
+              }}
+              className="w-full text-center py-2.5 text-sm font-semibold text-neutral-800 rounded-none border border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
             >
               Log in
-            </a>
-            <a
-              href="#get-started"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors"
+            </button>
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                if (onOpenAuth) onOpenAuth('signup');
+              }}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors cursor-pointer"
             >
               <span>Get Started</span>
               <ArrowRight className="w-4 h-4" />
-            </a>
+            </button>
           </div>
         </div>
       )}
