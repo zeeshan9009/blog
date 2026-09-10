@@ -9,6 +9,9 @@ import { QrCodeHub } from './QrCodeHub';
 import { ProductsView } from './ProductsView';
 import { CertificatesView } from './CertificatesView';
 import { CustomersView } from './CustomersView';
+import { AnalyticsView } from './AnalyticsView';
+import { LogsView } from './LogsView';
+import { SettingsView } from './SettingsView';
 import { supabase } from '../lib/supabase';
 import {
   LayoutDashboard,
@@ -1380,33 +1383,27 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             </>
           )}
 
-          {/* OTHER TABS FALLBACK */}
-          {activeTab !== 'dashboard' && activeTab !== 'products' && activeTab !== 'qrcodes' && activeTab !== 'add-product' && activeTab !== 'certificates' && activeTab !== 'customers' && activeTab !== 'ownership' && (
-            <div className="bg-white border border-slate-200 p-10 text-center flex flex-col items-center justify-center space-y-3">
-              <div className="w-12 h-12 bg-blue-50 border border-blue-100 text-[#155EEF] flex items-center justify-center font-bold">
-                <Layers className="w-6 h-6" />
-              </div>
-              <h2 className="text-lg font-black text-slate-950 uppercase tracking-tight">
-                {activeTab} Management
-              </h2>
-              <p className="text-xs text-slate-500 max-w-md">
-                This module connects directly with your enterprise cryptographic ledger to synchronize {activeTab} data.
-              </p>
-              <div className="pt-3 flex items-center gap-3">
-                <button
-                  onClick={() => setActiveTab('dashboard')}
-                  className="px-4 py-2 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs transition-colors cursor-pointer"
-                >
-                  Return to Dashboard
-                </button>
-                <button
-                  onClick={() => setActiveTab('add-product')}
-                  className="px-4 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-bold text-xs transition-colors cursor-pointer"
-                >
-                  Add Product
-                </button>
-              </div>
-            </div>
+          {/* TAB 6: ANALYTICS MANAGEMENT */}
+          {activeTab === 'analytics' && (
+            <AnalyticsView
+              products={products}
+              certificates={certificates}
+            />
+          )}
+
+          {/* TAB 7: LOGS & SECURITY TELEMETRY */}
+          {activeTab === 'logs' && (
+            <LogsView
+              products={products}
+            />
+          )}
+
+          {/* TAB 8: SETTINGS & ENTERPRISE CONFIG */}
+          {activeTab === 'settings' && (
+            <SettingsView
+              companyName={displayCompany}
+              companyId={displayCompanyId}
+            />
           )}
 
         </main>
