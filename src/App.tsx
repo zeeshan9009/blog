@@ -2,24 +2,35 @@ import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
-import { OneUrl } from './components/OneUrl';
-import { HowItWorks } from './components/HowItWorks';
-import { LifetimeData } from './components/LifetimeData';
-import { GlobalReach } from './components/GlobalReach';
-import { DevInfrastructure } from './components/DevInfrastructure';
+import { BrandTicker } from './components/BrandTicker';
+import { AlternatingFeatures } from './components/AlternatingFeatures';
+import { SecuritySection } from './components/SecuritySection';
 import { CtaBanner } from './components/CtaBanner';
 import { Footer } from './components/Footer';
 import { AuthPage } from './components/AuthPage';
 import { DashboardPage } from './components/DashboardPage';
 import { PricingPage } from './components/PricingPage';
+import { PublicPassportPage } from './components/PublicPassportPage';
+import { NotchNavbar } from './components/ui/notch-navbar';
 
 function MainApp() {
-  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'processing' | 'dashboard' | 'pricing' | null>(null);
+  const [authMode, setAuthMode] = useState<'signin' | 'signup' | 'processing' | 'dashboard' | 'pricing' | 'passport' | null>(null);
+  const [currentPassportId, setCurrentPassportId] = useState<string>('VP-2026-8F4K29');
   const { user } = useAuth();
 
   useEffect(() => {
     const handleHashChange = () => {
       const hash = window.location.hash;
+
+      // Public Passport Routing: #p/ID, #verify/ID, #passport/ID
+      if (hash.startsWith('#p/') || hash.startsWith('#verify/') || hash.startsWith('#passport/')) {
+        const parts = hash.split('/');
+        const id = parts[1] || 'VP-2026-8F4K29';
+        setCurrentPassportId(id);
+        setAuthMode('passport');
+        return;
+      }
+
       if (hash === '#login' || hash === '#signin') {
         if (user) {
           window.location.hash = '#dashboard';
@@ -34,8 +45,11 @@ function MainApp() {
         } else {
           setAuthMode('signup');
         }
-      } else if (hash === '#processing' || hash === '#verify') {
+      } else if (hash === '#processing') {
         setAuthMode('processing');
+      } else if (hash === '#verify') {
+        setCurrentPassportId('VP-2026-8F4K29');
+        setAuthMode('passport');
       } else if (hash === '#dashboard' || hash === '#app') {
         setAuthMode('dashboard');
       } else if (hash === '#pricing' || hash === '#plans') {
@@ -75,15 +89,28 @@ function MainApp() {
     setAuthMode(null);
   };
 
+  if (authMode === 'passport') {
+    return (
+      <PublicPassportPage
+        productId={currentPassportId}
+        onBackToHome={handleCloseAuth}
+      />
+    );
+  }
+
   if (authMode === 'dashboard') {
-    return <DashboardPage onBackToHome={handleCloseAuth} />;
+    return <DashboardPage onBackToHome={handleCloseAuth} onOpenPublicPassport={(id) => {
+      window.location.hash = `#p/${id}`;
+      setCurrentPassportId(id);
+      setAuthMode('passport');
+    }} />;
   }
 
   if (authMode === 'pricing') {
     return (
       <div className="min-h-screen bg-[#F8FAFC] text-slate-900 selection:bg-[#155EEF] selection:text-white flex flex-col font-sans">
-        <Navbar onOpenAuth={handleOpenAuth} onOpenPricing={handleOpenPricing} />
-        <main className="flex-1 max-w-[1500px] w-full mx-auto px-4 sm:px-8 py-8 sm:py-12">
+        <NotchNavbar onOpenAuth={handleOpenAuth} onOpenPricing={handleOpenPricing} user={user} />
+        <main className="flex-1 max-w-[1500px] w-full mx-auto px-4 sm:px-8 pt-20 sm:pt-24 py-8 sm:py-12">
           <PricingPage
             onBack={handleCloseAuth}
             backButtonText="Back to Home"
@@ -106,8 +133,8 @@ function MainApp() {
 
   if (authMode) {
     return (
-      <AuthPage 
-        initialMode={authMode as 'signin' | 'signup' | 'processing'} 
+      <AuthPage
+        initialMode={authMode as 'signin' | 'signup' | 'processing'}
         onClose={handleCloseAuth}
         onCompleteToDashboard={() => {
           window.location.hash = '#dashboard';
@@ -118,33 +145,32 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-white text-neutral-900 selection:bg-blue-600 selection:text-white flex flex-col font-sans">
-      {/* 1. Header / Navbar */}
-      <Navbar onOpenAuth={handleOpenAuth} onOpenPricing={handleOpenPricing} />
+    <div className="min-h-screen bg-[#FBFBFA] text-neutral-900 selection:bg-blue-600 selection:text-white flex flex-col font-sans">
+      {/* Floating Fillout-style Header */}
+      <div className="absolute top-0 left-0 right-0 z-50">
+        <Navbar onOpenAuth={handleOpenAuth} onOpenPricing={handleOpenPricing} />
+      </div>
 
-      {/* 2. Hero Section */}
-      <Hero />
+      {/* Landing Page Content */}
+      <main className="flex-1 w-full flex flex-col">
+        {/* 1. Hero with Anime Sky Background & Map Image */}
+        <Hero onOpenAuth={handleOpenAuth} />
 
-      {/* 3. One URL Section */}
-      <OneUrl />
+        {/* 2. Enterprise Brand Logo Ticker */}
+        <BrandTicker />
 
-      {/* 4. How It Works Section */}
-      <HowItWorks />
+        {/* 3. Alternating 6 Story Feature Cards */}
+        <AlternatingFeatures />
 
-      {/* 5. One Product. A Lifetime of Data Section */}
-      <LifetimeData />
+        {/* 4. Enterprise Ready Certified & Secure Dark Container */}
+        <SecuritySection />
 
-      {/* 6. Global Reach Section */}
-      <GlobalReach />
+        {/* 5. Pre-Footer "Ready to get started?" Action Box */}
+        <CtaBanner onOpenAuth={handleOpenAuth} />
 
-      {/* 7. Developer / Infrastructure Section */}
-      <DevInfrastructure />
-
-      {/* 8. Call To Action & Brand Banner */}
-      <CtaBanner />
-
-      {/* 9. Bottom Footer */}
-      <Footer />
+        {/* 6. Footer (Logo SVG + Horizontal Links + Giant VERIPASS Text) */}
+        <Footer />
+      </main>
     </div>
   );
 }

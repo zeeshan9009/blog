@@ -43,7 +43,7 @@ export const ProductPassportModal: React.FC<ProductPassportModalProps> = ({
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const verifyUrl = product.qrCodeUrl || `https://veripass.id/verify/${product.id}`;
+  const verifyUrl = product.qrCodeUrl || `https://useveripass.com/verify/${product.id}`;
   const ownerName = product.currentOwnerName || 'Original Brand Custody';
 
   return (

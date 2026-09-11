@@ -74,7 +74,7 @@ export const AddProductPage: React.FC<AddProductPageProps> = ({
   const [createdProduct, setCreatedProduct] = useState<Product | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const previewUrl = `https://veripass.id/verify/${tempId}`;
+  const previewUrl = `https://useveripass.com/verify/${tempId}`;
 
   const handleRegenerateKeys = () => {
     setSerialNumber(`SN-${generateRandomHex(8).toUpperCase()}`);
@@ -568,7 +568,7 @@ export const AddProductPage: React.FC<AddProductPageProps> = ({
                 {tempId}
               </span>
               <span className="text-[9px] font-mono text-slate-400">
-                https://veripass.id/verify/{tempId}
+                https://useveripass.com/verify/{tempId}
               </span>
             </div>
 

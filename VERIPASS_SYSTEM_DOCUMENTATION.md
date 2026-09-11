@@ -71,7 +71,7 @@
 - **Select from Registered Catalog**: Dropdown lets you pick an existing product (e.g. *Haier Thunder Inverter 1.5 Ton AC*) and automatically pre-fills Name, SKU, Category, Brand, Origin, and Serial Prefix.
 - **Custom Model Entry**: Option to manually enter new model codes on the fly.
 - **Sequential Serial Generation**: Generates 50, 100, 500, 1,000, or 5,000+ units with sequential numbering (e.g. `HR-AC-HSU-18HNS-000001` to `HR-AC-HSU-18HNS-001000`).
-- **Cryptographic Hashing per Unit**: Unique SHA-256 hash and unique URL (`https://veripass.id/verify/VP-HR-AC-000001`) for every single item.
+- **Cryptographic Hashing per Unit**: Unique SHA-256 hash and unique URL (`https://useveripass.com/verify/VP-HR-AC-000001`) for every single item.
 
 #### B. Multi-Model Series Matrix:
 - Generate bulk QR batches across multiple model variants in one series (e.g. *Dawlance Mega Inverter 1.0T, 1.5T, and 2.0T*) in one master execution.

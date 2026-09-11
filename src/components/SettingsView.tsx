@@ -156,7 +156,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                       className="w-full bg-slate-50 focus:bg-white border border-slate-200 focus:border-[#155EEF] px-3.5 py-2.5 text-xs font-mono text-slate-900 focus:outline-none"
                     />
                     <span className="bg-slate-100 border border-l-0 border-slate-200 px-3 py-2.5 text-xs text-slate-500 font-mono">
-                      .veripass.id
+                      .useveripass.com
                     </span>
                   </div>
                 </div>

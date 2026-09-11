@@ -61,14 +61,10 @@ export const LifetimeData: React.FC = () => {
   const [activeStep, setActiveStep] = useState<string>('3');
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#070A11] text-white py-12 sm:py-16 border-b border-neutral-800">
+    <section className="relative w-full overflow-hidden bg-white text-neutral-950 py-16 sm:py-20 border-b border-neutral-200">
       
-      {/* Subtle glowing ambient backdrop */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-blue-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
-      <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-96 h-96 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none -z-10" />
-
-      {/* Grid line texture */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none -z-10" />
+      {/* Subtle grid line texture */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#00000006_1px,transparent_1px),linear-gradient(to_bottom,#00000006_1px,transparent_1px)] bg-[size:36px_36px] pointer-events-none -z-10" />
 
       <div className="max-w-[1480px] mx-auto px-6 sm:px-10 lg:px-12 relative z-10">
         <div className="flex flex-col xl:flex-row items-center justify-between gap-10 xl:gap-12">
@@ -80,8 +76,8 @@ export const LifetimeData: React.FC = () => {
             
             {/* Main Headline */}
             <h2 className="text-3xl sm:text-4xl lg:text-[44px] font-black tracking-tight uppercase leading-[1.06] mb-8 font-sans">
-              <span className="text-white block">ONE PRODUCT.</span>
-              <span className="text-white block">A LIFETIME OF DATA.</span>
+              <span className="text-neutral-950 block">ONE PRODUCT.</span>
+              <span className="text-neutral-950 block">A LIFETIME OF DATA.</span>
             </h2>
 
             {/* Horizontal Lifecycle Timeline Track */}
@@ -89,7 +85,7 @@ export const LifetimeData: React.FC = () => {
               <div className="flex items-center min-w-[560px] relative py-2">
                 
                 {/* Continuous Connecting Blue Line */}
-                <div className="absolute top-5 left-6 right-6 h-[1.5px] bg-[#1E3A8A] -z-0" />
+                <div className="absolute top-5 left-6 right-6 h-[2px] bg-blue-100 -z-0" />
 
                 {timelineEvents.map((event, idx) => {
                   const Icon = event.icon;
@@ -102,26 +98,26 @@ export const LifetimeData: React.FC = () => {
                       onClick={() => setActiveStep(event.id)}
                       className="flex-1 flex flex-col items-center text-center cursor-pointer group relative z-10 px-1"
                     >
-                      {/* Timeline Glowing Node Icon */}
+                      {/* Timeline Node Icon */}
                       <div className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 mb-3 border ${
                         isCurrent 
-                          ? 'bg-[#155EEF] border-blue-400 text-white shadow-lg shadow-blue-500/40 scale-110'
-                          : 'bg-[#0B1222] border-blue-900/80 text-blue-400 hover:border-blue-500 hover:text-white'
+                          ? 'bg-[#155EEF] border-[#155EEF] text-white shadow-md shadow-blue-500/30 scale-110'
+                          : 'bg-neutral-50 border-neutral-300 text-neutral-600 hover:border-blue-600 hover:text-blue-600 hover:bg-white'
                       }`}>
                         <Icon className="w-4 h-4" />
                       </div>
 
                       {/* Node Title & Description */}
-                      <div className="font-bold text-[10px] sm:text-[11px] text-white tracking-wider uppercase leading-snug">
+                      <div className="font-bold text-[10px] sm:text-[11px] text-neutral-950 tracking-wider uppercase leading-snug font-mono">
                         {event.title}
                       </div>
-                      <div className="text-[9px] text-slate-400 font-normal leading-tight mt-0.5">
+                      <div className="text-[9px] text-neutral-500 font-normal leading-tight mt-0.5">
                         {event.description}
                       </div>
 
                       {/* Small blue dot between nodes on the track */}
                       {!isLast && (
-                        <div className="absolute top-4 -right-1 w-1.5 h-1.5 rounded-full bg-blue-500/60 hidden sm:block" />
+                        <div className="absolute top-4 -right-1 w-1.5 h-1.5 rounded-full bg-blue-300 hidden sm:block" />
                       )}
                     </div>
                   );
@@ -137,7 +133,8 @@ export const LifetimeData: React.FC = () => {
           {/* ========================================================= */}
           <div className="w-full xl:w-[48%] flex justify-center xl:justify-end shrink-0">
             
-            <div className="w-full max-w-[620px] bg-white text-slate-900 rounded-none border border-slate-700/60 shadow-2xl overflow-hidden">
+            <div className="w-full max-w-[620px] bg-white text-slate-900 rounded-none border border-neutral-300 shadow-xl overflow-hidden">
+
               
               {/* Browser Address Bar Header */}
               <div className="bg-[#f8fafc] border-b border-slate-200 px-3.5 py-2 flex items-center justify-between">
@@ -145,7 +142,7 @@ export const LifetimeData: React.FC = () => {
                   <div className="w-4 h-4 bg-emerald-500 rounded-none flex items-center justify-center">
                     <Lock className="w-2.5 h-2.5 text-white" />
                   </div>
-                  <span>veripass.com/p/VP-2026-8F4K29</span>
+                  <span>useveripass.com/p/VP-2026-8F4K29</span>
                 </div>
                 <div className="text-slate-400 hover:text-slate-700 transition-colors cursor-pointer">
                   <RotateCw className="w-3.5 h-3.5" />

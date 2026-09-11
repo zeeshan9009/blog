@@ -99,14 +99,14 @@ export const CertificatesView: React.FC<CertificatesViewProps> = ({
       brand: linkedProduct.brand || 'VeriPass Enterprise',
       category: linkedProduct.category || 'General',
       recipientName: recipientName.trim(),
-      recipientEmail: recipientEmail.trim() || 'owner@veripass.id',
+      recipientEmail: recipientEmail.trim() || 'owner@useveripass.com',
       issuerName: defaultIssuer,
       issueDate: issueDate,
       expiryDate: expiryDate,
       status: 'active',
       blockchainTxHash: `0x${generateRandomHex(64)}`,
       signatureHash: `SIG-${generateRandomHex(32).toUpperCase()}`,
-      qrCodeUrl: `https://veripass.id/certificate/${certId}`,
+      qrCodeUrl: `https://useveripass.com/certificate/${certId}`,
       sealType: sealType,
       notes: notes.trim() || `Official authenticity certificate issued to ${recipientName.trim()}.`
     };

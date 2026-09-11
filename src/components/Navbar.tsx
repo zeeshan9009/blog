@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { ArrowRight, ChevronDown, Menu, X, ShieldCheck, Sparkles, Layers, Cpu, Globe, Lock, BookOpen, LayoutDashboard, LogOut } from 'lucide-react';
+import React, { useState } from 'react';
+import { ChevronDown, ArrowRight, Menu, X, LayoutDashboard, LogOut, ShieldCheck, Sparkles, Layers, Cpu, Globe, BookOpen, Compass, Puzzle, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { VeriPassLogoIcon } from './ui/VeriPassLogo';
 
-export interface NavItem {
+interface NavItem {
   label: string;
   href: string;
   hasDropdown?: boolean;
@@ -16,81 +17,102 @@ export interface NavItem {
 
 const navItems: NavItem[] = [
   {
-    label: 'Product',
-    href: '#product',
+    label: 'Products',
+    href: '#products',
     hasDropdown: true,
     dropdownItems: [
       {
-        title: 'Identity Verification',
-        description: 'Automated biometric & document authentication with sub-second latency.',
+        title: 'Digital Product Passports',
+        description: 'Permanent cryptographic IDs & DPP compliance for physical goods.',
         icon: ShieldCheck,
-        href: '#identity-verification'
+        href: '#passport'
       },
       {
-        title: 'Real-Time Fraud Prevention',
-        description: 'AI-driven synthetic ID & anomaly detection engine.',
+        title: 'Dynamic QR & NFC Serials',
+        description: 'Instant redirect management & tamper-proof authentication.',
         icon: Sparkles,
-        href: '#fraud-prevention'
+        href: '#dynamic-qr'
       },
       {
-        title: 'Global Compliance',
-        description: 'Instant AML, KYC, and sanctions screening across 190+ countries.',
-        icon: Globe,
-        href: '#compliance'
+        title: 'Provenance & Warranty Ledger',
+        description: 'Immutable lifecycle, repair tracking, and secondary ownership.',
+        icon: Layers,
+        href: '#warranty'
       }
     ]
   },
   {
-    label: 'How It Works',
-    href: '#how-it-works'
-  },
-  {
-    label: 'Industries',
-    href: '#industries',
+    label: 'Templates',
+    href: '#templates',
     hasDropdown: true,
     dropdownItems: [
       {
-        title: 'Fintech & Banking',
-        description: 'Frictionless customer onboarding with bank-grade security.',
-        icon: Lock,
-        href: '#fintech'
+        title: 'Luxury Goods & Watches',
+        description: 'High-security serials, certificates of origin & anti-counterfeiting.',
+        icon: Compass,
+        href: '#templates-luxury'
       },
       {
-        title: 'E-Commerce & Marketplaces',
-        description: 'Verify buyer and seller trust without dropping conversion rates.',
-        icon: Layers,
-        href: '#ecommerce'
-      },
-      {
-        title: 'Enterprise & SaaS',
-        description: 'Scale SSO, passkey verification, and multi-tenant access control.',
+        title: 'Electronics & Hardware',
+        description: 'Warranty registration, manuals & serial activation workflows.',
         icon: Cpu,
-        href: '#enterprise'
+        href: '#templates-electronics'
+      },
+      {
+        title: 'EU DPP 2026 Compliance',
+        description: 'Pre-formatted carbon, material, and circularity passport templates.',
+        icon: FileText,
+        href: '#templates-dpp'
+      }
+    ]
+  },
+  {
+    label: 'Integrations',
+    href: '#integrations',
+    hasDropdown: true,
+    dropdownItems: [
+      {
+        title: 'Shopify Plus & Commerce',
+        description: 'Auto-generate passports on order fulfillment and shipping.',
+        icon: Puzzle,
+        href: '#shopify'
+      },
+      {
+        title: 'SAP & Oracle SCM',
+        description: 'Enterprise ERP sync for factory batch production & serials.',
+        icon: Cpu,
+        href: '#sap'
+      },
+      {
+        title: 'REST API & Webhooks',
+        description: 'Programmatic issuance with sub-100ms global latency.',
+        icon: Globe,
+        href: '#api-docs'
+      }
+    ]
+  },
+  {
+    label: 'Resources',
+    href: '#resources',
+    hasDropdown: true,
+    dropdownItems: [
+      {
+        title: 'Developer Documentation',
+        description: 'Complete guides, SDKs, and code samples.',
+        icon: BookOpen,
+        href: '#docs'
+      },
+      {
+        title: 'EU DPP 2026 Guide',
+        description: 'Everything brands need to know about EU regulations.',
+        icon: FileText,
+        href: '#dpp-guide'
       }
     ]
   },
   {
     label: 'Pricing',
     href: '#pricing'
-  },
-  {
-    label: 'Developers',
-    href: '#developers',
-    hasDropdown: true,
-    dropdownItems: [
-      {
-        title: 'API Reference',
-        description: 'Comprehensive REST & GraphQL endpoint documentation.',
-        icon: BookOpen,
-        href: '#docs'
-      },
-      {
-        title: 'SDKs & Libraries',
-        description: 'React, Node.js, Python, iOS, and Android drop-in packages.',
-        icon: Cpu,
-        href: '#sdks'
-      }
-    ]
   }
 ];
 
@@ -100,55 +122,29 @@ interface NavbarProps {
 }
 
 export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => {
-  const { user, profile, signOut } = useAuth();
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { user, signOut } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 10);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <nav
-      className={`sticky top-0 z-50 w-full transition-colors duration-150 font-sans ${isScrolled
-          ? 'bg-white/95 backdrop-blur-md border-b border-neutral-300 shadow-xs'
-          : 'bg-white border-b border-neutral-200'
-        }`}
-    >
-      <div className="max-w-[1480px] mx-auto px-6 sm:px-10 lg:px-12">
-        <div className="flex items-center justify-between h-16 sm:h-18">
-
-          {/* Square UI Brand / Logo */}
-          <div className="flex items-center">
-            <a href="#" className="group flex items-center gap-3 focus:outline-none">
-              {/* Sharp Square Geometric Icon */}
-              <div className="w-8 h-8 rounded-none bg-black border border-black flex items-center justify-center transition-all duration-150 group-hover:bg-neutral-800">
-                <svg
-                  className="w-4 h-4 text-white"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <rect x="3" y="3" width="18" height="18" fill="currentColor" />
-                  <rect x="7" y="7" width="10" height="10" fill="#000000" />
-                  <rect x="10" y="10" width="4" height="4" fill="#2563EB" />
-                </svg>
-              </div>
-
-              {/* Brand Typography */}
-              <span className="text-xl font-bold tracking-tight text-neutral-900 group-hover:text-black">
+    <header className="sticky top-0 z-50 w-full px-4 sm:px-6 lg:px-8 pt-3 sm:pt-4 pointer-events-none">
+      <div className="max-w-[1240px] mx-auto pointer-events-auto">
+        
+        {/* Floating Rounded Pill Bar (Exact match to Fillout reference style) */}
+        <div className="bg-white/90 backdrop-blur-md border border-neutral-200/90 rounded-2xl shadow-sm px-4 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between transition-all">
+          
+          {/* Left Brand Logo */}
+          <div className="flex items-center gap-2.5">
+            <a href="#" className="flex items-center gap-2.5 group focus:outline-none">
+              <VeriPassLogoIcon className="w-8 h-8 sm:w-8.5 sm:h-8.5 object-contain group-hover:scale-105 transition-transform" />
+              <span className="font-extrabold text-lg sm:text-xl tracking-tight text-neutral-900 font-sans">
                 VeriPass
               </span>
             </a>
           </div>
 
-          {/* Desktop Navigation Links - Square Style */}
-          <div className="hidden md:flex items-center space-x-1 lg:space-x-2">
+          {/* Center Navigation Links with Dropdowns */}
+          <nav className="hidden lg:flex items-center space-x-1 xl:space-x-2">
             {navItems.map((item) => (
               <div
                 key={item.label}
@@ -161,31 +157,30 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => 
                   onClick={(e) => {
                     if (item.label === 'Pricing') {
                       e.preventDefault();
-                      if (onOpenPricing) {
-                        onOpenPricing();
-                      } else {
-                        window.location.hash = '#pricing';
-                      }
+                      if (onOpenPricing) onOpenPricing();
+                      else window.location.hash = '#pricing';
                     }
                   }}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-2 text-[14px] font-medium transition-colors rounded-none border border-transparent ${activeDropdown === item.label
-                      ? 'text-neutral-950 bg-neutral-100 border-neutral-300'
-                      : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-50 hover:border-neutral-200'
-                    }`}
+                  className={`inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                    activeDropdown === item.label
+                      ? 'text-neutral-950 bg-neutral-100'
+                      : 'text-neutral-600 hover:text-neutral-950 hover:bg-neutral-50'
+                  }`}
                 >
-                  {item.label}
+                  <span>{item.label}</span>
                   {item.hasDropdown && (
                     <ChevronDown
-                      className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-150 ${activeDropdown === item.label ? 'rotate-180 text-neutral-700' : ''
-                        }`}
+                      className={`w-3.5 h-3.5 text-neutral-400 transition-transform duration-150 ${
+                        activeDropdown === item.label ? 'rotate-180 text-neutral-700' : ''
+                      }`}
                     />
                   )}
                 </a>
 
-                {/* Dropdown Menu - Sharp Square Geometry */}
+                {/* Dropdown Popup */}
                 {item.hasDropdown && activeDropdown === item.label && item.dropdownItems && (
-                  <div className="absolute top-full left-0 pt-1 w-80">
-                    <div className="bg-white rounded-none border border-neutral-300 shadow-lg p-2 overflow-hidden">
+                  <div className="absolute top-full left-0 pt-2 w-72 sm:w-80">
+                    <div className="bg-white rounded-xl border border-neutral-200 shadow-xl p-2 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                       <div className="space-y-1">
                         {item.dropdownItems.map((subItem) => {
                           const Icon = subItem.icon;
@@ -193,16 +188,16 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => 
                             <a
                               key={subItem.title}
                               href={subItem.href}
-                              className="group flex items-start gap-3 p-2.5 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 transition-colors"
+                              className="group flex items-start gap-3 p-2.5 rounded-lg hover:bg-neutral-50 transition-colors"
                             >
-                              <div className="p-1.5 rounded-none bg-blue-50 text-blue-600 border border-blue-100 group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 transition-colors shrink-0 mt-0.5">
+                              <div className="p-1.5 rounded-md bg-blue-50 text-[#155EEF] group-hover:bg-[#155EEF] group-hover:text-white transition-colors shrink-0 mt-0.5">
                                 <Icon className="w-4 h-4" />
                               </div>
                               <div>
-                                <div className="text-sm font-semibold text-neutral-900 group-hover:text-blue-600 transition-colors">
+                                <div className="text-xs font-semibold text-neutral-900 group-hover:text-[#155EEF] transition-colors">
                                   {subItem.title}
                                 </div>
-                                <div className="text-xs text-neutral-500 line-clamp-2 mt-0.5 leading-relaxed font-normal">
+                                <div className="text-[11px] text-neutral-500 line-clamp-2 mt-0.5 leading-snug">
                                   {subItem.description}
                                 </div>
                               </div>
@@ -215,143 +210,139 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenPricing }) => 
                 )}
               </div>
             ))}
-          </div>
+          </nav>
 
-          {/* Right Action Buttons - Square UI */}
-          <div className="hidden md:flex items-center gap-3">
+          {/* Right Action Buttons */}
+          <div className="hidden sm:flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-2.5">
+              <div className="flex items-center gap-2">
                 <button
                   onClick={() => onOpenAuth ? onOpenAuth('dashboard') : (window.location.hash = '#dashboard')}
-                  className="group inline-flex items-center justify-center gap-2 px-4 py-2 rounded-none text-xs font-bold uppercase tracking-wider text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 shadow-xs active:translate-y-0.5 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl text-xs font-bold text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] transition-all shadow-xs cursor-pointer"
                 >
                   <LayoutDashboard className="w-3.5 h-3.5" />
-                  <span>Go to Dashboard</span>
-                  <ArrowRight className="w-3.5 h-3.5 transition-transform duration-150 group-hover:translate-x-0.5" />
+                  <span>Dashboard</span>
                 </button>
 
                 <button
                   onClick={() => signOut()}
-                  className="text-[13px] font-semibold text-slate-600 hover:text-red-600 px-3 py-2 rounded-none border border-transparent hover:border-slate-200 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="text-xs font-semibold text-neutral-500 hover:text-red-600 px-2.5 py-2 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
                   title="Sign Out"
                 >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out</span>
+                  <LogOut className="w-4 h-4" />
                 </button>
               </div>
             ) : (
               <>
                 <button
                   onClick={() => onOpenAuth ? onOpenAuth('signin') : (window.location.hash = '#login')}
-                  className="text-[14px] font-medium text-neutral-700 hover:text-neutral-950 px-4 py-2 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
+                  className="text-sm font-medium text-neutral-700 hover:text-neutral-950 px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
                 >
                   Log in
                 </button>
 
                 <button
                   onClick={() => onOpenAuth ? onOpenAuth('signup') : (window.location.hash = '#get-started')}
-                  className="group inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] border border-[#155EEF] transition-all duration-150 hover:shadow-xs active:translate-y-0.5 cursor-pointer"
+                  className="inline-flex items-center justify-center gap-1.5 px-4 py-2 rounded-xl text-sm font-semibold text-white bg-[#222222] hover:bg-black active:bg-neutral-900 transition-all shadow-sm cursor-pointer group"
                 >
-                  <span>Get Started</span>
-                  <ArrowRight className="w-4 h-4 transition-transform duration-150 group-hover:translate-x-1" />
+                  <span>Get started</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-neutral-300 group-hover:translate-x-0.5 transition-transform" />
                 </button>
               </>
             )}
           </div>
 
-          {/* Mobile Menu Button - Square */}
-          <div className="flex md:hidden items-center gap-2">
+          {/* Mobile Menu Button */}
+          <div className="flex lg:hidden items-center gap-2">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-none border border-neutral-200 text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 focus:outline-none"
-              aria-label="Toggle Navigation Menu"
+              className="p-2 rounded-lg text-neutral-700 hover:text-neutral-950 hover:bg-neutral-100 focus:outline-none cursor-pointer"
+              aria-label="Toggle Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
 
         </div>
-      </div>
 
-      {/* Mobile Menu Dropdown - Square UI */}
-      {mobileMenuOpen && (
-        <div className="md:hidden border-b border-neutral-300 bg-white px-4 pt-3 pb-6">
-          <div className="flex flex-col space-y-1">
-            {navItems.map((item) => (
-              <div key={item.label}>
-                <a
-                  href={item.href}
-                  onClick={(e) => {
-                    setMobileMenuOpen(false);
-                    if (item.label === 'Pricing') {
-                      e.preventDefault();
-                      if (onOpenPricing) {
-                        onOpenPricing();
-                      } else {
-                        window.location.hash = '#pricing';
+        {/* Mobile Menu Popup */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden mt-2 bg-white/95 backdrop-blur-md rounded-2xl border border-neutral-200 shadow-xl p-4 animate-in fade-in slide-in-from-top-2 duration-150">
+            <div className="flex flex-col space-y-1">
+              {navItems.map((item) => (
+                <div key={item.label}>
+                  <a
+                    href={item.href}
+                    onClick={(e) => {
+                      setMobileMenuOpen(false);
+                      if (item.label === 'Pricing') {
+                        e.preventDefault();
+                        if (onOpenPricing) onOpenPricing();
+                        else window.location.hash = '#pricing';
                       }
-                    }
-                  }}
-                  className="flex items-center justify-between px-3.5 py-2.5 rounded-none border border-transparent hover:border-neutral-200 hover:bg-neutral-50 text-sm font-medium text-neutral-800 hover:text-blue-600 transition-colors"
-                >
-                  <span>{item.label}</span>
-                  {item.hasDropdown && <ChevronDown className="w-4 h-4 text-neutral-400" />}
-                </a>
-              </div>
-            ))}
-          </div>
+                    }}
+                    className="flex items-center justify-between px-3.5 py-2.5 rounded-lg text-sm font-medium text-neutral-800 hover:text-[#155EEF] hover:bg-neutral-50 transition-colors"
+                  >
+                    <span>{item.label}</span>
+                    {item.hasDropdown && <ChevronDown className="w-4 h-4 text-neutral-400" />}
+                  </a>
+                </div>
+              ))}
+            </div>
 
-          <div className="mt-4 pt-4 border-t border-neutral-200 flex flex-col gap-2.5">
-            {user ? (
-              <>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenAuth) onOpenAuth('dashboard');
-                    else window.location.hash = '#dashboard';
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors cursor-pointer"
-                >
-                  <LayoutDashboard className="w-4 h-4" />
-                  <span>Go to Dashboard</span>
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    signOut();
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-none transition-colors cursor-pointer"
-                >
-                  <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenAuth) onOpenAuth('signin');
-                  }}
-                  className="w-full text-center py-2.5 text-sm font-semibold text-neutral-800 rounded-none border border-neutral-200 hover:bg-neutral-50 transition-colors cursor-pointer"
-                >
-                  Log in
-                </button>
-                <button
-                  onClick={() => {
-                    setMobileMenuOpen(false);
-                    if (onOpenAuth) onOpenAuth('signup');
-                  }}
-                  className="w-full flex items-center justify-center gap-2 py-2.5 rounded-none text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 border border-[#155EEF] transition-colors cursor-pointer"
-                >
-                  <span>Get Started</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-              </>
-            )}
+            <div className="mt-4 pt-3 border-t border-neutral-100 flex flex-col gap-2">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      if (onOpenAuth) onOpenAuth('dashboard');
+                      else window.location.hash = '#dashboard';
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#155EEF] hover:bg-blue-700 transition-colors cursor-pointer"
+                  >
+                    <LayoutDashboard className="w-4 h-4" />
+                    <span>Go to Dashboard</span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      signOut();
+                    }}
+                    className="w-full flex items-center justify-center gap-2 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                  >
+                    <LogOut className="w-3.5 h-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      if (onOpenAuth) onOpenAuth('signin');
+                    }}
+                    className="w-full text-center py-2 text-sm font-medium text-neutral-800 rounded-lg hover:bg-neutral-50 transition-colors cursor-pointer"
+                  >
+                    Log in
+                  </button>
+                  <button
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      if (onOpenAuth) onOpenAuth('signup');
+                    }}
+                    className="w-full flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-semibold text-white bg-[#222222] hover:bg-black transition-colors cursor-pointer"
+                  >
+                    <span>Get started</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </>
+              )}
+            </div>
           </div>
-        </div>
-      )}
-    </nav>
+        )}
+
+      </div>
+    </header>
   );
 };

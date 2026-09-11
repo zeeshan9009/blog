@@ -227,7 +227,7 @@ export const QrCodeHub: React.FC<QrCodeHubProps> = ({
       setGenerationStageText('Stage 3/3: Assembling Vector QR Matrix & Resolving Gateways...');
       setLiveStreamLogs((prev) => [
         `[MATRIX_COMPILER] Vector error correction level 'M' rendered for all units`,
-        `[GATEWAY] Routing active endpoints to https://veripass.id/verify/*`,
+        `[GATEWAY] Routing active endpoints to https://useveripass.com/verify/*`,
         ...prev
       ]);
     }, 1100);
@@ -249,7 +249,7 @@ export const QrCodeHub: React.FC<QrCodeHubProps> = ({
             hashHex += hashSeed.charCodeAt(c).toString(16);
           }
           const passportHash = `0x${hashHex.slice(0, 32).padEnd(32, 'a')}f9e87c${i.toString(16).padStart(4, '0')}`;
-          const verificationUrl = `https://veripass.id/verify/${passportId}`;
+          const verificationUrl = `https://useveripass.com/verify/${passportId}`;
 
           generatedList.push({
             id: `batch-item-${i}-${Date.now()}`,
@@ -283,7 +283,7 @@ export const QrCodeHub: React.FC<QrCodeHubProps> = ({
               hashHex += hashSeed.charCodeAt(c).toString(16);
             }
             const passportHash = `0x${hashHex.slice(0, 32).padEnd(32, 'b')}e7a63c${globalIndex.toString(16).padStart(4, '0')}`;
-            const verificationUrl = `https://veripass.id/verify/${passportId}`;
+            const verificationUrl = `https://useveripass.com/verify/${passportId}`;
 
             generatedList.push({
               id: `batch-item-${globalIndex}-${Date.now()}`,
@@ -1042,7 +1042,7 @@ export const QrCodeHub: React.FC<QrCodeHubProps> = ({
                   </div>
                   <div className="flex justify-between">
                     <span className="text-slate-500">Verification Gateway:</span>
-                    <span className="text-slate-700 font-bold">https://veripass.id/verify/*</span>
+                    <span className="text-slate-700 font-bold">https://useveripass.com/verify/*</span>
                   </div>
                 </div>
               </div>
@@ -1308,7 +1308,7 @@ export const QrCodeHub: React.FC<QrCodeHubProps> = ({
                   <div className="my-4 flex items-center justify-center p-3 bg-slate-50 border border-slate-100">
                     <QRCodeSVG
                       id={`qr-svg-${product.id}`}
-                      value={product.qrCodeUrl || `https://veripass.id/verify/${product.id}`}
+                      value={product.qrCodeUrl || `https://useveripass.com/verify/${product.id}`}
                       size={130}
                       fgColor={qrConfig.fgColor}
                       bgColor={qrConfig.bgColor}
@@ -1327,7 +1327,7 @@ export const QrCodeHub: React.FC<QrCodeHubProps> = ({
                         <span>Inspect</span>
                       </button>
                       <button
-                        onClick={() => handleCopy(product.qrCodeUrl || `https://veripass.id/verify/${product.id}`, product.id)}
+                        onClick={() => handleCopy(product.qrCodeUrl || `https://useveripass.com/verify/${product.id}`, product.id)}
                         className="p-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-[11px] cursor-pointer rounded-none border border-slate-200"
                         title="Copy Verification Link"
                       >

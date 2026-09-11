@@ -8,6 +8,10 @@ import { QrCodeHub } from './QrCodeHub';
 import { ProductsView } from './ProductsView';
 import { CertificatesView } from './CertificatesView';
 import { CustomersView } from './CustomersView';
+import { WarrantyView } from './WarrantyView';
+import { FraudIncidentsView } from './FraudIncidentsView';
+import { DeveloperPortalView } from './DeveloperPortalView';
+import { TeamManagementView } from './TeamManagementView';
 import { AnalyticsView } from './AnalyticsView';
 import { LogsView } from './LogsView';
 import { SettingsView, EnterpriseSettings } from './SettingsView';
@@ -60,11 +64,15 @@ import {
   Copy,
   CheckCheck,
   Download,
-  Filter
+  Filter,
+  Wrench,
+  Building2,
+  Code2
 } from 'lucide-react';
 
 interface DashboardPageProps {
   onBackToHome?: () => void;
+  onOpenPublicPassport?: (productId: string) => void;
   initialCategory?: string;
 }
 
@@ -137,10 +145,10 @@ const businessCategories: Record<string, BusinessData> = {
   }
 };
 
-export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, initialCategory = 'jewelry' }) => {
+export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, onOpenPublicPassport, initialCategory = 'jewelry' }) => {
   const { user, profile, signOut } = useAuth();
   const [currentCategoryKey, setCurrentCategoryKey] = useState<string>(initialCategory);
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'add-product' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'analytics' | 'logs' | 'settings'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'products' | 'add-product' | 'qrcodes' | 'certificates' | 'customers' | 'ownership' | 'warranty' | 'fraud' | 'developer' | 'team' | 'analytics' | 'logs' | 'settings'>('dashboard');
   const [timeRange, setTimeRange] = useState<'24h' | '7d' | '30d' | '90d' | 'all'>('30d');
   const [searchQuery, setSearchQuery] = useState('');
   const [isOrgDropdownOpen, setIsOrgDropdownOpen] = useState(false);
@@ -270,7 +278,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             status: d.status || 'verified',
             passportHash: d.passport_hash || '0x000',
             verificationCount: d.verification_count || 0,
-            qrCodeUrl: d.qr_code_url || `https://veripass.id/verify/${d.id}`,
+            qrCodeUrl: d.qr_code_url || `https://useveripass.com/verify/${d.id}`,
             createdAt: d.created_at || new Date().toISOString().split('T')[0],
           }));
           setProducts(mapped);
@@ -515,7 +523,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
   const displayName = profile?.fullName || user?.user_metadata?.full_name || 'Admin User';
   const displayCompany = settings.brandName.trim() || profile?.companyName || user?.user_metadata?.company_name || currentBusiness.companyName;
   const displayCompanyId = profile?.companyId || user?.user_metadata?.company_id || currentBusiness.companyId;
-  const displayEmail = settings.contactEmail.trim() || profile?.email || user?.email || 'admin@veripass.id';
+  const displayEmail = settings.contactEmail.trim() || profile?.email || user?.email || 'admin@useveripass.com';
   const userInitials = displayName
     .split(' ')
     .filter(Boolean)
@@ -542,6 +550,10 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
     { id: 'certificates', label: 'Certificates', icon: FileCheck2, count: certificatesCount },
     { id: 'customers', label: 'Customers', icon: Users, count: customersCount },
     { id: 'ownership', label: 'Ownership Transfer', icon: UserCheck },
+    { id: 'warranty', label: 'Warranty & Claims', icon: Wrench },
+    { id: 'fraud', label: 'Threat & Fraud Alerts', icon: ShieldAlert, badge: 'Active' },
+    { id: 'developer', label: 'API & Webhooks', icon: Code2 },
+    { id: 'team', label: 'Organization & Team', icon: Building2 },
     { id: 'analytics', label: 'Analytics', icon: BarChart3 },
     { id: 'logs', label: 'Security Logs', icon: ScrollText },
     { id: 'settings', label: 'Settings', icon: Settings },
@@ -932,20 +944,54 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
             />
           )}
 
+          {/* TAB: WARRANTY & SERVICE CLAIMS */}
+          {activeTab === 'warranty' && (
+            <WarrantyView
+              onInspectProduct={(id) => {
+                const prod = products.find((p) => p.id === id);
+                if (prod) setSelectedPassportProduct(prod);
+              }}
+            />
+          )}
+
+          {/* TAB: THREAT & FRAUD ALERTS */}
+          {activeTab === 'fraud' && (
+            <FraudIncidentsView />
+          )}
+
+          {/* TAB: API & DEVELOPER PORTAL */}
+          {activeTab === 'developer' && (
+            <DeveloperPortalView />
+          )}
+
+          {/* TAB: ORGANIZATION & MULTI-BRANCH TEAM */}
+          {activeTab === 'team' && (
+            <TeamManagementView />
+          )}
+
           {/* TAB 6: DASHBOARD MAIN OVERVIEW */}
           {activeTab === 'dashboard' && (
             <>
               {/* ========================================================= */}
-              {/* EXECUTIVE COMMAND HERO BAR (SQUARE HIGH-TECH STYLE) */}
+              {/* EXECUTIVE COMMAND HERO BAR (WITH VIVID HERO.JPEG BACKGROUND) */}
               {/* ========================================================= */}
-              <div className="relative overflow-hidden bg-slate-950 border border-slate-800 rounded-none p-6 sm:p-7 text-white shadow-lg">
+              <div className="relative overflow-hidden bg-sky-600 border border-sky-400/30 rounded-2xl p-6 sm:p-8 text-white shadow-2xl">
                 
-                {/* Square Background Geometric Grid Accent */}
+                {/* Hero Background Image from public/hero.jpeg - Full Vibrancy */}
                 <div 
-                  className="absolute inset-0 pointer-events-none opacity-10 select-none"
+                  className="absolute inset-0 bg-cover bg-center bg-no-repeat pointer-events-none"
+                  style={{ backgroundImage: "url('/hero.jpeg')" }}
+                >
+                  {/* Subtle soft gradient overlay so clouds, sky, and buildings show clearly */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/40 to-slate-950/60" />
+                </div>
+
+                {/* Subtle Grid Accent */}
+                <div 
+                  className="absolute inset-0 pointer-events-none opacity-20 select-none"
                   style={{
                     backgroundImage: 'linear-gradient(to right, #ffffff 1px, transparent 1px), linear-gradient(to bottom, #ffffff 1px, transparent 1px)',
-                    backgroundSize: '24px 24px'
+                    backgroundSize: '28px 28px'
                   }}
                 />
 
@@ -954,19 +1000,19 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                   {/* Left Greeting & Organization Status */}
                   <div className="text-left max-w-xl">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-none text-[10px] font-mono font-bold bg-[#155EEF]/20 text-[#53B1FD] border border-[#155EEF]/40">
-                        <span className="w-1.5 h-1.5 rounded-none bg-[#53B1FD] animate-pulse" />
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-neutral-950/80 text-[#65F09D] border border-white/20 backdrop-blur-md">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#65F09D] animate-pulse" />
                         VAULT ONLINE
                       </span>
-                      <span className="text-[10px] font-mono text-slate-400">
+                      <span className="text-[11px] font-mono text-white/90 font-medium drop-shadow-sm">
                         {displayCompany} • ID: {displayCompanyId}
                       </span>
                     </div>
 
-                    <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight leading-tight">
+                    <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white tracking-tight leading-tight drop-shadow-md">
                       Welcome back, {displayName.split(' ')[0]} 👋
                     </h1>
-                    <p className="text-xs sm:text-[13px] text-slate-300 font-normal mt-1 leading-relaxed">
+                    <p className="text-xs sm:text-sm text-white/95 font-medium mt-1.5 leading-relaxed drop-shadow-sm">
                       Real-time cryptographic passport infrastructure, digital asset twin custody, and tamper-proof verification ledger.
                     </p>
 
@@ -974,7 +1020,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                     <div className="flex flex-wrap items-center gap-2 mt-4 pt-1">
                       <button
                         onClick={() => setActiveTab('add-product')}
-                        className="px-3.5 py-1.5 bg-[#155EEF] hover:bg-[#124bbf] text-white font-bold text-xs rounded-none flex items-center gap-1.5 shadow-xs transition-colors cursor-pointer"
+                        className="px-4 py-2 bg-[#155EEF] hover:bg-[#124bbf] active:bg-[#0f3ea3] text-white font-bold text-xs rounded-xl flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
                       >
                         <Plus className="w-3.5 h-3.5" />
                         <span>Issue Passport</span>
@@ -982,7 +1028,7 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                       <button
                         onClick={() => setActiveTab('qrcodes')}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-neutral-950/80 hover:bg-neutral-950 border border-white/20 text-white font-semibold text-xs rounded-xl flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-md"
                       >
                         <QrCode className="w-3.5 h-3.5 text-[#53B1FD]" />
                         <span>QR Studio</span>
@@ -990,17 +1036,17 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                       <button
                         onClick={() => setActiveTab('certificates')}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-neutral-950/80 hover:bg-neutral-950 border border-white/20 text-white font-semibold text-xs rounded-xl flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-md"
                       >
-                        <FileCheck2 className="w-3.5 h-3.5 text-emerald-400" />
+                        <FileCheck2 className="w-3.5 h-3.5 text-[#65F09D]" />
                         <span>Issue Certificate</span>
                       </button>
 
                       <button
                         onClick={() => setActiveTab('logs')}
-                        className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs rounded-none flex items-center gap-1.5 transition-colors cursor-pointer"
+                        className="px-3.5 py-2 bg-neutral-950/80 hover:bg-neutral-950 border border-white/20 text-white font-semibold text-xs rounded-xl flex items-center gap-1.5 backdrop-blur-md transition-all cursor-pointer shadow-md"
                       >
-                        <ScrollText className="w-3.5 h-3.5 text-amber-400" />
+                        <ScrollText className="w-3.5 h-3.5 text-amber-300" />
                         <span>Security Logs</span>
                       </button>
                     </div>
@@ -1008,18 +1054,18 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
 
                   {/* Right Holographic Live Telemetry Badge */}
                   <div className="flex items-center gap-3">
-                    <div className="bg-slate-900 border border-slate-800 p-4 rounded-none min-w-[240px] text-left">
-                      <div className="flex items-center justify-between text-[10.5px] font-mono text-slate-400 mb-2">
+                    <div className="bg-neutral-950/80 backdrop-blur-md border border-white/20 p-4 rounded-2xl min-w-[240px] text-left shadow-xl">
+                      <div className="flex items-center justify-between text-[10.5px] font-mono text-white/80 mb-2">
                         <span className="flex items-center gap-1">
                           <Cpu className="w-3.5 h-3.5 text-[#53B1FD]" />
                           Security Score
                         </span>
-                        <span className="text-emerald-400 font-bold">100% SECURE</span>
+                        <span className="text-[#65F09D] font-bold">100% SECURE</span>
                       </div>
-                      <div className="w-full bg-slate-800 h-2 rounded-none overflow-hidden mb-2">
-                        <div className="bg-[#155EEF] h-full w-full rounded-none" />
+                      <div className="w-full bg-white/15 h-2 rounded-full overflow-hidden mb-2">
+                        <div className="bg-[#155EEF] h-full w-full rounded-full" />
                       </div>
-                      <div className="flex items-center justify-between text-[10px] font-mono text-slate-400">
+                      <div className="flex items-center justify-between text-[10px] font-mono text-white/75">
                         <span>Quantum Guard: Active</span>
                         <span className="text-[#53B1FD] font-semibold">{totalProductsCount} Assets</span>
                       </div>
@@ -1357,13 +1403,22 @@ export const DashboardPage: React.FC<DashboardPageProps> = ({ onBackToHome, init
                                 </span>
                               </td>
                               <td className="py-3 text-right">
-                                <button
-                                  onClick={() => setSelectedPassportProduct(prod)}
-                                  className="text-slate-400 hover:text-[#155EEF] p-1 rounded-none hover:bg-blue-50 transition-colors cursor-pointer"
-                                  title="Inspect Digital Passport"
-                                >
-                                  <Eye className="w-4 h-4" />
-                                </button>
+                                <div className="flex items-center justify-end gap-1">
+                                  <button
+                                    onClick={() => onOpenPublicPassport ? onOpenPublicPassport(prod.id) : window.location.hash = `#p/${prod.id}`}
+                                    className="text-slate-400 hover:text-emerald-600 p-1 rounded-none hover:bg-emerald-50 transition-colors cursor-pointer"
+                                    title="Open Customer Public Passport View"
+                                  >
+                                    <ExternalLink className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => setSelectedPassportProduct(prod)}
+                                    className="text-slate-400 hover:text-[#155EEF] p-1 rounded-none hover:bg-blue-50 transition-colors cursor-pointer"
+                                    title="Inspect Digital Passport Modal"
+                                  >
+                                    <Eye className="w-4 h-4" />
+                                  </button>
+                                </div>
                               </td>
                             </tr>
                           ))}

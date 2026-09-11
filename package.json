@@ -14,6 +14,7 @@
     "@tailwindcss/vite": "^4.2.4",
     "clsx": "^2.1.1",
     "d3-scale": "^4.0.2",
+    "framer-motion": "^13.2.0",
     "lucide-react": "^1.14.0",
     "qrcode.react": "^4.2.0",
     "react": "^19.2.5",

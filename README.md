@@ -9,7 +9,7 @@ VeriPass is an enterprise-grade digital passport and product authenticity platfo
 ## 🌟 Key Platform Features
 
 - **Digital Product Passports:** Immutable digital records containing specs, provenance, warranty, ownership history, and certification.
-- **One URL Architecture:** Instant zero-app scanning via smart QR codes and NFC chips (`veripass.com/p/{ID}`).
+- **One URL Architecture:** Instant zero-app scanning via smart QR codes and NFC chips (`useveripass.com/p/{ID}`).
 - **Global Reach & Real-Time Tracking:** Interactive global scan analytics, country breakdown, and suspicious activity detection.
 - **Developer Infrastructure:** RESTful APIs, webhooks, and comprehensive SDKs to generate passports and issue digital IDs in milliseconds (`POST /v1/products`).
 - **Multi-Step Enterprise Onboarding:** Streamlined onboarding wizard with organization profiling, industry classification, and 256-bit encryption.

@@ -10,23 +10,23 @@ interface ProductUrlItem {
 const productUrls: ProductUrlItem[] = [
   {
     id: '1',
-    url: 'veripass.com/p/8F4K29',
+    url: 'useveripass.com/p/8F4K29',
     name: 'Diamond Ring'
   },
   {
     id: '2',
-    url: 'veripass.com/p/GOLD-9921',
+    url: 'useveripass.com/p/GOLD-9921',
     name: 'Gold Necklace'
   },
   {
     id: '3',
-    url: 'veripass.com/p/ROLEX-X81',
+    url: 'useveripass.com/p/ROLEX-X81',
     name: 'Luxury Watch'
   }
 ];
 
 export const OneUrl: React.FC = () => {
-  const [activeUrl, setActiveUrl] = useState<string>('veripass.com/p/8F4K29');
+  const [activeUrl, setActiveUrl] = useState<string>('useveripass.com/p/8F4K29');
 
   return (
     <section className="relative w-full overflow-hidden bg-white py-6 sm:py-8 border-b border-neutral-200">
