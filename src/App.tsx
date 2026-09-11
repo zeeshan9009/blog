@@ -3,9 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
 import { BrandTicker } from './components/BrandTicker';
-import { AlternatingFeatures } from './components/AlternatingFeatures';
-import { SecuritySection } from './components/SecuritySection';
-import { CtaBanner } from './components/CtaBanner';
 import { Footer } from './components/Footer';
 import { AuthPage } from './components/AuthPage';
 import { DashboardPage } from './components/DashboardPage';
@@ -159,16 +156,7 @@ function MainApp() {
         {/* 2. Enterprise Brand Logo Ticker */}
         <BrandTicker />
 
-        {/* 3. Alternating 6 Story Feature Cards */}
-        <AlternatingFeatures />
-
-        {/* 4. Enterprise Ready Certified & Secure Dark Container */}
-        <SecuritySection />
-
-        {/* 5. Pre-Footer "Ready to get started?" Action Box */}
-        <CtaBanner onOpenAuth={handleOpenAuth} />
-
-        {/* 6. Footer (Logo SVG + Horizontal Links + Giant VERIPASS Text) */}
+        {/* 3. Footer (Logo SVG + Horizontal Links + Giant VERIPASS Text) */}
         <Footer />
       </main>
     </div>
